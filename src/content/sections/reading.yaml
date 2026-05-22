@@ -1,9 +1,9 @@
-slug: "reading"
-label: "喜欢的文章"
-shortLabel: "文章"
-intro: "TODO: 写喜欢的文章栏目简介。"
-subtitle: "于是我们抖擞精神，奋发向前，却如逆水行舟，被不断推回往昔岁月"
-background: "reading.png"
+slug: reading
+label: 喜欢的文章
+shortLabel: 文章
+intro: 更多是推文，以新怪谈为主
+subtitle: 于是我们抖擞精神，奋发向前，却如逆水行舟，被不断推回往昔岁月
+background: reading.png
 order: 4
-theme: "reading"
-navKicker: "喜欢的文章"
+theme: reading
+navKicker: 喜欢的文章
