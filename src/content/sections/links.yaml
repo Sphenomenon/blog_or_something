@@ -1,9 +1,9 @@
-slug: "links"
-label: "友链"
-shortLabel: "友链"
-intro: "TODO: 写友链栏目简介。"
-subtitle: "孩子兴奋地跑向太阳，它第一次见到如此明亮的事物。直到筋疲力竭，它才发现紧握的手中不知何时空无一物"
-background: "links.png"
+slug: links
+label: 友链
+shortLabel: 友链
+intro: 三千大世界
+subtitle: 孩子兴奋地跑向太阳，它第一次见到如此明亮的事物。直到筋疲力竭，它才发现紧握的手中不知何时空无一物
+background: links.png
 order: 6
-theme: "links"
-navKicker: "友链"
+theme: links
+navKicker: 友链
