@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import greetingBackground from "../../backgrounds/greeting.png";
+
 import { greeting } from "../data/yaml-loader.js";
 
 const DEBOUNCE_MS = 260;
@@ -101,7 +101,7 @@ export function GreetingGate({ onEnterHome }) {
       aria-labelledby="greeting-title"
       tabIndex={0}
       autoFocus
-      style={{ "--greeting-background": `url(${greetingBackground})` }}
+      style={{ "--greeting-background": "url(/images/optimized/greeting.webp)" }}
       onKeyDown={handleKeyDown}
       onWheel={handleWheel}
     >

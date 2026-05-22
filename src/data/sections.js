@@ -2,7 +2,7 @@ import { sections as yamlSections } from "./yaml-loader.js";
 
 const sections = yamlSections.map((sec) => ({
   ...sec,
-  background: new URL(`../../backgrounds/${sec.background}`, import.meta.url).href,
+  background: `/images/optimized/${sec.background.replace(/\.(png|jpg|jpeg)$/i, '.webp')}`,
 }));
 
 const sectionsBySlug = new Map(sections.map((section) => [section.slug, section]));
