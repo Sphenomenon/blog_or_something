@@ -1,0 +1,25 @@
+{
+  "name": "nocturne-archive-blog",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "build": "npm run optimize-images && vite build",
+    "preview": "vite preview",
+    "verify:visual": "node scripts/verify-visual.mjs"
+  },
+  "dependencies": {
+    "@waline/client": "^3.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-yaml": "^4.1.2",
+    "js-yaml": "^4.1.1",
+    "playwright": "^1.60.0",
+    "sharp": "^0.34.5",
+    "vite": "^5.4.10"
+  }
+}

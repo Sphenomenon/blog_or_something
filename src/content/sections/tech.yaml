@@ -1,0 +1,9 @@
+slug: "tech"
+label: "技术/瞎折腾"
+shortLabel: "技术"
+intro: "TODO: 写技术/瞎折腾栏目简介。"
+subtitle: ""
+background: "tech.png"
+order: 1
+theme: "tech"
+navKicker: "技术/瞎折腾"

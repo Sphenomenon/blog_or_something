@@ -1,0 +1,9 @@
+slug: "diary"
+label: "日记"
+shortLabel: "日记"
+intro: "TODO: 写日记栏目简介。"
+subtitle: "……你知道这世上没有万灵药"
+background: "diary.png"
+order: 3
+theme: "diary"
+navKicker: "日记"

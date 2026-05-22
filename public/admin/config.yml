@@ -1,0 +1,138 @@
+locale: 'zh_Hans'
+
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+collections:
+  - name: blog
+    label: Blog
+    folder: src/content/posts
+    create: true
+    slug: '{{slug}}'
+    identifier_field: slug
+    format: frontmatter
+    extension: md
+    fields:
+      - { name: id, label: ID, widget: string }
+      - { name: slug, label: Slug, widget: string }
+      - { name: title, label: Title, widget: string }
+      - { name: excerpt, label: Excerpt, widget: text }
+      - { name: date, label: Date, widget: datetime, date_only: true, format: YYYY-MM-DD }
+      - { name: section, label: Section, widget: select, options: [tech, essay, diary, reading, travel, links] }
+      - { name: status, label: Status, widget: select, options: [published, draft] }
+      - { name: reading, label: Reading Time, widget: string }
+      - { name: tags, label: Tags, widget: list, field: { name: tag, label: Tag, widget: string } }
+      - { name: category, label: Category, widget: string, required: false }
+      - { name: sections, label: Sections, widget: list, field: { name: section, label: Section, widget: string }, required: false }
+      - { name: body, label: Body, widget: markdown }
+
+  - name: "sections"
+    label: "分区"
+    label_singular: "分区"
+    folder: "src/content/sections"
+    create: false
+    format: yaml
+    extension: yaml
+    fields:
+      - { name: slug, label: "标识符", widget: string }
+      - { name: label, label: "名字", widget: string }
+      - { name: shortLabel, label: "短名", widget: string }
+      - { name: intro, label: "简介", widget: text }
+      - { name: subtitle, label: "副标题", widget: string, required: false }
+      - { name: background, label: "背景图", widget: string }
+      - { name: order, label: "排序", widget: number }
+      - { name: theme, label: "主题", widget: string }
+      - { name: navKicker, label: "导航标识", widget: string }
+
+  - name: "site_config"
+    label: "站点配置"
+    files:
+      - name: "site_config"
+        label: "站点配置"
+        file: "src/content/site.yaml"
+        fields:
+          # site info
+          - { name: site_title, label: "站点标题", widget: string }
+          - { name: site_description, label: "站点描述", widget: text }
+          # brand
+          - { name: brand_name, label: "品牌名", widget: string }
+          - { name: brand_kicker, label: "品牌副标题", widget: string }
+          # header
+          - { name: header_subtitle, label: "页头副标题", widget: string }
+          - { name: search_label, label: "搜索标签", widget: string }
+          - { name: search_placeholder, label: "搜索占位符", widget: string }
+          - { name: nav_archive_label, label: "导航归档标签", widget: string }
+          - { name: nav_about_label, label: "导航关于标签", widget: string }
+          # home page
+          - { name: home_hero_marker, label: "首页英雄标记", widget: string }
+          - { name: home_hero_code, label: "首页英雄代码", widget: string }
+          - { name: home_hero_title, label: "首页英雄标题", widget: string }
+          - { name: home_hero_body, label: "首页英雄正文", widget: text }
+          - { name: home_sidebar_categories_label, label: "首页侧边栏分类标签", widget: string }
+          - { name: home_sidebar_terminal_label, label: "首页侧边栏终端标签", widget: string }
+          - { name: home_sidebar_status, label: "首页侧边栏状态", widget: string }
+          - { name: home_sidebar_sync, label: "首页侧边栏同步", widget: string }
+          - { name: home_sidebar_integrity, label: "首页侧边栏完整性", widget: string }
+          - { name: home_grid_title, label: "首页网格标题", widget: string }
+          # archive page
+          - { name: archive_code_header, label: "归档代码头", widget: string }
+          - { name: archive_page_title, label: "归档页标题", widget: string }
+          - { name: archive_lead_text, label: "归档引导文本", widget: text }
+          # error page
+          - { name: error_404_title, label: "404标题", widget: string }
+          - { name: error_404_body, label: "404正文", widget: text }
+          - { name: error_404_button, label: "404按钮", widget: string }
+
+  - name: "greeting"
+    label: "问候语"
+    files:
+      - name: "greeting"
+        label: "问候语"
+        file: "src/content/greeting.yaml"
+        fields:
+          - { name: greeting_title, label: "问候标题", widget: string }
+          - { name: greeting_kicker, label: "问候标识", widget: string }
+          - { name: greeting_background, label: "问候背景图", widget: string }
+          - name: panels
+            label: "面板"
+            widget: list
+            fields:
+              - { name: id, label: "ID", widget: string }
+              - { name: title, label: "标题", widget: string }
+              - { name: body, label: "正文", widget: text }
+
+  - name: "about"
+    label: "关于"
+    files:
+      - name: "about"
+        label: "关于"
+        file: "src/content/about.yaml"
+        fields:
+          - { name: code_header, label: "代码头", widget: string }
+          - { name: page_title, label: "页面标题", widget: string }
+          - { name: lead_text, label: "引导文本", widget: text }
+          - { name: body_text, label: "正文", widget: text }
+          - name: design_system
+            label: "设计系统"
+            widget: list
+            fields:
+              - { name: term, label: "术语", widget: string }
+              - { name: description, label: "描述", widget: string }
+
+  - name: "music_config"
+    label: "音乐配置"
+    files:
+      - name: "music_config"
+        label: "音乐配置"
+        file: "src/content/music.yaml"
+        fields:
+          - { name: provider, label: "提供商", widget: string }
+          - { name: playlist_id, label: "歌单ID", widget: string, required: false }
+          - { name: embed_url, label: "嵌入URL", widget: string, required: false }
+          - { name: title, label: "标题", widget: string }
+          - { name: description, label: "描述", widget: text }
+          - { name: autoplay, label: "自动播放", widget: boolean }

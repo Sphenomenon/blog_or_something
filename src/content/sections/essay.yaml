@@ -1,0 +1,9 @@
+slug: "essay"
+label: "随笔"
+shortLabel: "随笔"
+intro: "TODO: 写随笔栏目简介。"
+subtitle: "兑上零散花瓣，削入几块冰，醇而不辛，甘洌醉人"
+background: "essay.png"
+order: 2
+theme: "essay"
+navKicker: "随笔"

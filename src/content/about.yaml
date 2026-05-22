@@ -1,0 +1,11 @@
+code_header: "MANIFEST / DESIGN SYSTEM"
+page_title: "关于这座档案馆"
+lead_text: "这是一个以长期写作为目标的私人档案系统。它更像一张制度卡：说明用途、边界和它愿意容纳的内容。"
+body_text: "这是一个为长期写作准备的私人档案系统：它接受技术文章、随笔、梦境记录、世界观设定、研究笔记和文学碎片。"
+design_system:
+  - term: "Dreamers"
+    description: "微光、书卷、神秘感。"
+  - term: "5K"
+    description: "制度化信息组织、清晰编号、可信布局。"
+  - term: "Petrifaction"
+    description: "灰阶、石粉、废墟边界与停滞感。"

@@ -1,0 +1,9 @@
+slug: "travel"
+label: "游记"
+shortLabel: "游记"
+intro: "TODO: 写游记栏目简介。"
+subtitle: "那纵横八千九百千米的安第斯山脉不仅会忠实地记住一切，也足够雄伟到能够将一切的罪恶藏于其中"
+background: "travel.jpg"
+order: 5
+theme: "travel"
+navKicker: "游记"
