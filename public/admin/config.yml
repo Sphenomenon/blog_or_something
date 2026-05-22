@@ -1,8 +1,10 @@
 locale: zh_Hans
 
 backend:
-  name: git-gateway
+  name: github
+  repo: Sphenomenon/blog_or_something
   branch: main
+  base_url: https://api.decapcms.org
 
 media_folder: public/images/uploads
 public_folder: /images/uploads
