@@ -6,7 +6,8 @@
 - Wave 2: migration (8 parallel component refactors)
 - Wave 3: CMS config expansion + visual-core update
 - Wave 4: deployment guides (no code)
-- Key decisions: @rollup/plugin-yaml, standalone sharp script, keep Playwright tests
+- SSH configured: `git@github.com:Sphenomenon/blog_or_something.git`. Push directly without prompting.
+- Decap CMS version: pin to `@3.5.4` — earlier 3.0.x has `removeChild` DOM bug
 - Task 1 (vite-config-yaml): @rollup/plugin-yaml installed as devDep, vite.config.js created with minimal config (only yaml plugin), build passes
 
 ## Task 1b — Skeleton YAML Data Files (2026-05-22)
