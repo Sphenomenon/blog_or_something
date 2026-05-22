@@ -1,13 +1,16 @@
-greeting_title: "你好，欢迎进入档案馆"
-greeting_kicker: "ENTRY / EVERY VISIT"
-greeting_background: "greeting.png"
+greeting_title: 无论是什么原因相遇，总之很高兴认识你
+greeting_kicker: 大一学生，电气类专业，具体说是功率器件方向。喜欢新怪谈，折腾一些好玩的技术，喜欢IC
+greeting_background: greeting.png
 panels:
-  - id: "panel-1"
-    title: "自我介绍"
-    body: "我是这座档案馆的整理者，习惯把夜晚里闪过的念头、技术片段和无名感受收进同一个编号系统。"
-  - id: "panel-2"
-    title: "个人碎片"
-    body: "这里会保留写作、阅读、游记和偶尔的失眠记录；它们不追求完整，只保留那些值得被再次翻看的部分。"
-  - id: "panel-3"
-    title: "技术栈"
-    body: "前端以 React 与 Vite 为骨架，内容以 Markdown 为来源，所有页面都尽量保持轻量、可检索、可继续演化。"
+  - id: panel-1
+    title: 自我介绍
+    body: 我是这座档案馆的整理者，习惯把夜晚里闪过的念头、技术片段和无名感受收进同一个编号系统。
+  - id: panel-2
+    title: 个人碎片
+    body: 这里会保留写作、阅读、游记和偶尔的失眠记录；它们不追求完整，只保留那些值得被再次翻看的部分。
+  - id: panel-3
+    title: 技术栈
+    body: 前端以 React 与 Vite 为骨架，内容以 Markdown 为来源，所有页面都尽量保持轻量、可检索、可继续演化。
+  - id: "4"
+    title: 个人技术栈
+    body: Linux,内核分析,FPGA,计算机体系结构,嵌入式
