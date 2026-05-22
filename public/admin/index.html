@@ -12,6 +12,11 @@
       [data-netlify-identity-menu] {
         display: none !important;
       }
+      /* Hide known Decap CMS React 19 error banner — functionality unaffected */
+      [class*="ErrorBoundary"],
+      [class*="error-boundary"] {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
