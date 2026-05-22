@@ -1,1 +1,4 @@
+# Admin routes - serve directly, don't redirect to SPA
+/admin/* /admin/index.html 200
+# SPA catch-all
 /* /index.html 200
