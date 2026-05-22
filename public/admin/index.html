@@ -19,12 +19,16 @@
               document.location.href = "/admin/";
             });
           }
+          window.netlifyIdentity.on("logout", function () {
+            document.location.reload();
+          });
+          // Init CMS only after identity widget is fully initialized
+          CMS.init();
         });
-        window.netlifyIdentity.on("logout", function () {
-          document.location.reload();
-        });
+      } else {
+        // No identity widget (local dev) — init CMS directly
+        CMS.init();
       }
-      CMS.init();
     </script>
   </body>
 </html>
