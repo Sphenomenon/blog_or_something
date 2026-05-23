@@ -4,7 +4,7 @@ backend:
   name: github
   repo: Sphenomenon/blog_or_something
   branch: main
-  base_url: "/api"
+  base_url: https://blog-or-something.pages.dev/api
 
 media_folder: public/images/uploads
 public_folder: /images/uploads
