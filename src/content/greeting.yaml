@@ -4,11 +4,15 @@ greeting_background: greeting.png
 panels:
   - id: panel-1
     title: 自我介绍
-    body: 大一学生，电气类专业，具体说是功率器件方向。喜欢新怪谈，折腾一些好玩的技术，喜欢IC
-    avatar: "/images/avatar.jpg"
+    body: |-
+      大一学生，电气类专业，具体说是功率器件方向。喜欢新怪谈，折腾一些好玩的技术，喜欢IC
+      头像为伊卡洛斯的陨落，全网通用
+    avatar: /images/avatar.jpg
   - id: panel-2
     title: 个人碎片
-    body: 这里会保留写作、阅读、游记和偶尔的失眠记录；它们不追求完整，只保留那些值得被再次翻看的部分。
+    body: 这里会保留写作、阅读、游记和偶尔的失眠记录；
+    avatar: ''
   - id: '3'
     title: 个人技术栈
     body: Linux,内核分析,FPGA,计算机体系结构,嵌入式
+    avatar: ''
