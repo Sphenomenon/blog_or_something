@@ -659,6 +659,19 @@ body::after {
   background: rgb(179 154 99 / 0.1);
 }
 
+.greeting-gate__avatar {
+  margin-bottom: 1.25rem;
+}
+
+.greeting-gate__avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 20px rgba(179, 154, 99, 0.15);
+}
+
 .greeting-gate__entry-copy {
   min-width: 0;
 }

@@ -131,6 +131,11 @@ export function GreetingGate({ onEnterHome }) {
                   <span>{String(index + 1).padStart(2, "0")}</span>
                 </div>
                 <div className="greeting-gate__entry-copy">
+                  {panel.avatar && (
+                    <div className="greeting-gate__avatar">
+                      <img src={panel.avatar} alt="" loading="eager" />
+                    </div>
+                  )}
                   <h2>{panel.title}</h2>
                   <p>{panel.body}</p>
                 </div>

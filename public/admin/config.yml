@@ -106,6 +106,7 @@ collections:
               - { name: id, label: "ID", widget: string }
               - { name: title, label: "标题", widget: string }
               - { name: body, label: "正文", widget: text }
+              - { name: avatar, label: "头像路径", widget: string, required: false }
 
   - name: "about"
     label: "关于"
