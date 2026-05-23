@@ -30,7 +30,7 @@ collections:
       - { name: tags, label: Tags, widget: list, field: { name: tag, label: Tag, widget: string } }
       - { name: category, label: Category, widget: string, required: false }
       - { name: sections, label: Sections, widget: list, field: { name: section, label: Section, widget: string }, required: false }
-      - { name: body, label: Body, widget: markdown }
+      - { name: body, label: Body (纯文本), widget: text }
 
   - name: "sections"
     label: "分区"
