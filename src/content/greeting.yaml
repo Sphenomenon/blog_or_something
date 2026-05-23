@@ -8,9 +8,6 @@ panels:
   - id: panel-2
     title: 个人碎片
     body: 这里会保留写作、阅读、游记和偶尔的失眠记录；它们不追求完整，只保留那些值得被再次翻看的部分。
-  - id: panel-3
-    title: 技术栈
-    body: 前端以 React 与 Vite 为骨架，内容以 Markdown 为来源，所有页面都尽量保持轻量、可检索、可继续演化。
-  - id: "4"
+  - id: '3'
     title: 个人技术栈
     body: Linux,内核分析,FPGA,计算机体系结构,嵌入式
