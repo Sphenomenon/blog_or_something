@@ -1,10 +1,14 @@
 /**
- * Cloudflare Pages Function: GET /api/auth/callback
+ * Cloudflare Pages Function: GET /api/callback
  *
  * After the user authorises on GitHub, GitHub redirects here with a `code`
  * query parameter.  This function exchanges that code for an access token
- * and returns an HTML page that posts the token back to the Decap CMS
- * window via `window.opener.postMessage`.
+ * via GitHub's OAuth token endpoint (server-side, using CLIENT_SECRET) and
+ * returns an HTML page that posts the token back to the CMS (Decap CMS or
+ * Sveltia CMS) window via `window.opener.postMessage`.
+ *
+ * The postMessage payload format `{ token, provider: "github" }` matches
+ * what both Decap CMS and Sveltia CMS expect.
  */
 export async function onRequest(context) {
   const { request, env } = context;
@@ -81,7 +85,13 @@ export async function onRequest(context) {
 }
 
 /**
- * Return an HTML page that posts the token to the Decap CMS opener window.
+ * Return an HTML page that sends the GitHub OAuth access token (obtained via
+ * server-side exchange) to the CMS opener window via postMessage.
+ *
+ * The target origin is `"*"` because we cannot reliably determine the
+ * opener's origin from the callback URL.  This matches the default
+ * behaviour of the official Sveltia CMS authenticator (Cloudflare Worker),
+ * which uses `"*"` when no `origin` query parameter is provided.
  */
 function renderSuccess(token) {
   const html = `<!DOCTYPE html>
@@ -94,13 +104,14 @@ function renderSuccess(token) {
   <p>Logged in! You can close this window.</p>
   <script>
     (function () {
-      // Decap CMS expects a postMessage with this exact shape.
+      // Send the GitHub OAuth access token to the CMS opener window.
+      // Payload: { token, provider: "github" } — standard for both
+      // Decap CMS and Sveltia CMS.
       window.opener.postMessage(
         { token: ${JSON.stringify(token)}, provider: "github" },
         "*"
       );
-      // Optionally close the popup after a short delay so the
-      // opener has time to process the message.
+      // Allow the opener to process the message before closing.
       setTimeout(function () {
         window.close();
       }, 200);
