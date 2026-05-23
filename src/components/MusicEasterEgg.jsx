@@ -44,7 +44,7 @@ export function MusicEasterEgg() {
     if (playerUrl) {
       return {
         state: "ready",
-        copy: "展开后可在网易云播放器中手动播放；若加载失败，请使用外部链接打开。"
+        copy: ""
       };
     }
 
@@ -74,9 +74,11 @@ export function MusicEasterEgg() {
             <p className="music-easter-egg__label">{music.provider}</p>
             <h2>{music.title}</h2>
             <p>{music.description}</p>
-            <p className={`music-easter-egg__status music-easter-egg__status--${availability.state}`}>
-              {availability.copy}
-            </p>
+            {availability.copy ? (
+              <p className={`music-easter-egg__status music-easter-egg__status--${availability.state}`}>
+                {availability.copy}
+              </p>
+            ) : null}
           </div>
 
           <div className="music-easter-egg__player-shell">
