@@ -397,7 +397,6 @@ export function ArticleView({ post, onOpenPost, pathname }) {
           )}
         </section>
 
-        <p className="footnote">[1] 脚注示例：这里可以放文献来源、技术补记或术语定义。</p>
       </article>
 
         <aside className="rail rail-right" aria-label="目录">

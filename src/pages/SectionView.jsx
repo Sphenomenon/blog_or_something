@@ -70,7 +70,6 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
         <section className="section-posts" aria-label="友链列表">
           <div className="section-posts-header">
             <h2 className="section-title">友链</h2>
-            <p className="section-posts-note">友情链接，点击访问</p>
           </div>
 
           {friendLinks.length === 0 ? (
