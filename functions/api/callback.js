@@ -85,15 +85,25 @@ export async function onRequest(context) {
 }
 
 /**
- * Return an HTML page that sends the GitHub OAuth access token (obtained via
- * server-side exchange) to the CMS opener window via postMessage.
+ * Return an HTML page that completes a two-way OAuth handshake with the
+ * CMS opener window (Sveltia CMS protocol).
  *
- * The target origin is `"*"` because we cannot reliably determine the
- * opener's origin from the callback URL.  This matches the default
- * behaviour of the official Sveltia CMS authenticator (Cloudflare Worker),
- * which uses `"*"` when no `origin` query parameter is provided.
+ * Protocol (matching Sveltia CMS source):
+ *   1. Popup sends "authorizing:github" to the opener on page load.
+ *   2. Opener echoes "authorizing:github" back.
+ *   3. Popup receives the echo, then sends the token as a STRING:
+ *      "authorization:github:success:{\"token\":\"...\"}"
+ *   4. Sveltia CMS parses, stores the token, and closes the popup.
+ *
+ * The message MUST be a string (not a JSON object) — Sveltia silently
+ * drops non-string messages via `typeof data !== 'string'`.
  */
 function renderSuccess(token) {
+  // The payload must be a JSON-stringified object inside the outer string.
+  // Sveltia regex-matches: authorization:github:(success|error):(?<result>.+)
+  // and runs JSON.parse(resultStr), checking 'token' in result.
+  const payload = JSON.stringify({ token });
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,14 +113,22 @@ function renderSuccess(token) {
 <body>
   <p>Logged in! This window will close automatically.</p>
   <script>
-    (function () {
-      // Send the GitHub OAuth access token to the CMS opener window.
-      // Payload: { token, provider: "github" } — standard for both
-      // Decap CMS and Sveltia CMS.
-      window.opener.postMessage(
-        { token: ${JSON.stringify(token)}, provider: "github" },
-        "*"
-      );
+    (() => {
+      // Step 1: Notify opener that the popup is ready to exchange tokens.
+      window.opener?.postMessage('authorizing:github', '*');
+
+      // Step 2: Wait for the opener to echo back, then send the token.
+      window.addEventListener('message', ({ data, origin }) => {
+        if (data === 'authorizing:github') {
+          // Step 3: Send the token in Sveltia CMS's exact string format.
+          // The message is a STRING: authorization:github:success:{"token":"..."}
+          // Sveltia checks typeof !== 'string' and drops objects silently.
+          window.opener?.postMessage(
+            'authorization:github:success:${payload}',
+            origin
+          );
+        }
+      });
     })();
   </script>
 </body>
