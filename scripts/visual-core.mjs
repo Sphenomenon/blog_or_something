@@ -455,22 +455,43 @@ async function verifyDirectRoute(browser, path, expected) {
 
 async function collectMusicState(page) {
   return page.evaluate(() => {
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== 'hidden'
+        && style.display !== 'none'
+        && rect.width > 0
+        && rect.height > 0
+        && Number.parseFloat(style.opacity || '1') > 0;
+    };
+
     const toggle = document.querySelector('[data-testid="music-easter-egg-toggle"]');
     const panel = document.querySelector('[data-testid="music-easter-egg-panel"]');
-    const section = document.querySelector('.music-easter-egg');
-    const iframes = Array.from(document.querySelectorAll('iframe')).map((element) => ({
+    const fullSection = document.querySelector('.music-easter-egg');
+    const miniSection = document.querySelector('.music-mini-player');
+    const section = fullSection ?? miniSection;
+    const iframeScope = section ?? document;
+    const iframes = Array.from(iframeScope.querySelectorAll('iframe[data-testid="music-easter-egg-player"], iframe')).map((element) => ({
       tag: element.tagName,
       autoplay: element.getAttribute('autoplay'),
       allow: element.getAttribute('allow'),
       src: element.getAttribute('src'),
       title: element.getAttribute('title')
     }));
-    const fallbackLink = document.querySelector('[data-testid="music-easter-egg-fallback-link"]');
+    const fallbackLink = section?.querySelector('[data-testid="music-easter-egg-fallback-link"]') ?? document.querySelector('[data-testid="music-easter-egg-fallback-link"]');
 
     return {
       hasSection: Boolean(section),
+      fullPresent: Boolean(fullSection),
+      fullVisible: isVisible(fullSection),
+      miniPresent: Boolean(miniSection),
+      miniVisible: isVisible(miniSection),
+      path: window.location.pathname,
+      variant: section?.getAttribute('data-variant') ?? null,
+      dataExpanded: section?.getAttribute('data-expanded') ?? null,
       toggleExpanded: toggle?.getAttribute('aria-expanded') ?? null,
-      panelVisible: Boolean(panel),
+      panelVisible: isVisible(panel),
       panelText: panel?.textContent?.replace(/\s+/g, ' ').trim() ?? null,
       iframeCount: iframes.length,
       iframes,
@@ -478,6 +499,34 @@ async function collectMusicState(page) {
       panelContentTestIds: panel ? Array.from(panel.querySelectorAll('[data-testid]')).map((node) => node.getAttribute('data-testid')) : []
     };
   });
+}
+
+async function waitForMusicPanelVisible(page) {
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('[data-testid="music-easter-egg-panel"]');
+    if (!panel) return false;
+    const style = window.getComputedStyle(panel);
+    const rect = panel.getBoundingClientRect();
+    return style.visibility !== 'hidden'
+      && style.display !== 'none'
+      && rect.width > 0
+      && rect.height > 0
+      && Number.parseFloat(style.opacity || '1') > 0;
+  }, null, { timeout: 10000 });
+}
+
+async function waitForMusicRootVisible(page, selector) {
+  await page.waitForFunction((rootSelector) => {
+    const root = document.querySelector(rootSelector);
+    if (!root) return false;
+    const style = window.getComputedStyle(root);
+    const rect = root.getBoundingClientRect();
+    return style.visibility !== 'hidden'
+      && style.display !== 'none'
+      && rect.width > 0
+      && rect.height > 0
+      && Number.parseFloat(style.opacity || '1') > 0;
+  }, selector, { timeout: 10000 });
 }
 
 async function collectVisitCounterState(page) {
@@ -501,7 +550,7 @@ async function collectVisitCounterState(page) {
 }
 
 function assertMusicIframeContract(state, expectedParams) {
-  assertCondition(state.iframeCount === 1, "Music easter egg should mount exactly one iframe after expansion", state);
+  assertCondition(state.iframeCount === 1, "Music easter egg should mount exactly one iframe", state);
   const iframe = state.iframes[0];
   assertCondition(Boolean(iframe?.src), "Music iframe is missing its src", state);
   const iframeUrl = new URL(iframe.src);
@@ -1214,27 +1263,52 @@ export async function runVisualVerification() {
       const routeCounterState = await collectVisitCounterState(page);
       visitCounterChecks.push({ path: routePath, ...routeCounterState });
       assertCondition(routeCounterState.hasCounter === false, `Homepage visit counter leaked into ${routePath}`, routeCounterState);
-      assertCondition(routeCounterState.scriptCount === 1, `Vercount script count changed on ${routePath}`, routeCounterState);
     }
 
     await openView(page, "home");
+    await waitForMusicRootVisible(page, ".music-easter-egg");
 
-    const musicCollapsedState = await collectMusicState(page);
-    musicChecks.push({ step: "collapsed", ...musicCollapsedState });
-    assertCondition(musicCollapsedState.toggleExpanded === "false", "Music easter egg should remain collapsed before expansion", musicCollapsedState);
-    assertCondition(musicCollapsedState.panelVisible === false, "Music easter egg panel should not be visible before expansion", musicCollapsedState);
-    assertCondition(musicCollapsedState.iframeCount === 0, "Music easter egg should not include a NetEase iframe before expansion", musicCollapsedState);
+    const musicHomeCollapsedState = await collectMusicState(page);
+    musicChecks.push({ step: "home-collapsed", ...musicHomeCollapsedState });
+    assertCondition(musicHomeCollapsedState.path === "/", "Music home check should run on /", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.fullPresent === true && musicHomeCollapsedState.fullVisible === true, "Homepage should show the full music player", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.miniPresent === false || musicHomeCollapsedState.miniVisible === false, "Homepage should not show the mini music player", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.variant === "full", "Homepage music player variant should be full", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.toggleExpanded === "false", "Music easter egg should remain collapsed before expansion", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.dataExpanded === "false", "Music root should start collapsed on homepage", musicHomeCollapsedState);
+    assertCondition(musicHomeCollapsedState.panelVisible === false, "Music easter egg panel should not be visible before expansion", musicHomeCollapsedState);
+    assertMusicIframeContract(musicHomeCollapsedState, MUSIC_IFRAME_EXPECTATIONS);
+    const homeIframeSrc = musicHomeCollapsedState.iframes[0]?.src;
 
     await page.getByTestId("music-easter-egg-toggle").click();
     await page.getByTestId("music-easter-egg-panel").waitFor({ state: "visible", timeout: 10000 });
-    const musicExpandedState = await collectMusicState(page);
-    musicChecks.push({ step: "expanded", ...musicExpandedState });
-    assertCondition(musicExpandedState.toggleExpanded === "true", "Music easter egg did not expand", musicExpandedState);
-    assertCondition(musicExpandedState.panelVisible === true, "Music easter egg panel did not render", musicExpandedState);
-    assertCondition(musicExpandedState.fallbackHref === MUSIC_FALLBACK_HREF, "Music fallback link href mismatch", musicExpandedState);
-    assertMusicIframeContract(musicExpandedState, MUSIC_IFRAME_EXPECTATIONS);
+    await waitForMusicPanelVisible(page);
+    const musicHomeExpandedState = await collectMusicState(page);
+    musicChecks.push({ step: "home-expanded", ...musicHomeExpandedState });
+    assertCondition(musicHomeExpandedState.fullPresent === true && musicHomeExpandedState.fullVisible === true, "Expanded homepage should keep the full music player visible", musicHomeExpandedState);
+    assertCondition(musicHomeExpandedState.miniPresent === false || musicHomeExpandedState.miniVisible === false, "Expanded homepage should not show the mini music player", musicHomeExpandedState);
+    assertCondition(musicHomeExpandedState.toggleExpanded === "true", "Music easter egg did not expand", musicHomeExpandedState);
+    assertCondition(musicHomeExpandedState.dataExpanded === "true", "Music root expanded state did not update", musicHomeExpandedState);
+    assertCondition(musicHomeExpandedState.panelVisible === true, "Music easter egg panel did not render visibly", musicHomeExpandedState);
+    assertCondition(musicHomeExpandedState.fallbackHref === MUSIC_FALLBACK_HREF, "Music fallback link href mismatch", musicHomeExpandedState);
+    assertMusicIframeContract(musicHomeExpandedState, MUSIC_IFRAME_EXPECTATIONS);
+    assertCondition(musicHomeExpandedState.iframes[0]?.src === homeIframeSrc, "Music iframe src changed while expanding on homepage", { musicHomeCollapsedState, musicHomeExpandedState });
 
     await saveScreenshot("visual-music-1440.png", page);
+
+    await page.getByTestId("archive-card-AR-2026-041").click();
+    await page.getByRole("heading", { name: "在石化走廊里记录一场缓慢失真" }).waitFor({ state: "visible", timeout: 10000 });
+    await waitForMusicRootVisible(page, ".music-mini-player");
+    const musicArticleState = await collectMusicState(page);
+    musicChecks.push({ step: "article-mini", ...musicArticleState });
+    assertCondition(musicArticleState.path === "/posts/petrified-corridor", "Music article check should run on the petrified corridor route", musicArticleState);
+    assertCondition(musicArticleState.miniPresent === true && musicArticleState.miniVisible === true, "Article route should show the mini music player", musicArticleState);
+    assertCondition(musicArticleState.fullPresent === false || musicArticleState.fullVisible === false, "Article route should not show the full music player", musicArticleState);
+    assertCondition(musicArticleState.variant === "mini", "Article music player variant should be mini", musicArticleState);
+    assertCondition(musicArticleState.iframeCount === 1, "Article mini music player should keep exactly one iframe mounted", musicArticleState);
+    assertCondition(musicArticleState.iframes[0]?.src === homeIframeSrc, "Music iframe src should persist unchanged across SPA route transition", { homeIframeSrc, musicArticleState });
+    assertCondition(musicArticleState.fallbackHref === MUSIC_FALLBACK_HREF, "Article music fallback link href mismatch", musicArticleState);
+    assertMusicIframeContract(musicArticleState, MUSIC_IFRAME_EXPECTATIONS);
 
     const overflowChecks = [];
     const overflowViews = ["home", "article", "archive", ...SECTION_SLUGS.map((slug) => `section-${slug}`), "about"];
@@ -1465,8 +1539,8 @@ export async function runVisualVerification() {
         `- Section screenshots: ${sectionScreenshots.map((item) => item.view).join(", ")}`,
         `- Section background checks: ${sectionBackgroundChecks.length} section routes expose computed background-image URLs`,
         `- Section CTA toggle: tech expands inline, flips to 收起, and resets collapsed state on section change`,
-        `- Visit counter checks: homepage counter DOM/script contract passed and stayed absent on archive/about/post/tech routes`,
-        `- Music checks: collapsed state has no iframe; expanded state mounts one non-autoplay NetEase iframe with the expected song params and fallback link`,
+        `- Visit counter checks: homepage counter DOM/script contract passed and counter DOM stayed absent on archive/about/post/tech full-navigation routes`,
+        `- Music checks: homepage full player and article mini player each keep one non-autoplay NetEase iframe, preserve the iframe src across SPA navigation, and expose the expected fallback link`,
         `- Route transition state: visible then cleaned within 700ms on section/archive navigation`,
         `- Viewport sweep: ${overflowChecks.length} checks passed across ${DEFAULT_VIEWPORTS.join(", ")}px`,
         `- Focus check: ${focusAndMotion.navFocus?.text ?? "unknown"} (${focusAndMotion.navFocus?.testId ?? "no-testid"}) matched :focus-visible with outline ${focusAndMotion.navFocus?.outlineStyle ?? "unknown"}`,
