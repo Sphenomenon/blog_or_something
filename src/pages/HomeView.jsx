@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { getTagCounts } from "../data/posts.js";
 import { sections } from "../data/sections.js";
@@ -64,6 +65,22 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
 }
 
 function SidePanel({ onSectionChange }) {
+  useEffect(() => {
+    const existingScript = document.querySelector('script[data-vercount-script="true"]');
+
+    if (existingScript) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://events.vercount.one/js";
+    script.defer = true;
+    script.dataset.vercountScript = "true";
+    document.body.appendChild(script);
+
+    return undefined;
+  }, []);
+
   return (
     <aside className="side-panel reveal">
       <section>
