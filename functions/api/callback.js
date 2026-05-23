@@ -101,7 +101,7 @@ function renderSuccess(token) {
   <title>Authorized &mdash; Nocturne Archive</title>
 </head>
 <body>
-  <p>Logged in! You can close this window.</p>
+  <p>Logged in! This window will close automatically.</p>
   <script>
     (function () {
       // Send the GitHub OAuth access token to the CMS opener window.
@@ -111,10 +111,6 @@ function renderSuccess(token) {
         { token: ${JSON.stringify(token)}, provider: "github" },
         "*"
       );
-      // Allow the opener to process the message before closing.
-      setTimeout(function () {
-        window.close();
-      }, 200);
     })();
   </script>
 </body>
