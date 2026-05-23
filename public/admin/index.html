@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>内容管理 · Nocturne Archive</title>
     <style>
-      /* Hide Netlify Identity widget UI — CMS handles its own login */
-      .netlify-identity-menu,
-      .netlify-identity-button,
-      [data-netlify-identity-button],
-      [data-netlify-identity-menu] {
-        display: none !important;
-      }
       /* Hide known Decap CMS React 19 error banner — functionality unaffected */
       [class*="ErrorBoundary"],
       [class*="error-boundary"] {
@@ -20,29 +13,9 @@
     </style>
   </head>
   <body>
-    <!-- Netlify Identity widget — must load before CMS -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <!-- Decap CMS v3 from CDN — pin stable version -->
     <script src="https://unpkg.com/decap-cms@3.12.2/dist/decap-cms.js"></script>
-    <!-- Init script: Identity first, then CMS -->
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", function (user) {
-          if (!user) {
-            window.netlifyIdentity.on("login", function () {
-              document.location.href = "/admin/";
-            });
-          }
-          window.netlifyIdentity.on("logout", function () {
-            document.location.reload();
-          });
-          // Init CMS only after identity widget is fully initialized
-          CMS.init();
-        });
-      } else {
-        // No identity widget (local dev) — init CMS directly
-        CMS.init();
-      }
-    </script>
+    <!-- Init Decap CMS — GitHub OAuth handled by Cloudflare Functions -->
+    <script>CMS.init();</script>
   </body>
 </html>
