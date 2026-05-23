@@ -142,14 +142,16 @@ collections:
 
   - name: "friend_links"
     label: "友链"
-    label_singular: "友链"
-    file: "src/content/links.yaml"
-    fields:
-      - name: links
-        label: "链接"
-        widget: list
+    files:
+      - name: "links"
+        label: "友链"
+        file: "src/content/links.yaml"
         fields:
-          - { name: name, label: "名称", widget: string }
-          - { name: url, label: "URL", widget: string }
-          - { name: logo, label: "Logo 路径", widget: string }
-          - { name: description, label: "简介", widget: text }
+          - name: links
+            label: "链接"
+            widget: list
+            fields:
+              - { name: name, label: "名称", widget: string }
+              - { name: url, label: "URL", widget: string }
+              - { name: logo, label: "Logo 路径", widget: string }
+              - { name: description, label: "简介", widget: text }
