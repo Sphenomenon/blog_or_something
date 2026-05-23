@@ -8,35 +8,56 @@ function renderInline(text, keyPrefix) {
   const nodes = [];
   let cursor = 0;
   let nodeIndex = 0;
-  const imageOrLinkPattern = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)|\[([^\]]+)\]\(([^)\s]+)\)/g;
-  let match = imageOrLinkPattern.exec(text);
 
-  while (match) {
+  // Combined inline pattern — bold first (since ** contains *), then italic, code, strikethrough, image, link
+  const inlinePattern = /(\*\*|__)(.+?)\1|(\*|_)((?:(?!\3).)+?)\3|`([^`\n]+)`|~~(.+?)~~|!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)|\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+  let match;
+  while ((match = inlinePattern.exec(text)) !== null) {
+    // Push plain text before this match
     if (match.index > cursor) {
       nodes.push(text.slice(cursor, match.index));
     }
 
-    if (match[1] !== undefined && match[2] !== undefined) {
+    if (match[1] !== undefined) {
+      // Bold: **text** or __text__ (groups 1=delim, 2=content)
+      nodes.push(<strong key={`${keyPrefix}-s-${nodeIndex}`}>{match[2]}</strong>);
+      nodeIndex++;
+    } else if (match[3] !== undefined) {
+      // Italic: *text* or _text_ (groups 3=delim, 4=content)
+      nodes.push(<em key={`${keyPrefix}-e-${nodeIndex}`}>{match[4]}</em>);
+      nodeIndex++;
+    } else if (match[5] !== undefined) {
+      // Code: `text` (group 5=content)
+      nodes.push(<code key={`${keyPrefix}-c-${nodeIndex}`}>{match[5]}</code>);
+      nodeIndex++;
+    } else if (match[6] !== undefined) {
+      // Strikethrough: ~~text~~ (group 6=content)
+      nodes.push(<del key={`${keyPrefix}-d-${nodeIndex}`}>{match[6]}</del>);
+      nodeIndex++;
+    } else if (match[7] !== undefined) {
+      // Image: ![alt](src "title") (groups 7=alt, 8=src, 9=title)
       nodes.push(
         <figure key={`${keyPrefix}-img-${nodeIndex}`}>
-          <img src={match[2]} alt={match[1]} loading="lazy" />
-          {match[3] ? <figcaption>{match[3]}</figcaption> : null}
+          <img src={match[8]} alt={match[7]} loading="lazy" />
+          {match[9] ? <figcaption>{match[9]}</figcaption> : null}
         </figure>
       );
-      nodeIndex += 1;
-    } else if (match[4] !== undefined && match[5] !== undefined) {
+      nodeIndex++;
+    } else if (match[10] !== undefined) {
+      // Link: [text](url) (groups 10=text, 11=url)
       nodes.push(
-        <a key={`${keyPrefix}-link-${nodeIndex}`} href={match[5]} target="_blank" rel="noreferrer">
-          {match[4]}
+        <a key={`${keyPrefix}-link-${nodeIndex}`} href={match[11]} target="_blank" rel="noreferrer">
+          {match[10]}
         </a>
       );
-      nodeIndex += 1;
+      nodeIndex++;
     }
 
     cursor = match.index + match[0].length;
-    match = imageOrLinkPattern.exec(text);
   }
 
+  // Push remaining text after last match
   if (cursor < text.length) {
     nodes.push(text.slice(cursor));
   }
