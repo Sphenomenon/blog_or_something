@@ -4,18 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>内容管理 · Nocturne Archive</title>
-    <style>
-      /* Hide known Decap CMS React 19 error banner — functionality unaffected */
-      [class*="ErrorBoundary"],
-      [class*="error-boundary"] {
-        display: none !important;
-      }
-    </style>
+    <link href="config.yml" type="application/yaml" rel="cms-config-url" />
   </head>
   <body>
-    <!-- Decap CMS v3 from CDN — pin stable version -->
-    <script src="https://unpkg.com/decap-cms@3.12.2/dist/decap-cms.js"></script>
-    <!-- Init Decap CMS — GitHub OAuth handled by Cloudflare Functions -->
-    <script>CMS.init();</script>
+    <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
   </body>
 </html>
