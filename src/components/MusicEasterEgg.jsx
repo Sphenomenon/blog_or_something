@@ -8,7 +8,7 @@ export function MusicEasterEgg() {
     if (music.embed_url && music.playlist_id) {
       return {
         state: "ready",
-        copy: "音乐模块已就绪，但仍保持手动展开，不会在页面载入时自动播放。"
+        copy: ""
       };
     }
 
@@ -30,7 +30,6 @@ export function MusicEasterEgg() {
       >
         <span className="music-easter-egg__kicker">HIDDEN TRACK</span>
         <span className="music-easter-egg__title">{music.title}</span>
-        <span className="music-easter-egg__meta">点击展开一个安静的音乐彩蛋</span>
       </button>
 
       {isExpanded && (
