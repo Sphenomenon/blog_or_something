@@ -2036,6 +2036,60 @@ body::after {
   border: 0;
 }
 
+/* ── Friend Links ─────────────────────────────────────────────────────── */
+
+.friend-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.friend-link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  background:
+    linear-gradient(175deg, rgb(33 38 41 / 0.54), rgb(24 28 30 / 0.62)),
+    radial-gradient(circle at 85% 10%, var(--surface-glow), transparent 34%);
+  transition: border-color var(--duration-fast) var(--ease-archive), background var(--duration-fast) var(--ease-archive), transform var(--duration-fast) var(--ease-archive);
+}
+
+.friend-link-card:hover {
+  border-color: var(--accent-gold);
+  background:
+    linear-gradient(175deg, rgb(40 44 48 / 0.62), rgb(28 32 34 / 0.72)),
+    radial-gradient(circle at 85% 10%, var(--surface-glow), transparent 40%);
+  transform: translateY(-1px);
+}
+
+.friend-link-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: var(--border-subtle);
+}
+
+.friend-link-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-0);
+  font-family: var(--font-ui);
+}
+
+.friend-link-desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
 @media (width <= 1180px) {
   .site-header {
     grid-template-columns: 1fr;

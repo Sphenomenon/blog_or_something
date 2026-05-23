@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
+import { friendLinks } from "../data/links.js";
 import { getSectionRepresentativePosts } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
 
@@ -21,6 +22,8 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
   useEffect(() => {
     setIsExpanded(false);
   }, [section?.slug]);
+
+  const isLinksSection = section?.slug === "links";
 
   if (!section) {
     return null;
@@ -53,8 +56,8 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
             <dd>{section.theme}</dd>
           </div>
           <div>
-            <dt>POSTS</dt>
-            <dd>{sectionPosts.length}</dd>
+            <dt>{isLinksSection ? "LINKS" : "POSTS"}</dt>
+            <dd>{isLinksSection ? friendLinks.length : sectionPosts.length}</dd>
           </div>
           <div>
             <dt>BACKGROUND</dt>
@@ -63,44 +66,72 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
         </dl>
       </div>
 
-      <section className="section-posts" aria-label="栏目文章列表">
-        <div className="section-posts-header">
-          <h2 className="section-title">代表作</h2>
-          <p className="section-posts-note">按最新时间截取最多三篇，低数量栏目只展示现有条目。</p>
-        </div>
-
-        {sectionPosts.length === 0 ? (
-          <div className="section-empty-state" data-testid="section-empty-state">
-            <p>这个栏目暂时没有可展示的条目。</p>
-            <p>背景与简介已就位，等后续内容进入后会自动出现在这里。</p>
+      {isLinksSection ? (
+        <section className="section-posts" aria-label="友链列表">
+          <div className="section-posts-header">
+            <h2 className="section-title">友链</h2>
+            <p className="section-posts-note">友情链接，点击访问</p>
           </div>
-        ) : (
-          <ol
-            className="archive-list"
-            data-testid={`section-representatives-${section.slug}`}
-            aria-expanded={isExpanded}
-            aria-label={`${section.label}文章列表`}
-          >
-            {sectionPosts.map((post) => (
-              <li key={post.id}>
-                <ArchiveCard post={post} onOpen={onOpenPost} />
-              </li>
-            ))}
-          </ol>
-        )}
 
-        <div className="section-all-posts-cta">
-          <button
-            data-testid={`section-all-posts-${section.slug}`}
-            aria-controls={`section-representatives-${section.slug}`}
-            aria-expanded={isExpanded}
-            type="button"
-            onClick={() => setIsExpanded((current) => !current)}
-          >
-            {isExpanded ? "收起" : "查看全部文章"}
-          </button>
-        </div>
-      </section>
+          {friendLinks.length === 0 ? (
+            <div className="section-empty-state" data-testid="section-empty-state">
+              <p>暂无友链。</p>
+              <p>添加新的友链后将显示在这里。</p>
+            </div>
+          ) : (
+            <div className="friend-links-grid">
+              {friendLinks.map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="friend-link-card">
+                  <img src={link.logo} alt={link.name} className="friend-link-logo" loading="lazy" />
+                  <div className="friend-link-info">
+                    <span className="friend-link-name">{link.name}</span>
+                    <p className="friend-link-desc">{link.description}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
+        <section className="section-posts" aria-label="栏目文章列表">
+          <div className="section-posts-header">
+            <h2 className="section-title">代表作</h2>
+            <p className="section-posts-note">按最新时间截取最多三篇，低数量栏目只展示现有条目。</p>
+          </div>
+
+          {sectionPosts.length === 0 ? (
+            <div className="section-empty-state" data-testid="section-empty-state">
+              <p>这个栏目暂时没有可展示的条目。</p>
+              <p>背景与简介已就位，等后续内容进入后会自动出现在这里。</p>
+            </div>
+          ) : (
+            <ol
+              className="archive-list"
+              data-testid={`section-representatives-${section.slug}`}
+              aria-expanded={isExpanded}
+              aria-label={`${section.label}文章列表`}
+            >
+              {sectionPosts.map((post) => (
+                <li key={post.id}>
+                  <ArchiveCard post={post} onOpen={onOpenPost} />
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <div className="section-all-posts-cta">
+            <button
+              data-testid={`section-all-posts-${section.slug}`}
+              aria-controls={`section-representatives-${section.slug}`}
+              aria-expanded={isExpanded}
+              type="button"
+              onClick={() => setIsExpanded((current) => !current)}
+            >
+              {isExpanded ? "收起" : "查看全部文章"}
+            </button>
+          </div>
+        </section>
+      )}
     </section>
   );
 }

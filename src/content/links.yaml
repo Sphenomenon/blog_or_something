@@ -1,0 +1,5 @@
+links:
+  - name: "示例博客"
+    url: "https://example.com"
+    logo: "/images/links/example.png"
+    description: "一个很棒的博客"
