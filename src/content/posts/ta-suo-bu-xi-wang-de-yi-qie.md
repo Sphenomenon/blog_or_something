@@ -4,11 +4,11 @@ slug: ta-suo-bu-xi-wang-de-yi-qie
 title: 他所不希望的一切
 excerpt: 你所熟悉的那些人，你所忘记的那些人，那些你自认为无言面对的人——这些人相信你，祝福你，希望你能鼓起勇气。
 date: 2026-05-23
-section: essay
+section: reading
 status: published
 reading: 3 min
 tags: [SCP, 阅读, 基金会]
-category: Essay
+category: Reading
 sections: [阅读摘录]
 ---
 
