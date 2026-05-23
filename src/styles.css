@@ -2083,7 +2083,7 @@ body::after {
 .friend-link-logo {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
   border: var(--border-subtle);
