@@ -51,10 +51,31 @@ function parseFrontmatter(raw, filePath) {
   const frontmatter = {};
   const lines = block.split("\n");
 
+  let currentArrayKey = null;
+  let currentArrayValues = [];
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) {
       continue;
+    }
+
+    // YAML list item continuation (line starts with "- ")
+    if (trimmed.startsWith("- ")) {
+      if (!currentArrayKey) {
+        fail(filePath, `unexpected list item \"${line}\" without parent key`);
+      }
+      currentArrayValues.push(trimmed.slice(2).trim());
+      continue;
+    }
+
+    // Flush any pending YAML list before processing new key
+    if (currentArrayKey !== null) {
+      frontmatter[currentArrayKey] = currentArrayValues.length > 0
+        ? `[${currentArrayValues.join(", ")}]`
+        : "[]";
+      currentArrayKey = null;
+      currentArrayValues = [];
     }
 
     const separator = trimmed.indexOf(":");
@@ -69,7 +90,20 @@ function parseFrontmatter(raw, filePath) {
       fail(filePath, `invalid frontmatter key in line \"${line}\"`);
     }
 
-    frontmatter[key] = rawValue;
+    if (rawValue === "") {
+      // Empty value — might start a YAML list
+      currentArrayKey = key;
+      currentArrayValues = [];
+    } else {
+      frontmatter[key] = rawValue;
+    }
+  }
+
+  // Flush any pending array at end of block
+  if (currentArrayKey !== null) {
+    frontmatter[currentArrayKey] = currentArrayValues.length > 0
+      ? `[${currentArrayValues.join(", ")}]`
+      : "[]";
   }
 
   return { frontmatter, content };
