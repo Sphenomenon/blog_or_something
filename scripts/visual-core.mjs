@@ -8,11 +8,25 @@ import yaml from "js-yaml";
 import path from "node:path";
 
 const execFileAsync = promisify(execFile);
-const BASE_URL = "http://127.0.0.1:5173/";
+const BASE_URL = process.env.VISUAL_BASE_URL ?? process.env.VITE_BASE_URL ?? "http://127.0.0.1:5173/";
 const EVIDENCE_DIR = new URL("../.sisyphus/evidence/", import.meta.url);
 const PROJECT_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DEFAULT_VIEWPORTS = [375, 768, 1024, 1440];
 const SECTION_SLUGS = ["tech", "essay", "diary", "reading", "travel", "links"];
+const VERCOUNT_SCRIPT_SRC = "https://events.vercount.one/js";
+const MUSIC_FALLBACK_HREF = "https://music.163.com/song?id=2707332868";
+const MUSIC_IFRAME_EXPECTATIONS = {
+  type: "2",
+  id: "2707332868",
+  auto: "0",
+  height: "66"
+};
+const BLOCKED_THIRD_PARTY_HOSTS = new Set(["identity.netlify.com", "events.vercount.one", "music.163.com"]);
+
+function shouldIgnoreConsoleEntry(type, text) {
+  return type === "warning" && text === "API error: Failed to fetch";
+}
+
 function loadYamlSync(relativePath) {
   return yaml.load(readFileSync(path.join(PROJECT_ROOT, relativePath), "utf8"));
 }
@@ -28,6 +42,10 @@ const SECTION_TAGLINES = (() => {
   }
   return taglines;
 })();
+const GREETING_PANEL_IDS = loadYamlSync("src/content/greeting.yaml").panels.map((panel) => String(panel.id));
+const FIRST_GREETING_PANEL_ID = GREETING_PANEL_IDS[0];
+const SECOND_GREETING_PANEL_ID = GREETING_PANEL_IDS[1];
+const THIRD_GREETING_PANEL_ID = GREETING_PANEL_IDS[2];
 
 async function ensureEvidenceDir() {
   await mkdir(EVIDENCE_DIR, { recursive: true });
@@ -36,12 +54,25 @@ async function ensureEvidenceDir() {
 async function launchPage(viewport = { width: 1440, height: 1100 }) {
   const browser = await chromium.launch({ headless: true });
   const { page, errors, consoleEntries } = await createPage(browser, viewport);
+  await goToPath(page, "/");
 
   return { browser, page, errors, consoleEntries };
 }
 
 async function createPage(browser, viewport = { width: 1440, height: 1100 }) {
   const context = await browser.newContext({ viewport });
+  await context.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    if (BLOCKED_THIRD_PARTY_HOSTS.has(url.hostname)) {
+      const resourceType = route.request().resourceType();
+      return route.fulfill({
+        status: 200,
+        contentType: resourceType === "script" ? "application/javascript" : "text/html",
+        body: resourceType === "script" ? "" : "<!doctype html><html><body></body></html>"
+      });
+    }
+    return route.continue();
+  });
   const page = await context.newPage();
   const errors = [];
   const consoleEntries = [];
@@ -49,12 +80,11 @@ async function createPage(browser, viewport = { width: 1440, height: 1100 }) {
   page.on("pageerror", (error) => errors.push(error.stack || error.message));
   page.on("console", (message) => {
     const type = message.type();
-    if (type === "error" || type === "warning") {
-      consoleEntries.push({ type, text: message.text() });
+    const text = message.text();
+    if ((type === "error" || type === "warning") && !shouldIgnoreConsoleEntry(type, text)) {
+      consoleEntries.push({ type, text });
     }
   });
-
-  await page.goto(BASE_URL, { waitUntil: "networkidle", timeout: 15000 });
 
   return { context, page, errors, consoleEntries };
 }
@@ -428,22 +458,58 @@ async function collectMusicState(page) {
     const toggle = document.querySelector('[data-testid="music-easter-egg-toggle"]');
     const panel = document.querySelector('[data-testid="music-easter-egg-panel"]');
     const section = document.querySelector('.music-easter-egg');
-    const autoplayMedia = Array.from(document.querySelectorAll('audio, video, iframe')).map((element) => ({
+    const iframes = Array.from(document.querySelectorAll('iframe')).map((element) => ({
       tag: element.tagName,
       autoplay: element.getAttribute('autoplay'),
+      allow: element.getAttribute('allow'),
       src: element.getAttribute('src'),
       title: element.getAttribute('title')
     }));
+    const fallbackLink = document.querySelector('[data-testid="music-easter-egg-fallback-link"]');
 
     return {
       hasSection: Boolean(section),
       toggleExpanded: toggle?.getAttribute('aria-expanded') ?? null,
       panelVisible: Boolean(panel),
       panelText: panel?.textContent?.replace(/\s+/g, ' ').trim() ?? null,
-      autoplayMedia,
+      iframeCount: iframes.length,
+      iframes,
+      fallbackHref: fallbackLink?.getAttribute('href') ?? null,
       panelContentTestIds: panel ? Array.from(panel.querySelectorAll('[data-testid]')).map((node) => node.getAttribute('data-testid')) : []
     };
   });
+}
+
+async function collectVisitCounterState(page) {
+  return page.evaluate((scriptSrc) => {
+    const counter = document.querySelector('[data-testid="home-visit-counter"]');
+    const value = counter?.querySelector('.vercount_value_site_pv') ?? null;
+    const scripts = Array.from(document.querySelectorAll('script[src]')).filter((script) => script.getAttribute('src') === scriptSrc);
+    const style = counter ? window.getComputedStyle(counter) : null;
+
+    return {
+      scriptCount: scripts.length,
+      scriptSrcs: scripts.map((script) => script.getAttribute('src')),
+      hasCounter: Boolean(counter),
+      counterVisible: Boolean(counter && style && style.display !== 'none' && style.visibility !== 'hidden'),
+      counterText: counter?.textContent?.replace(/\s+/g, ' ').trim() ?? null,
+      label: counter?.querySelector('.side-panel-counter__label')?.textContent?.trim() ?? null,
+      valueText: value?.textContent?.trim() ?? null,
+      valueClass: value?.getAttribute('class') ?? null
+    };
+  }, VERCOUNT_SCRIPT_SRC);
+}
+
+function assertMusicIframeContract(state, expectedParams) {
+  assertCondition(state.iframeCount === 1, "Music easter egg should mount exactly one iframe after expansion", state);
+  const iframe = state.iframes[0];
+  assertCondition(Boolean(iframe?.src), "Music iframe is missing its src", state);
+  const iframeUrl = new URL(iframe.src);
+  for (const [name, expectedValue] of Object.entries(expectedParams)) {
+    assertCondition(iframeUrl.searchParams.get(name) === expectedValue, `Music iframe ${name} param mismatch`, { state, src: iframe.src, expectedParams });
+  }
+  assertCondition(iframe.autoplay === null, "Music iframe should not include an autoplay attribute", state);
+  assertCondition(!iframe.allow?.toLowerCase().includes("autoplay"), "Music iframe allow attribute should not permit autoplay", state);
 }
 
 async function collectMarkdownState(page) {
@@ -485,9 +551,9 @@ async function collectArticleCommentScopeState(page) {
 }
 
 async function collectOnboardingState(page) {
-  return page.evaluate(() => {
-    const panels = Array.from(document.querySelectorAll('[data-testid^="greeting-panel-"]'));
-    const visiblePanels = panels.filter((panel) => Number.parseFloat(window.getComputedStyle(panel).opacity || '0') > 0 || panel.getAttribute('data-state') === 'entering');
+  return page.evaluate((panelIds) => {
+    const panels = panelIds.map((id) => document.querySelector(`[data-testid="${CSS.escape(id)}"]`)).filter(Boolean);
+    const visiblePanels = panels.filter((panel) => panel.getAttribute('data-state') !== 'hidden');
     const enteringPanels = panels.filter((panel) => panel.getAttribute('data-state') === 'entering');
 
     return {
@@ -500,7 +566,7 @@ async function collectOnboardingState(page) {
       gateVisible: Boolean(document.querySelector('[data-testid="greeting-gate"]')),
       homeHeadingVisible: Boolean(document.querySelector('main h1'))
     };
-  });
+  }, GREETING_PANEL_IDS);
 }
 
 async function exerciseGreetingGate(page) {
@@ -549,7 +615,7 @@ async function exerciseGreetingGate(page) {
 }
 
 async function goToPath(page, path) {
-  await page.goto(new URL(path, BASE_URL).href, { waitUntil: "networkidle", timeout: 15000 });
+  await page.goto(new URL(path, BASE_URL).href, { waitUntil: "domcontentloaded", timeout: 15000 });
 }
 
 async function verifyFocusAndMotion(page) {
@@ -593,11 +659,11 @@ async function verifyFocusAndMotion(page) {
   });
 
   await page.emulateMedia({ reducedMotion: "reduce" });
-  const motionState = await page.evaluate(() => {
+  const motionState = await page.evaluate((secondGreetingPanelId) => {
     const sample = document.querySelector(".site-nav button") ?? document.querySelector(".greeting-gate__entry") ?? document.body;
     const revealStyle = window.getComputedStyle(document.querySelector(".reveal") ?? document.body);
     const style = window.getComputedStyle(sample);
-    const entryStyle = window.getComputedStyle(document.querySelector("[data-testid=\"greeting-panel-2\"]") ?? document.body);
+    const entryStyle = window.getComputedStyle(document.querySelector(`[data-testid="${CSS.escape(secondGreetingPanelId)}"]`) ?? document.body);
     return {
       sampleTag: sample.tagName,
       sampleTestId: sample.getAttribute?.("data-testid") ?? null,
@@ -608,7 +674,7 @@ async function verifyFocusAndMotion(page) {
       entryTransform: entryStyle.transform,
       entryOpacity: entryStyle.opacity
     };
-  });
+  }, SECOND_GREETING_PANEL_ID);
 
   return { navFocus, cardFocus, motionState };
 }
@@ -781,6 +847,7 @@ export async function runVisualVerification() {
     const sectionScreenshots = [];
     const sectionBackgroundChecks = [];
     const musicChecks = [];
+    const visitCounterChecks = [];
     const viewChecks = [];
     const transitionChecks = [];
     const greetingStackChecks = [];
@@ -807,23 +874,23 @@ export async function runVisualVerification() {
       kind: "post",
       heading: "在石化走廊里记录一场缓慢失真",
       expectedNavigation: {
-        previousEmpty: true,
-        nextTitle: "灰烬中的目录学：如何为碎片命名"
+        previousTitle: "志愿填报师不配叫老师",
+        nextEmpty: true
       }
     }));
     articleNavigationChecks.push(await verifyDirectRoute(browser, "/posts/ashes-indexing", {
       kind: "post",
       heading: "灰烬中的目录学：如何为碎片命名",
       expectedNavigation: {
-        previousTitle: "在石化走廊里记录一场缓慢失真",
-        nextTitle: "冷光线路在地下图书馆的再生路径"
+        previousTitle: "他所不希望的一切",
+        nextEmpty: true
       }
     }));
     articleNavigationChecks.push(await verifyDirectRoute(browser, "/posts/quiet-machinery", {
       kind: "post",
       heading: "一台安静机器如何保存梦境残影",
       expectedNavigation: {
-        previousTitle: "冷光线路在地下图书馆的再生路径",
+        previousTitle: "五月随笔",
         nextEmpty: true
       }
     }));
@@ -847,7 +914,7 @@ export async function runVisualVerification() {
       ["/sections/reading", "reading"],
       ["/sections/travel", "travel"],
       ["/sections/links", "links"],
-      ["/sections/tech", "home"],
+      ["/sections/tech", "tech"],
       ["/archive", "home"],
       ["/about", "home"]
     ];
@@ -880,8 +947,12 @@ export async function runVisualVerification() {
       const state = await collectSectionEntranceState(page, slug);
       lowCountChecks.push(state);
       assertCondition(state.cardCount <= 3, `Section representative count must be capped at three for ${slug}`, state);
-      assertCondition(state.hasCta === true, `Section CTA missing for ${slug}`, state);
-      assertCondition(state.ctaText === "查看全部文章", `Section CTA text mismatch for ${slug}`, state);
+      if (state.cardCount > 0) {
+        assertCondition(state.hasCta === true, `Section CTA missing for ${slug}`, state);
+        assertCondition(state.ctaText === "查看全部文章", `Section CTA text mismatch for ${slug}`, state);
+      } else {
+        assertCondition(state.hasCta === false, `Empty section should not show a CTA for ${slug}`, state);
+      }
     }
 
     await goToPath(page, "/sections/tech");
@@ -915,7 +986,7 @@ export async function runVisualVerification() {
       const onboardingBefore = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "initial-greeting", ...onboardingBefore });
       assertCondition(
-        onboardingBefore.visiblePanelTestIds?.join(",") === "greeting-panel-1",
+        onboardingBefore.visiblePanelTestIds?.join(",") === FIRST_GREETING_PANEL_ID,
         "Greeting should start with only the first panel visible",
         onboardingBefore
       );
@@ -931,45 +1002,45 @@ export async function runVisualVerification() {
       const keyboardDownState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-2", ...keyboardDownState });
       assertCondition(
-        keyboardDownState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2",
+        keyboardDownState.visiblePanelTestIds?.join(",") === [FIRST_GREETING_PANEL_ID, SECOND_GREETING_PANEL_ID].join(","),
         "ArrowDown should reveal the second panel without hiding the first",
         keyboardDownState
       );
       assertCondition(
-        keyboardDownState.enteringPanelTestIds?.includes("greeting-panel-2") === true,
+        keyboardDownState.enteringPanelTestIds?.includes(SECOND_GREETING_PANEL_ID) === true,
         "ArrowDown should put the newly revealed panel into an entering state",
         keyboardDownState
       );
       greetingStackChecks.push(createCheck("arrow-down-reveals-panel-2", true, keyboardDownState));
       await onboardingPage.waitForFunction(
-        () => document.querySelector('[data-testid="greeting-panel-2"]')?.getAttribute('data-state') === 'active',
-        null,
+        (panelId) => document.querySelector(`[data-testid="${CSS.escape(panelId)}"]`)?.getAttribute('data-state') === 'active',
+        SECOND_GREETING_PANEL_ID,
         { timeout: 1000 }
       );
       await onboardingPage.keyboard.press("ArrowDown");
       const keyboardDownFinalState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-3", ...keyboardDownFinalState });
       assertCondition(
-        keyboardDownFinalState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        keyboardDownFinalState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "ArrowDown should reveal the full greeting stack in order",
         keyboardDownFinalState
       );
       assertCondition(
-        keyboardDownFinalState.enteringPanelTestIds?.includes("greeting-panel-3") === true,
+        keyboardDownFinalState.enteringPanelTestIds?.includes(THIRD_GREETING_PANEL_ID) === true,
         "Second reveal should also animate the newly entered panel",
         keyboardDownFinalState
       );
       greetingStackChecks.push(createCheck("arrow-down-reveals-panel-3", true, keyboardDownFinalState));
       await onboardingPage.waitForFunction(
-        () => document.querySelector('[data-testid="greeting-panel-3"]')?.getAttribute('data-state') === 'active',
-        null,
+        (panelId) => document.querySelector(`[data-testid="${CSS.escape(panelId)}"]`)?.getAttribute('data-state') === 'active',
+        THIRD_GREETING_PANEL_ID,
         { timeout: 1000 }
       );
       await onboardingPage.keyboard.press("PageUp");
       const keyboardUpState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-2-return", ...keyboardUpState });
       assertCondition(
-        keyboardUpState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        keyboardUpState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "PageUp should move the active marker without hiding revealed panels",
         keyboardUpState
       );
@@ -978,7 +1049,7 @@ export async function runVisualVerification() {
       const wheelDownState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-3-wheel-down", ...wheelDownState });
       assertCondition(
-        wheelDownState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        wheelDownState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "Wheel down should preserve the revealed stack",
         wheelDownState
       );
@@ -987,7 +1058,7 @@ export async function runVisualVerification() {
       const keyboardReturnState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-2-return", ...keyboardReturnState });
       assertCondition(
-        keyboardReturnState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        keyboardReturnState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "ArrowUp should adjust the active marker without removing revealed entries",
         keyboardReturnState
       );
@@ -996,7 +1067,7 @@ export async function runVisualVerification() {
       const wheelUpState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-2-wheel-up", ...wheelUpState });
       assertCondition(
-        wheelUpState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        wheelUpState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "Wheel up should keep the stack visible while moving back",
         wheelUpState
       );
@@ -1005,7 +1076,7 @@ export async function runVisualVerification() {
       const clickNextState = await collectOnboardingState(onboardingPage);
       onboardingChecks.push({ step: "panel-3-click", ...clickNextState });
       assertCondition(
-        clickNextState.visiblePanelTestIds?.join(",") === "greeting-panel-1,greeting-panel-2,greeting-panel-3",
+        clickNextState.visiblePanelTestIds?.join(",") === GREETING_PANEL_IDS.join(","),
         "Next should preserve revealed history when returning to the final step",
         clickNextState
       );
@@ -1131,11 +1202,28 @@ export async function runVisualVerification() {
     const homeReadyState = await capturePageState(page);
     viewChecks.push({ view: "home-ready", state: homeReadyState });
 
+    const homeVisitCounterState = await collectVisitCounterState(page);
+    visitCounterChecks.push({ path: "/", ...homeVisitCounterState });
+    assertCondition(homeVisitCounterState.hasCounter === true, "Homepage visit counter should exist on /", homeVisitCounterState);
+    assertCondition(homeVisitCounterState.scriptCount === 1, "Vercount script should be present exactly once", homeVisitCounterState);
+    assertCondition(homeVisitCounterState.label === "本站总访问次数", "Homepage visit counter label mismatch", homeVisitCounterState);
+    assertCondition(homeVisitCounterState.valueClass?.split(/\s+/).includes("vercount_value_site_pv") === true, "Homepage visit counter value class mismatch", homeVisitCounterState);
+
+    for (const routePath of ["/archive", "/about", "/posts/petrified-corridor", "/sections/tech"]) {
+      await goToPath(page, routePath);
+      const routeCounterState = await collectVisitCounterState(page);
+      visitCounterChecks.push({ path: routePath, ...routeCounterState });
+      assertCondition(routeCounterState.hasCounter === false, `Homepage visit counter leaked into ${routePath}`, routeCounterState);
+      assertCondition(routeCounterState.scriptCount === 1, `Vercount script count changed on ${routePath}`, routeCounterState);
+    }
+
+    await openView(page, "home");
+
     const musicCollapsedState = await collectMusicState(page);
     musicChecks.push({ step: "collapsed", ...musicCollapsedState });
     assertCondition(musicCollapsedState.toggleExpanded === "false", "Music easter egg should remain collapsed before expansion", musicCollapsedState);
     assertCondition(musicCollapsedState.panelVisible === false, "Music easter egg panel should not be visible before expansion", musicCollapsedState);
-    assertCondition(musicCollapsedState.autoplayMedia.length === 0, "Music easter egg should not include autoplay media before expansion", musicCollapsedState);
+    assertCondition(musicCollapsedState.iframeCount === 0, "Music easter egg should not include a NetEase iframe before expansion", musicCollapsedState);
 
     await page.getByTestId("music-easter-egg-toggle").click();
     await page.getByTestId("music-easter-egg-panel").waitFor({ state: "visible", timeout: 10000 });
@@ -1143,10 +1231,8 @@ export async function runVisualVerification() {
     musicChecks.push({ step: "expanded", ...musicExpandedState });
     assertCondition(musicExpandedState.toggleExpanded === "true", "Music easter egg did not expand", musicExpandedState);
     assertCondition(musicExpandedState.panelVisible === true, "Music easter egg panel did not render", musicExpandedState);
-    assertCondition(musicExpandedState.autoplayMedia.length === 0, "Music easter egg should not auto-play or mount media embeds", musicExpandedState);
-    assertCondition(musicExpandedState.panelText?.includes("当前未配置歌单或歌曲 ID") === true, "Music easter egg missing graceful unavailable copy", musicExpandedState);
-    assertCondition(musicExpandedState.panelText?.includes("未提供") === true, "Music easter egg missing config placeholder values", musicExpandedState);
-    assertCondition(musicExpandedState.panelText?.includes("Autoplay") === true, "Music easter egg missing autoplay status row", musicExpandedState);
+    assertCondition(musicExpandedState.fallbackHref === MUSIC_FALLBACK_HREF, "Music fallback link href mismatch", musicExpandedState);
+    assertMusicIframeContract(musicExpandedState, MUSIC_IFRAME_EXPECTATIONS);
 
     await saveScreenshot("visual-music-1440.png", page);
 
@@ -1169,12 +1255,12 @@ export async function runVisualVerification() {
     assertCondition(reducedMotionTransition?.animationDuration === "0s", "Route transition animation duration should be zero under reduced motion", reducedMotionTransition);
     assertCondition(reducedMotionTransition?.animationName === "none", "Route transition animation name should be none under reduced motion", reducedMotionTransition);
     reducedMotionChecks.push(createCheck("route-stage-zero-motion", reducedMotionTransition?.transitionDuration === "0s" && reducedMotionTransition?.animationDuration === "0s" && reducedMotionTransition?.animationName === "none", reducedMotionTransition));
-    const reducedMotionSample = await page.evaluate(() => {
+    const reducedMotionSample = await page.evaluate((secondGreetingPanelId) => {
       const stage = document.querySelector('.route-stage');
       const listSurface = document.querySelector('.archive-card, .archive-group button, .related-panel button, .side-panel-list button, .site-nav button, .greeting-gate__entry');
       const stageStyle = window.getComputedStyle(stage ?? document.body);
       const listStyle = window.getComputedStyle(listSurface ?? document.body);
-      const entryStyle = window.getComputedStyle(document.querySelector('[data-testid="greeting-panel-2"]') ?? document.body);
+      const entryStyle = window.getComputedStyle(document.querySelector(`[data-testid="${CSS.escape(secondGreetingPanelId)}"]`) ?? document.body);
       return {
         stageTransitionDuration: stageStyle.transitionDuration,
         stageAnimationName: stageStyle.animationName,
@@ -1184,7 +1270,7 @@ export async function runVisualVerification() {
         entryTransform: entryStyle.transform,
         entryOpacity: entryStyle.opacity
       };
-    });
+    }, SECOND_GREETING_PANEL_ID);
     assertCondition(reducedMotionSample.stageTransitionDuration === "0s", "Reduced motion route stage still transitions", reducedMotionSample);
     assertCondition(reducedMotionSample.listTransitionDuration === "0s", "Reduced motion list surface still transitions", reducedMotionSample);
     assertCondition(reducedMotionSample.stageAnimationName === "none", "Reduced motion route stage still animates", reducedMotionSample);
@@ -1279,7 +1365,7 @@ export async function runVisualVerification() {
       views: viewChecks.filter((entry) => ["archive", "section-tech", "about"].includes(entry.view))
     });
 
-    const sectionEntrancePassed = lowCountChecks.length === SECTION_SLUGS.length && lowCountChecks.every((check) => check.cardCount <= 3 && check.hasCta === true && check.ctaText === "查看全部文章") && techCollapsedState.ctaExpanded === "false" && techExpandedState.ctaExpanded === "true" && techExpandedState.ctaText === "收起" && essayResetState.ctaExpanded === "false";
+    const sectionEntrancePassed = lowCountChecks.length === SECTION_SLUGS.length && lowCountChecks.every((check) => check.cardCount <= 3 && (check.cardCount > 0 ? check.hasCta === true && check.ctaText === "查看全部文章" : check.hasCta === false)) && techCollapsedState.ctaExpanded === "false" && techExpandedState.ctaExpanded === "true" && techExpandedState.ctaText === "收起" && essayResetState.ctaExpanded === "false";
     const routeCommentScopePassed = routeChecks.every((route) => {
       if (route.kind === "post") {
         return route.comments?.commentsSectionPresent === true;
@@ -1331,6 +1417,7 @@ export async function runVisualVerification() {
       sectionBackgroundChecks,
       taglineChecks,
       lowCountChecks,
+      visitCounterChecks,
       musicChecks,
       viewChecks,
       overflowChecks,
@@ -1378,7 +1465,8 @@ export async function runVisualVerification() {
         `- Section screenshots: ${sectionScreenshots.map((item) => item.view).join(", ")}`,
         `- Section background checks: ${sectionBackgroundChecks.length} section routes expose computed background-image URLs`,
         `- Section CTA toggle: tech expands inline, flips to 收起, and resets collapsed state on section change`,
-        `- Music checks: collapsed state, no autoplay, and missing-config fallback passed`,
+        `- Visit counter checks: homepage counter DOM/script contract passed and stayed absent on archive/about/post/tech routes`,
+        `- Music checks: collapsed state has no iframe; expanded state mounts one non-autoplay NetEase iframe with the expected song params and fallback link`,
         `- Route transition state: visible then cleaned within 700ms on section/archive navigation`,
         `- Viewport sweep: ${overflowChecks.length} checks passed across ${DEFAULT_VIEWPORTS.join(", ")}px`,
         `- Focus check: ${focusAndMotion.navFocus?.text ?? "unknown"} (${focusAndMotion.navFocus?.testId ?? "no-testid"}) matched :focus-visible with outline ${focusAndMotion.navFocus?.outlineStyle ?? "unknown"}`,

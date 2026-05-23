@@ -1,4 +1,3 @@
-import React from "react";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { getTagCounts } from "../data/posts.js";
 import { sections } from "../data/sections.js";
@@ -79,6 +78,11 @@ function SidePanel({ onSectionChange }) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="side-panel-counter" data-testid="home-visit-counter" aria-label="本站总访问次数">
+        <span className="side-panel-counter__label">本站总访问次数</span>
+        <span className="side-panel-counter__value vercount_value_site_pv" data-testid="home-visit-counter-value">--</span>
       </section>
 
       <section>
