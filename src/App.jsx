@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
 import { AboutView } from "./pages/AboutView.jsx";
@@ -213,7 +213,6 @@ export default function App() {
               tagFilter={tagFilter}
               setTagFilter={setTagFilter}
             />
-            <MusicEasterEgg />
           </>
         )}
           {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} pathname={pathname} />}
@@ -228,6 +227,10 @@ export default function App() {
           </div>
         )}
       </main>
+      <MusicEasterEgg
+        variant={route.kind === "home" ? "full" : "mini"}
+        isHomeReady={route.kind !== "home" || greetingDismissed}
+      />
     </div>
   );
 }
