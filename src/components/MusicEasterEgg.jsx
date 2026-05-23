@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { music } from "../data/yaml-loader.js";
 
 const NETEASE_PLAYER_HEIGHT = "66";
@@ -34,11 +34,35 @@ function buildNetEasePlayerUrl(songId) {
   return playerUrl.toString();
 }
 
-export function MusicEasterEgg() {
+export function MusicEasterEgg({ variant = "full", isHomeReady = true }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasMountedPlayer, setHasMountedPlayer] = useState(false);
 
   const songId = useMemo(() => parseNetEaseSongId(music.embed_url), []);
   const playerUrl = useMemo(() => (songId ? buildNetEasePlayerUrl(songId) : null), [songId]);
+  const isMini = variant === "mini";
+  const shouldRender = isMini || isHomeReady || hasMountedPlayer;
+  const isSuppressed = !isMini && !isHomeReady;
+  const rootClassName = [
+    isMini ? "music-mini-player" : "music-easter-egg",
+    "reveal",
+    isExpanded ? "is-expanded" : "is-collapsed",
+    isSuppressed ? "is-suppressed" : ""
+  ].filter(Boolean).join(" ");
+  const panelClassName = [
+    isMini ? "music-mini-player__panel" : "music-easter-egg__panel",
+    isExpanded ? "is-expanded" : "is-collapsed"
+  ].join(" ");
+  const playerShellClassName = [
+    isMini ? "music-mini-player__player-shell" : "music-easter-egg__player-shell",
+    isExpanded ? "is-expanded" : "is-collapsed"
+  ].join(" ");
+
+  useEffect(() => {
+    if (shouldRender && playerUrl && !hasMountedPlayer) {
+      setHasMountedPlayer(true);
+    }
+  }, [hasMountedPlayer, playerUrl, shouldRender]);
 
   const availability = useMemo(() => {
     if (playerUrl) {
@@ -54,11 +78,23 @@ export function MusicEasterEgg() {
     };
   }, [playerUrl]);
 
+  if (!shouldRender) {
+    return null;
+  }
+
   return (
-    <section className="music-easter-egg reveal" aria-label="音乐彩蛋">
+    <section
+      className={rootClassName}
+      data-testid={isMini ? "music-mini-player" : undefined}
+      data-variant={variant}
+      data-expanded={isExpanded}
+      data-suppressed={isSuppressed}
+      aria-label="音乐彩蛋"
+      aria-hidden={isSuppressed ? "true" : undefined}
+    >
       <button
         type="button"
-        className="music-easter-egg__toggle"
+        className={isMini ? "music-mini-player__toggle music-easter-egg__toggle" : "music-easter-egg__toggle"}
         data-testid="music-easter-egg-toggle"
         aria-expanded={isExpanded}
         aria-controls="music-easter-egg-panel"
@@ -68,46 +104,50 @@ export function MusicEasterEgg() {
         <span className="music-easter-egg__title">{music.title}</span>
       </button>
 
-      {isExpanded && (
-        <div id="music-easter-egg-panel" className="music-easter-egg__panel" data-testid="music-easter-egg-panel">
-          <div className="music-easter-egg__panel-copy">
-            <p className="music-easter-egg__label">{music.provider}</p>
-            <h2>{music.title}</h2>
-            <p>{music.description}</p>
-            {availability.copy ? (
-              <p className={`music-easter-egg__status music-easter-egg__status--${availability.state}`}>
-                {availability.copy}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="music-easter-egg__player-shell">
-            {playerUrl ? (
-              <iframe
-                className="music-easter-egg__player"
-                data-testid="music-easter-egg-player"
-                src={playerUrl}
-                title={`NetEase Cloud Music player: ${music.title}`}
-                loading="lazy"
-              />
-            ) : (
-              <p className="music-easter-egg__player-unavailable">播放器暂不可用。</p>
-            )}
-          </div>
-
-          {music.embed_url ? (
-            <a
-              className="music-easter-egg__fallback-link"
-              data-testid="music-easter-egg-fallback-link"
-              href={music.embed_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              在网易云音乐打开
-            </a>
+      <div
+        id="music-easter-egg-panel"
+        className={panelClassName}
+        data-testid="music-easter-egg-panel"
+        data-expanded={isExpanded}
+        aria-hidden={isExpanded ? "false" : "true"}
+      >
+        <div className="music-easter-egg__panel-copy">
+          <p className="music-easter-egg__label">{music.provider}</p>
+          <h2>{music.title}</h2>
+          <p>{music.description}</p>
+          {availability.copy ? (
+            <p className={`music-easter-egg__status music-easter-egg__status--${availability.state}`}>
+              {availability.copy}
+            </p>
           ) : null}
         </div>
-      )}
+
+        <div className={playerShellClassName} data-expanded={isExpanded}>
+          {playerUrl ? (
+            <iframe
+              className="music-easter-egg__player"
+              data-testid="music-easter-egg-player"
+              src={playerUrl}
+              title={`NetEase Cloud Music player: ${music.title}`}
+              loading="lazy"
+            />
+          ) : (
+            <p className="music-easter-egg__player-unavailable">播放器暂不可用。</p>
+          )}
+        </div>
+
+        {music.embed_url ? (
+          <a
+            className="music-easter-egg__fallback-link"
+            data-testid="music-easter-egg-fallback-link"
+            href={music.embed_url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            在网易云音乐打开
+          </a>
+        ) : null}
+      </div>
     </section>
   );
 }
