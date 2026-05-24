@@ -1,9 +1,34 @@
-import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { archiveEase, cardMotion, durationFast, reducedMotionTransition } from "../lib/motion.js";
 
 export function ArchiveCard({ post, onOpen }) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
-    <article className="archive-card reveal">
-      <button className="card-hit" data-testid={`archive-card-${post.id}`} onClick={() => onOpen(post.slug)} type="button">
+    <motion.article
+      className="archive-card reveal"
+      variants={cardMotion}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
+      whileTap={
+        shouldReduceMotion
+          ? undefined
+          : {
+              scale: 0.995,
+              transition: { duration: durationFast, ease: archiveEase },
+            }
+      }
+      custom={shouldReduceMotion}
+    >
+      <motion.button
+        className="card-hit"
+        data-testid={`archive-card-${post.id}`}
+        onClick={() => onOpen(post.slug)}
+        type="button"
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.99, transition: { duration: durationFast, ease: archiveEase } }}
+        transition={shouldReduceMotion ? reducedMotionTransition : undefined}
+      >
         <div className="card-body">
           <header>
             <p className="archive-id">{post.id}</p>
@@ -31,7 +56,7 @@ export function ArchiveCard({ post, onOpen }) {
             </div>
           </dl>
         </div>
-      </button>
+      </motion.button>
 
       <footer className="card-foot">
         <ul className="tag-list" aria-label="标签">
@@ -40,6 +65,6 @@ export function ArchiveCard({ post, onOpen }) {
           ))}
         </ul>
       </footer>
-    </article>
+    </motion.article>
   );
 }

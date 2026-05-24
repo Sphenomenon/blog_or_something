@@ -1,21 +1,100 @@
 import { useEffect } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { getTagCounts } from "../data/posts.js";
 import { sections } from "../data/sections.js";
+import { archiveEase, durationFast, reducedMotionTransition, revealFrame, staggerContainer } from "../lib/motion.js";
 import { site } from "../data/yaml-loader.js";
 
+const heroTitleCharacters = Array.from(site.home_hero_title);
+
+const heroTitleCharacter = {
+  hidden: {
+    opacity: 0,
+    y: 10,
+    filter: "blur(0.18rem)",
+  },
+  visible: (shouldReduceMotion = false) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0)",
+    transition: shouldReduceMotion
+      ? reducedMotionTransition
+      : {
+          duration: durationFast,
+          ease: archiveEase,
+        },
+  }),
+};
+
 function HeroPanel() {
+  const shouldReduceMotion = useReducedMotion();
+
+  function handleGoDown() {
+    const archiveIndex = document.querySelector("#home-archive-index");
+
+    if (!archiveIndex) {
+      return;
+    }
+
+    archiveIndex.scrollIntoView({
+      behavior: shouldReduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }
+
   return (
-    <section className="hero-panel reveal" aria-labelledby="hero-title">
-      <div className="hero-marker" aria-hidden="true">
+    <motion.section
+      className="hero-panel"
+      data-testid="home-hero"
+      aria-labelledby="hero-title"
+      variants={revealFrame}
+      initial="hidden"
+      animate="visible"
+      custom={shouldReduceMotion}
+    >
+      <motion.div className="hero-marker" aria-hidden="true" variants={revealFrame} custom={shouldReduceMotion}>
         <span>{site.home_hero_marker}</span>
-      </div>
-      <div>
-        <p className="hero-code">{site.home_hero_code}</p>
-        <h1 id="hero-title">{site.home_hero_title}</h1>
-        <p>{site.home_hero_body}</p>
-      </div>
-    </section>
+      </motion.div>
+      <motion.div className="hero-copy" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
+        <motion.p className="hero-code" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_code}</motion.p>
+        <motion.h1
+          id="hero-title"
+          className="hero-title"
+          data-testid="home-hero-title"
+          aria-label={site.home_hero_title}
+          variants={staggerContainer}
+          custom={shouldReduceMotion}
+        >
+          {heroTitleCharacters.map((character, index) => (
+            <motion.span
+              key={`${character}-${index}`}
+              className="hero-title__character"
+              aria-hidden="true"
+              variants={heroTitleCharacter}
+              custom={shouldReduceMotion}
+            >
+              {character === " " ? "\u00A0" : character}
+            </motion.span>
+          ))}
+        </motion.h1>
+        <motion.p className="hero-body" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_body}</motion.p>
+        <motion.button
+          className="hero-go-down"
+          data-testid="home-go-down"
+          type="button"
+          aria-label="进入档案索引"
+          onClick={handleGoDown}
+          variants={revealFrame}
+          custom={shouldReduceMotion}
+          whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+          whileTap={shouldReduceMotion ? undefined : { y: 0 }}
+        >
+          <span className="hero-go-down__label">进入档案索引</span>
+          <span className="hero-go-down__glyph" aria-hidden="true">↓</span>
+        </motion.button>
+      </motion.div>
+    </motion.section>
   );
 }
 
@@ -113,6 +192,8 @@ function SidePanel({ onSectionChange }) {
 }
 
 export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFilter, setStatusFilter, tagFilter, setTagFilter }) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <>
       <HeroPanel />
@@ -122,16 +203,16 @@ export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFil
         tagFilter={tagFilter}
         onTagFilter={setTagFilter}
       />
-      <section className="home-grid" aria-label="首页索引">
+      <section id="home-archive-index" className="home-grid" data-testid="home-archive-index" aria-label="首页索引">
         <div className="archive-column">
           <h2 className="section-title">{site.home_grid_title}</h2>
-          <ol className="archive-list">
+          <motion.ol className="archive-list" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
             {filteredPosts.map((post) => (
-              <li key={post.id}>
+              <motion.li key={post.id} variants={revealFrame} custom={shouldReduceMotion}>
                 <ArchiveCard post={post} onOpen={onOpenPost} />
-              </li>
+              </motion.li>
             ))}
-          </ol>
+          </motion.ol>
         </div>
 
         <SidePanel onSectionChange={onSectionChange} />
