@@ -476,6 +476,8 @@ async function collectMusicState(page) {
       tag: element.tagName,
       autoplay: element.getAttribute('autoplay'),
       allow: element.getAttribute('allow'),
+      loading: element.getAttribute('loading'),
+      referrerPolicy: element.getAttribute('referrerpolicy'),
       src: element.getAttribute('src'),
       title: element.getAttribute('title')
     }));
@@ -554,11 +556,16 @@ function assertMusicIframeContract(state, expectedParams) {
   const iframe = state.iframes[0];
   assertCondition(Boolean(iframe?.src), "Music iframe is missing its src", state);
   const iframeUrl = new URL(iframe.src);
+  assertCondition(iframeUrl.pathname === "/m/outchain/player", "Music iframe should use NetEase mobile outchain endpoint for desktop playback compatibility", { state, src: iframe.src });
   for (const [name, expectedValue] of Object.entries(expectedParams)) {
     assertCondition(iframeUrl.searchParams.get(name) === expectedValue, `Music iframe ${name} param mismatch`, { state, src: iframe.src, expectedParams });
   }
   assertCondition(iframe.autoplay === null, "Music iframe should not include an autoplay attribute", state);
-  assertCondition(!iframe.allow?.toLowerCase().includes("autoplay"), "Music iframe allow attribute should not permit autoplay", state);
+  const allowPolicy = iframe.allow?.toLowerCase() ?? "";
+  assertCondition(allowPolicy.includes("autoplay"), "Music iframe should delegate autoplay permission for desktop playback compatibility", state);
+  assertCondition(allowPolicy.includes("encrypted-media"), "Music iframe should delegate encrypted-media permission for desktop playback compatibility", state);
+  assertCondition(iframe.loading === "eager", "Music iframe should load eagerly so it is ready after expanding", state);
+  assertCondition(iframe.referrerPolicy === "strict-origin-when-cross-origin", "Music iframe should use a compatible cross-origin referrer policy", state);
 }
 
 async function collectMarkdownState(page) {
