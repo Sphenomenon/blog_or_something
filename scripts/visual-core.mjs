@@ -130,6 +130,214 @@ async function collectTransitionState(page) {
   });
 }
 
+async function collectHeroState(page) {
+  return page.evaluate(() => {
+    const hero = document.querySelector('[data-testid="home-hero"]') ?? document.querySelector('main h1')?.closest('section, header, .page-panel') ?? document.querySelector('main');
+    const title = hero?.querySelector('[data-testid="home-hero-title"]') ?? hero?.querySelector('h1') ?? document.querySelector('main h1');
+    const style = hero ? window.getComputedStyle(hero) : null;
+    const titleStyle = title ? window.getComputedStyle(title) : null;
+    const rect = hero?.getBoundingClientRect();
+    const titleRect = title?.getBoundingClientRect();
+
+    const wrapperVisible = Boolean(hero && style && style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0 && rect.width > 0 && rect.height > 0);
+    const titleVisible = Boolean(title && titleStyle && titleStyle.display !== 'none' && titleStyle.visibility !== 'hidden' && Number.parseFloat(titleStyle.opacity || '1') > 0 && titleRect.width > 0 && titleRect.height > 0);
+    const titleText = title?.textContent?.replace(/\s+/g, ' ').trim() ?? null;
+
+    return {
+      found: Boolean(hero),
+      titleFound: Boolean(title),
+      titleText,
+      visible: wrapperVisible || (titleVisible && Boolean(titleText)),
+      wrapperVisible,
+      titleVisible,
+      animationName: style?.animationName ?? null,
+      transitionDuration: style?.transitionDuration ?? null,
+      titleAnimationName: titleStyle?.animationName ?? null,
+      titleTransitionDuration: titleStyle?.transitionDuration ?? null
+    };
+  });
+}
+
+async function exerciseHomeGoDownAffordance(page) {
+  return page.evaluate(async () => {
+    const button = document.querySelector('[data-testid="home-go-down"]');
+    const target = document.querySelector('[data-testid="home-archive-index"]');
+    const describe = () => {
+      const targetRect = target?.getBoundingClientRect();
+      return {
+        buttonPresent: Boolean(button),
+        targetPresent: Boolean(target),
+        buttonText: button?.textContent?.replace(/\s+/g, ' ').trim() ?? null,
+        buttonAriaLabel: button?.getAttribute('aria-label') ?? null,
+        targetText: target?.textContent?.replace(/\s+/g, ' ').trim().slice(0, 120) ?? null,
+        scrollY: window.scrollY,
+        targetTop: targetRect?.top ?? null,
+        targetInViewport: Boolean(targetRect && targetRect.top < window.innerHeight && targetRect.bottom > 0),
+        activeTestId: document.activeElement?.getAttribute?.('data-testid') ?? null
+      };
+    };
+
+    const before = describe();
+    if (!button || !target) {
+      return { status: 'not-present-yet', before, after: null, deterministic: true };
+    }
+
+    button.click();
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+    const after = describe();
+    return {
+      status: 'checked',
+      before,
+      after,
+      deterministic: true,
+      reachedArchiveIndex: after.targetInViewport === true || after.scrollY > before.scrollY
+    };
+  });
+}
+
+async function exerciseArchiveCardHoverState(page) {
+  const card = page.locator('.archive-card, [data-testid^="archive-card-"]').first();
+  const exists = await card.count().then((count) => count > 0);
+  if (!exists) {
+    return { status: 'not-present-yet', found: false };
+  }
+
+  const before = await card.evaluate((node) => {
+    const style = window.getComputedStyle(node);
+    return {
+      testId: node.getAttribute('data-testid'),
+      transform: style.transform,
+      boxShadow: style.boxShadow,
+      borderColor: style.borderColor,
+      hovered: node.matches(':hover')
+    };
+  });
+  await card.hover();
+  await page.waitForTimeout(120);
+  const after = await card.evaluate((node) => {
+    const style = window.getComputedStyle(node);
+    return {
+      testId: node.getAttribute('data-testid'),
+      transform: style.transform,
+      boxShadow: style.boxShadow,
+      borderColor: style.borderColor,
+      hovered: node.matches(':hover')
+    };
+  });
+
+  return {
+    status: 'checked',
+    found: true,
+    before,
+    after,
+    changed: before.transform !== after.transform || before.boxShadow !== after.boxShadow || before.borderColor !== after.borderColor,
+    deterministic: true
+  };
+}
+
+async function exerciseBackToTopAffordance(page) {
+  return page.evaluate(async () => {
+    const button = document.querySelector('[data-testid="back-to-top"]');
+    const progress = document.querySelector('[data-testid="back-to-top-progress"]');
+    const describe = () => {
+      const buttonStyle = button ? window.getComputedStyle(button) : null;
+      const progressStyle = progress ? window.getComputedStyle(progress) : null;
+      const buttonRect = button?.getBoundingClientRect();
+      return {
+        buttonPresent: Boolean(button),
+        progressPresent: Boolean(progress),
+        scrollY: window.scrollY,
+        maxScroll: Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+        buttonVisible: Boolean(button && buttonStyle && buttonStyle.display !== 'none' && buttonStyle.visibility !== 'hidden' && Number.parseFloat(buttonStyle.opacity || '1') > 0 && buttonRect.width > 0 && buttonRect.height > 0),
+        buttonAriaLabel: button?.getAttribute('aria-label') ?? null,
+        progressAriaValueNow: progress?.getAttribute('aria-valuenow') ?? null,
+        progressStrokeDashoffset: progressStyle?.strokeDashoffset ?? null,
+        progressTransform: progressStyle?.transform ?? null
+      };
+    };
+
+    if (!button || !progress) {
+      return { status: 'not-present-yet', before: describe(), afterScroll: null, afterClick: null, deterministic: true };
+    }
+
+    const before = describe();
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+    const afterScroll = describe();
+    button.click();
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
+    const afterClick = describe();
+    return {
+      status: 'checked',
+      before,
+      afterScroll,
+      afterClick,
+      deterministic: true,
+      becameVisibleAfterScroll: afterScroll.buttonVisible === true,
+      returnedNearTop: afterClick.scrollY <= Math.max(80, Math.round(window.innerHeight * 0.15)),
+      progressChanged: before.progressAriaValueNow !== afterScroll.progressAriaValueNow || before.progressStrokeDashoffset !== afterScroll.progressStrokeDashoffset || before.progressTransform !== afterScroll.progressTransform
+    };
+  });
+}
+
+async function collectMusicSingletonPersistence(page) {
+  const home = await collectMusicState(page);
+  if (home.iframeCount === 0) {
+    return { status: 'not-present-yet', home, article: null, persisted: false, singleton: false };
+  }
+
+  const homeSrc = home.iframes[0]?.src ?? null;
+  await page.getByTestId("archive-card-AR-2026-041").click();
+  await page.getByRole("heading", { name: "在石化走廊里记录一场缓慢失真" }).waitFor({ state: "visible", timeout: 10000 });
+  await waitForMusicRootVisible(page, ".music-mini-player");
+  const article = await collectMusicState(page);
+
+  return {
+    status: 'checked',
+    home,
+    article,
+    homeSrc,
+    articleSrc: article.iframes[0]?.src ?? null,
+    singleton: home.iframeCount === 1 && article.iframeCount === 1,
+    persisted: homeSrc !== null && article.iframes[0]?.src === homeSrc
+  };
+}
+
+async function verifyReducedMotionFreshContext(browser) {
+  const { context, page, errors, consoleEntries } = await createPage(browser, { width: 1440, height: 1100 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  try {
+    await goToPath(page, "/");
+    const gate = page.getByTestId("greeting-gate");
+    if (await gate.isVisible().catch(() => false)) {
+      await page.getByTestId("greeting-enter-home").click();
+      await gate.waitFor({ state: "hidden", timeout: 10000 });
+    }
+    await page.getByRole("heading", { name: "档案索引" }).waitFor({ state: "visible", timeout: 10000 });
+    const homeState = await capturePageState(page);
+    const heroState = await collectHeroState(page);
+    const transitionState = await collectTransitionState(page);
+    const contentVisible = homeState.hasShell === true && homeState.bodyTextLength > 0 && heroState.visible === true && heroState.titleVisible === true;
+
+    assertCondition(contentVisible, "Reduced-motion fresh context did not keep homepage content visible", { homeState, heroState, transitionState });
+    assertCondition(errors.length === 0, "Reduced-motion fresh context reported page errors", { errors });
+    assertCondition(consoleEntries.length === 0, "Reduced-motion fresh context reported console warnings/errors", { consoleEntries });
+
+    return {
+      status: 'checked',
+      passed: true,
+      contentVisible,
+      errors,
+      consoleEntries,
+      homeState,
+      heroState,
+      transitionState
+    };
+  } finally {
+    await context.close();
+  }
+}
+
 async function collectArchiveYearState(page) {
   return page.evaluate(() => {
     const heading = document.querySelector('[data-testid="archive-year-heading"]')?.textContent?.trim() ?? null;
@@ -912,6 +1120,7 @@ export async function runVisualVerification() {
     const readabilityChecks = [];
     const reducedMotionChecks = [];
     const consoleCleanlinessChecks = [];
+    const deterministicInteractionChecks = [];
 
     const initialState = await capturePageState(page);
     routeChecks.push(await verifyDirectRoute(browser, "/", { kind: "home" }));
@@ -1258,6 +1467,18 @@ export async function runVisualVerification() {
     const homeReadyState = await capturePageState(page);
     viewChecks.push({ view: "home-ready", state: homeReadyState });
 
+    const heroState = await collectHeroState(page);
+    deterministicInteractionChecks.push(createCheck("home-hero-visible-after-animation-window", heroState.visible === true && heroState.titleVisible === true && Boolean(heroState.titleText), heroState));
+    assertCondition(heroState.visible === true, "Home hero/main content should be visible after the route settles", heroState);
+    assertCondition(heroState.titleVisible === true && Boolean(heroState.titleText), "Home hero title should remain visible after animation", heroState);
+
+    const homeGoDownState = await exerciseHomeGoDownAffordance(page);
+    const homeGoDownPassed = homeGoDownState.status === 'not-present-yet' || homeGoDownState.reachedArchiveIndex === true;
+    deterministicInteractionChecks.push(createCheck("home-go-down-scrolls-to-archive-index-when-present", homeGoDownPassed, homeGoDownState));
+    if (homeGoDownState.status === 'checked') {
+      assertCondition(homeGoDownState.reachedArchiveIndex === true, "Home go-down control did not reveal the archive index", homeGoDownState);
+    }
+
     const homeVisitCounterState = await collectVisitCounterState(page);
     visitCounterChecks.push({ path: "/", ...homeVisitCounterState });
     assertCondition(homeVisitCounterState.hasCounter === true, "Homepage visit counter should exist on /", homeVisitCounterState);
@@ -1317,6 +1538,13 @@ export async function runVisualVerification() {
     assertCondition(musicArticleState.fallbackHref === MUSIC_FALLBACK_HREF, "Article music fallback link href mismatch", musicArticleState);
     assertMusicIframeContract(musicArticleState, MUSIC_IFRAME_EXPECTATIONS);
 
+    await openView(page, "home");
+    await waitForMusicRootVisible(page, ".music-easter-egg");
+    const musicPersistenceState = await collectMusicSingletonPersistence(page);
+    deterministicInteractionChecks.push(createCheck("music-iframe-singleton-persists-across-spa-route", musicPersistenceState.singleton === true && musicPersistenceState.persisted === true, musicPersistenceState));
+    assertCondition(musicPersistenceState.singleton === true, "Music iframe should remain a singleton across SPA route transition", musicPersistenceState);
+    assertCondition(musicPersistenceState.persisted === true, "Music iframe src should persist across SPA route transition", musicPersistenceState);
+
     const overflowChecks = [];
     const overflowViews = ["home", "article", "archive", ...SECTION_SLUGS.map((slug) => `section-${slug}`), "about"];
     for (const width of DEFAULT_VIEWPORTS) {
@@ -1329,6 +1557,22 @@ export async function runVisualVerification() {
 
     await page.setViewportSize({ width: 1440, height: 1100 });
     await openView(page, "home");
+
+    const archiveCardHoverState = await exerciseArchiveCardHoverState(page);
+    const archiveCardHoverPassed = archiveCardHoverState.status === 'not-present-yet' || archiveCardHoverState.changed === true;
+    deterministicInteractionChecks.push(createCheck("archive-card-hover-updates-computed-affordance", archiveCardHoverPassed, archiveCardHoverState));
+    if (archiveCardHoverState.status === 'checked') {
+      assertCondition(archiveCardHoverState.changed === true, "Archive card hover should change transform, shadow, or border color", archiveCardHoverState);
+    }
+
+    const backToTopState = await exerciseBackToTopAffordance(page);
+    const backToTopPassed = backToTopState.status === 'not-present-yet' || (backToTopState.becameVisibleAfterScroll === true && backToTopState.returnedNearTop === true && backToTopState.progressChanged === true);
+    deterministicInteractionChecks.push(createCheck("back-to-top-progress-and-scroll-contract-when-present", backToTopPassed, backToTopState));
+    if (backToTopState.status === 'checked') {
+      assertCondition(backToTopState.becameVisibleAfterScroll === true, "Back-to-top button should become visible after scrolling", backToTopState);
+      assertCondition(backToTopState.returnedNearTop === true, "Back-to-top button should return the viewport near the top", backToTopState);
+      assertCondition(backToTopState.progressChanged === true, "Back-to-top progress ring should reflect scroll progress", backToTopState);
+    }
 
     await page.emulateMedia({ reducedMotion: "reduce" });
     const reducedMotionTransition = await collectTransitionState(page);
@@ -1360,6 +1604,11 @@ export async function runVisualVerification() {
     assertCondition(reducedMotionSample.entryTransform === "none", "Reduced motion greeting entry still transforms", reducedMotionSample);
     reducedMotionChecks.push(createCheck("surface-and-greeting-zero-motion", reducedMotionSample.stageTransitionDuration === "0s" && reducedMotionSample.listTransitionDuration === "0s" && reducedMotionSample.stageAnimationName === "none" && reducedMotionSample.listAnimationName === "none" && reducedMotionSample.entryTransitionDuration === "0s" && reducedMotionSample.entryTransform === "none", reducedMotionSample));
     await page.emulateMedia({ reducedMotion: "no-preference" });
+
+    const reducedMotionFreshContext = await verifyReducedMotionFreshContext(browser);
+    reducedMotionChecks.push(createCheck("fresh-reduced-motion-context-keeps-content-visible", reducedMotionFreshContext.passed === true && reducedMotionFreshContext.contentVisible === true, reducedMotionFreshContext));
+    deterministicInteractionChecks.push(createCheck("fresh-reduced-motion-context-content-and-console-contract", reducedMotionFreshContext.passed === true && reducedMotionFreshContext.contentVisible === true, reducedMotionFreshContext));
+    await saveEvidence("task-2-reduced-motion-check.json", reducedMotionFreshContext);
 
     const focusAndMotion = await verifyFocusAndMotion(page);
     assertCondition(
@@ -1460,6 +1709,7 @@ export async function runVisualVerification() {
     const routeBackgroundFlashPassed = backgroundLayerChecks.every((check) => check.passed);
     const reducedMotionPassed = reducedMotionChecks.every((check) => check.passed);
     const overflowFocusConsoleCleanlinessPassed = overflowChecks.every((check) => check.overflowed === false) && focusAndMotion.navFocus?.matchesFocusVisible === true && focusAndMotion.cardFocus?.matchesFocusVisible === true && consoleCleanlinessChecks.every((check) => check.passed);
+    const deterministicInteractionPassed = deterministicInteractionChecks.every((check) => check.passed);
 
     const payload = {
       status: "ok",
@@ -1494,6 +1744,10 @@ export async function runVisualVerification() {
         passed: consoleCleanlinessChecks.every((check) => check.passed),
         checks: consoleCleanlinessChecks
       },
+      deterministicInteractionChecks: {
+        passed: deterministicInteractionPassed,
+        checks: deterministicInteractionChecks
+      },
       sectionScreenshots,
       sectionBackgroundChecks,
       taglineChecks,
@@ -1521,6 +1775,7 @@ export async function runVisualVerification() {
         greetingTransition: { passed: greetingTransitionPassed },
         routeBackgroundFlash: { passed: routeBackgroundFlashPassed },
         reducedMotion: { passed: reducedMotionPassed },
+        deterministicInteractions: { passed: deterministicInteractionPassed },
         overflowFocusConsoleCleanliness: {
           passed: overflowFocusConsoleCleanlinessPassed
         }
@@ -1542,6 +1797,7 @@ export async function runVisualVerification() {
         `- Background layer checks: ${summarizeGroup({ name: 'backgroundLayerChecks', passed: backgroundLayerChecks.every((check) => check.passed), checks: backgroundLayerChecks })}`,
         `- Readability checks: ${summarizeGroup({ name: 'readabilityChecks', passed: readabilityChecks.every((check) => check.passed), checks: readabilityChecks })}`,
         `- Reduced-motion checks: ${summarizeGroup({ name: 'reducedMotionChecks', passed: reducedMotionChecks.every((check) => check.passed), checks: reducedMotionChecks })}`,
+        `- Deterministic interaction prep: ${summarizeGroup({ name: 'deterministicInteractionChecks', passed: deterministicInteractionPassed, checks: deterministicInteractionChecks })}`,
         `- Console cleanliness checks: ${summarizeGroup({ name: 'consoleCleanlinessChecks', passed: consoleCleanlinessChecks.every((check) => check.passed), checks: consoleCleanlinessChecks })}`,
         `- Section screenshots: ${sectionScreenshots.map((item) => item.view).join(", ")}`,
         `- Section background checks: ${sectionBackgroundChecks.length} section routes expose computed background-image URLs`,
@@ -1554,7 +1810,7 @@ export async function runVisualVerification() {
         `- Reduced motion: animation=${focusAndMotion.motionState.animationName}, duration=${focusAndMotion.motionState.animationDuration}, transition=${focusAndMotion.motionState.transitionDuration}`,
         `- Interaction flow: search/article/archive/section/about all passed`,
         `- Markdown checks: headings, blockquote, code, list, table, TOC passed`,
-        `- Selected scope pass groups: sectionEntrance=${payload.selectedScopeGroups.sectionEntrance.passed}, articleNavigationAndCommentsScope=${payload.selectedScopeGroups.articleNavigationAndCommentsScope.passed}, archiveYearPagination=${payload.selectedScopeGroups.archiveYearPagination.passed}, greetingTransition=${payload.selectedScopeGroups.greetingTransition.passed}, routeBackgroundFlash=${payload.selectedScopeGroups.routeBackgroundFlash.passed}, reducedMotion=${payload.selectedScopeGroups.reducedMotion.passed}, overflowFocusConsoleCleanliness=${payload.selectedScopeGroups.overflowFocusConsoleCleanliness.passed}`,
+        `- Selected scope pass groups: sectionEntrance=${payload.selectedScopeGroups.sectionEntrance.passed}, articleNavigationAndCommentsScope=${payload.selectedScopeGroups.articleNavigationAndCommentsScope.passed}, archiveYearPagination=${payload.selectedScopeGroups.archiveYearPagination.passed}, greetingTransition=${payload.selectedScopeGroups.greetingTransition.passed}, routeBackgroundFlash=${payload.selectedScopeGroups.routeBackgroundFlash.passed}, reducedMotion=${payload.selectedScopeGroups.reducedMotion.passed}, deterministicInteractions=${payload.selectedScopeGroups.deterministicInteractions.passed}, overflowFocusConsoleCleanliness=${payload.selectedScopeGroups.overflowFocusConsoleCleanliness.passed}`,
         `- Build: passed in ${buildResult.durationMs}ms`
       ].join("\n")
     );
@@ -1569,6 +1825,7 @@ export async function runVisualVerification() {
       && payload.backgroundLayerChecks.passed
       && payload.readabilityChecks.passed
       && payload.reducedMotionChecks.passed
+      && payload.deterministicInteractionChecks.passed
       && payload.consoleCleanlinessChecks.passed;
 
     await saveEvidence("task-6-full-regression.json", {
@@ -1583,6 +1840,7 @@ export async function runVisualVerification() {
         backgroundLayerChecks: payload.backgroundLayerChecks.passed,
         readabilityChecks: payload.readabilityChecks.passed,
         reducedMotionChecks: payload.reducedMotionChecks.passed,
+        deterministicInteractionChecks: payload.deterministicInteractionChecks.passed,
         consoleCleanlinessChecks: payload.consoleCleanlinessChecks.passed
       },
       artifactPointers: {
