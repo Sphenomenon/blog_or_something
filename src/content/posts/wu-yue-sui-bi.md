@@ -2,14 +2,21 @@
 id: AR-2026-124
 slug: wu-yue-sui-bi
 title: 五月随笔
-excerpt: 学校校庆，飞往安徽，柳絮杨树。回成都，断念想，开启新生活。博客完工，任重道远。
+excerpt: 2026/5
 date: 2026-05-23
 section: diary
 status: published
 reading: 3 min
-tags: [日记, 校庆, 生活, 博客]
+tags:
+  - 日记
+  - 校庆
+  - 生活
+  - 博客
 category: Diary
-sections: [校庆, 回程, 博客]
+sections:
+  - 校庆
+  - 回程
+  - 博客
 ---
 
 ## 2026/5/15
