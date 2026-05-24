@@ -24,7 +24,7 @@ function parseNetEaseSongId(embedUrl) {
 }
 
 function buildNetEasePlayerUrl(songId) {
-  const playerUrl = new URL("https://music.163.com/outchain/player");
+  const playerUrl = new URL("https://music.163.com/m/outchain/player");
 
   playerUrl.searchParams.set("type", "2");
   playerUrl.searchParams.set("id", songId);
@@ -129,7 +129,9 @@ export function MusicEasterEgg({ variant = "full", isHomeReady = true }) {
               data-testid="music-easter-egg-player"
               src={playerUrl}
               title={`NetEase Cloud Music player: ${music.title}`}
-              loading="lazy"
+              allow="autoplay; encrypted-media"
+              loading="eager"
+              referrerPolicy="strict-origin-when-cross-origin"
             />
           ) : (
             <p className="music-easter-egg__player-unavailable">播放器暂不可用。</p>
