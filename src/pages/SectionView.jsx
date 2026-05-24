@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { friendLinks } from "../data/links.js";
 import { getSectionRepresentativePosts } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
+import { revealFrame, staggerContainer } from "../lib/motion.js";
 
 function compareSectionPosts(left, right) {
   const dateDiff = right.date.localeCompare(left.date);
@@ -12,6 +14,7 @@ function compareSectionPosts(left, right) {
 
 export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
   const section = getSectionBySlug(sectionSlug);
+  const shouldReduceMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const sectionPosts = useMemo(() => {
@@ -78,17 +81,17 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
               <p>添加新的友链后将显示在这里。</p>
             </div>
           ) : (
-            <div className="friend-links-grid">
+            <motion.div className="friend-links-grid" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
               {friendLinks.map((link, i) => (
-                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="friend-link-card">
+                <motion.a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="friend-link-card" variants={revealFrame} custom={shouldReduceMotion}>
                   <img src={link.logo} alt={link.name} className="friend-link-logo" loading="lazy" />
                   <div className="friend-link-info">
                     <span className="friend-link-name">{link.name}</span>
                     <p className="friend-link-desc">{link.description}</p>
                   </div>
-                </a>
+                </motion.a>
               ))}
-            </div>
+            </motion.div>
           )}
         </section>
       ) : (
@@ -104,18 +107,22 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
               <p>背景与简介已就位，等后续内容进入后会自动出现在这里。</p>
             </div>
           ) : (
-            <ol
+            <motion.ol
               className="archive-list"
               data-testid={`section-representatives-${section.slug}`}
               aria-expanded={isExpanded}
               aria-label={`${section.label}文章列表`}
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              custom={shouldReduceMotion}
             >
               {sectionPosts.map((post) => (
-                <li key={post.id}>
+                <motion.li key={post.id} variants={revealFrame} custom={shouldReduceMotion}>
                   <ArchiveCard post={post} onOpen={onOpenPost} />
-                </li>
+                </motion.li>
               ))}
-            </ol>
+            </motion.ol>
           )}
 
           <div className="section-all-posts-cta">
