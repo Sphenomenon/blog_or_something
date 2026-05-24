@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
 import { AboutView } from "./pages/AboutView.jsx";
@@ -6,15 +7,18 @@ import { ArchiveView } from "./pages/ArchiveView.jsx";
 import { ArticleView } from "./pages/ArticleView.jsx";
 import { GreetingGate } from "./components/GreetingGate.jsx";
 import { MusicEasterEgg } from "./components/MusicEasterEgg.jsx";
+import { BackToTop } from "./components/BackToTop.jsx";
 import { HomeView } from "./pages/HomeView.jsx";
 import { SectionView } from "./pages/SectionView.jsx";
 import { site } from "./data/yaml-loader.js";
 import { getSectionBySlug } from "./data/sections.js";
+import { viewTransition } from "./lib/motion.js";
 
 const ROUTE_TRANSITION_MS = 320;
 const LIST_TRANSITION_MS = 220;
 
 export default function App() {
+  const shouldReduceMotion = useReducedMotion();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [tagFilter, setTagFilter] = useState("All");
@@ -38,6 +42,7 @@ export default function App() {
   const selectedSection = route.kind === "section" ? route.sectionSlug : null;
   const selectedSectionData = selectedSection ? getSectionBySlug(selectedSection) : null;
   const isNotFound = route.kind === "not-found" || (route.kind === "post" && !selectedPost) || (route.kind === "section" && !selectedSectionData);
+  const routeFrameKey = `${route.kind}:${normalizePath(pathname)}:${route.kind === "home" && !greetingDismissed ? "gate" : "view"}`;
 
   const activeView = useMemo(() => {
     if (route.kind === "home") return "home";
@@ -199,11 +204,18 @@ export default function App() {
         data-transition-state={transitionState}
         data-list-transition-state={listTransitionState}
       >
-        {route.kind === "home" && !greetingDismissed && (
-          <GreetingGate onEnterHome={() => setGreetingDismissed(true)} />
-        )}
-        {route.kind === "home" && greetingDismissed && (
-          <>
+        <motion.div
+          key={routeFrameKey}
+          className="route-frame"
+          variants={viewTransition}
+          initial={shouldReduceMotion ? false : "initial"}
+          animate="animate"
+          custom={shouldReduceMotion}
+        >
+          {route.kind === "home" && !greetingDismissed && (
+            <GreetingGate onEnterHome={() => setGreetingDismissed(true)} />
+          )}
+          {route.kind === "home" && greetingDismissed && (
             <HomeView
               filteredPosts={filteredPosts}
               onOpenPost={openPost}
@@ -213,24 +225,25 @@ export default function App() {
               tagFilter={tagFilter}
               setTagFilter={setTagFilter}
             />
-          </>
-        )}
+          )}
           {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} pathname={pathname} />}
-        {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
-        {route.kind === "about" && <AboutView />}
-        {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} onOpenArchive={() => navigateTo("/archive")} />}
-        {isNotFound && (
-          <div data-testid="not-found-view">
-            <h1>{site.error_404_title}</h1>
-            <p>{site.error_404_body}</p>
-            <button type="button" onClick={() => navigateTo("/")}>{site.error_404_button}</button>
-          </div>
-        )}
+          {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
+          {route.kind === "about" && <AboutView />}
+          {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} onOpenArchive={() => navigateTo("/archive")} />}
+          {isNotFound && (
+            <div data-testid="not-found-view">
+              <h1>{site.error_404_title}</h1>
+              <p>{site.error_404_body}</p>
+              <button type="button" onClick={() => navigateTo("/")}>{site.error_404_button}</button>
+            </div>
+          )}
+        </motion.div>
       </main>
       <MusicEasterEgg
         variant={route.kind === "home" ? "full" : "mini"}
         isHomeReady={route.kind !== "home" || greetingDismissed}
       />
+      <BackToTop routeKey={pathname} />
     </div>
   );
 }
