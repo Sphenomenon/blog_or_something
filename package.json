@@ -9,7 +9,13 @@
     "generate:food-map-json": "node scripts/generate-food-map-json.mjs",
     "build": "npm run optimize-images && npm run generate:food-map-json && vite build",
     "preview": "vite preview",
-    "verify:visual": "node scripts/verify-visual.mjs"
+    "verify:visual": "node scripts/verify-visual.mjs",
+    "verify:food-map-schema": "node scripts/verify-food-map-schema.mjs",
+    "verify:food-map-content": "node scripts/verify-food-map-content.mjs",
+    "verify:food-map-amap": "node scripts/verify-food-map-amap.mjs",
+    "verify:food-map-external": "node scripts/verify-food-map-external.mjs",
+    "verify:food-map-browser": "node scripts/verify-food-map-browser.mjs",
+    "verify:food-map": "node scripts/verify-food-map.mjs"
   },
   "dependencies": {
     "@waline/client": "^3.7.0",
