@@ -10,6 +10,7 @@ import { MusicEasterEgg } from "./components/MusicEasterEgg.jsx";
 import { BackToTop } from "./components/BackToTop.jsx";
 import { HomeView } from "./pages/HomeView.jsx";
 import { SectionView } from "./pages/SectionView.jsx";
+import { FoodMapView } from "./pages/FoodMapView.jsx";
 import { site } from "./data/yaml-loader.js";
 import { getSectionBySlug } from "./data/sections.js";
 import { viewTransition } from "./lib/motion.js";
@@ -49,6 +50,7 @@ export default function App() {
     if (route.kind === "post" && selectedPost) return "post";
     if (route.kind === "archive") return "archive";
     if (route.kind === "about") return "about";
+    if (route.kind === "food-map") return "food-map";
     return "";
   }, [route.kind, selectedPost]);
 
@@ -183,6 +185,11 @@ export default function App() {
     }
     if (nextView === "about") {
       navigateTo("/about");
+      return;
+    }
+    if (nextView === "food-map") {
+      navigateTo("/food-map");
+      return;
     }
   }
 
@@ -229,6 +236,7 @@ export default function App() {
           {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} pathname={pathname} />}
           {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
           {route.kind === "about" && <AboutView />}
+          {route.kind === "food-map" && <FoodMapView />}
           {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} onOpenArchive={() => navigateTo("/archive")} />}
           {isNotFound && (
             <div data-testid="not-found-view">
@@ -261,6 +269,10 @@ function parseRoute(pathname) {
 
   if (normalizedPath === "/about") {
     return { kind: "about" };
+  }
+
+  if (normalizedPath === "/food-map") {
+    return { kind: "food-map" };
   }
 
   const postMatch = normalizedPath.match(/^\/posts\/([^/]+)$/);

@@ -1,9 +1,9 @@
-import React from "react";
 import { site, sections } from "../data/yaml-loader.js";
 
 const secondaryViews = [
   { id: "archive", label: site.nav_archive_label },
-  { id: "about", label: site.nav_about_label }
+  { id: "about", label: site.nav_about_label },
+  { id: "food-map", label: "美食地图" }
 ];
 
 export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onViewChange, query, onQueryChange }) {
