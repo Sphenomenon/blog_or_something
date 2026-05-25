@@ -1,0 +1,40 @@
+{
+  "schema": "https://valaxy.site/schemas/food-map.v1.json",
+  "schemaVersion": 1,
+  "generator": {
+    "name": "nocturne-archive-blog-food-map",
+    "version": 1
+  },
+  "owner": {
+    "name": "Nocturne Archive"
+  },
+  "site": {
+    "name": "Nocturne Archive",
+    "url": "https://blog.sphenicidition.top"
+  },
+  "generatedAt": "2026-05-25T12:07:35.647Z",
+  "coordinateSystem": "GCJ-02",
+  "spots": [
+    {
+      "id": "chengdu-rongcheng-shuangshuang-meiwa-fish",
+      "name": "蓉城霜霜美娃鱼",
+      "city": "成都",
+      "address": "郫都区金怡巷85号",
+      "lng": 103.95206540822981,
+      "lat": 30.785646101310576,
+      "coordinateSystem": "GCJ-02",
+      "category": "自助餐",
+      "price": 70,
+      "rating": 5,
+      "recommend": [
+        "红油美娃"
+      ],
+      "amapUrl": "https://surl.amap.com/88T27OSkgd6",
+      "source": {
+        "type": "local",
+        "id": "local",
+        "name": "Local"
+      }
+    }
+  ]
+}
