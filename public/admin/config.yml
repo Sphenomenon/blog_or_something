@@ -32,6 +32,61 @@ collections:
       - { name: sections, label: Sections, widget: list, field: { name: section, label: Section, widget: string }, required: false }
       - { name: body, label: Body (纯文本), widget: text }
 
+  - name: food_places
+    label: Food Places
+    folder: src/content/food-places
+    create: true
+    format: yaml
+    extension: yaml
+    identifier_field: name
+    slug: '{{slug}}'
+    fields:
+      - { name: spotId, label: Spot ID, widget: string }
+      - { name: name, label: Name, widget: string }
+      - { name: status, label: Status, widget: select, options: [published, draft] }
+      - { name: city, label: City, widget: string }
+      - { name: category, label: Category, widget: string }
+      - { name: address, label: Address, widget: string }
+      - name: coordinates
+        label: Coordinates
+        widget: object
+        fields:
+          - { name: lng, label: Longitude, widget: number, value_type: float }
+          - { name: lat, label: Latitude, widget: number, value_type: float }
+      - { name: district, label: District, widget: string, required: false }
+      - { name: price, label: Price, widget: number, required: false, value_type: float }
+      - { name: rating, label: Rating, widget: number, required: false, value_type: float, min: 0, max: 5 }
+      - { name: recommend, label: Recommend, widget: list, required: false, field: { name: item, label: Item, widget: string } }
+      - { name: tags, label: Tags, widget: list, required: false, field: { name: tag, label: Tag, widget: string } }
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: articleSlug, label: Article Slug, widget: string, required: false }
+      - { name: articleUrl, label: Article URL, widget: string, required: false }
+      - { name: amapUrl, label: AMap URL, widget: string, required: false }
+      - { name: showAmapLink, label: Show AMap Link, widget: boolean, required: false }
+      - { name: coordinateSystem, label: Coordinate System, widget: select, required: false, options: [GCJ-02, WGS84] }
+      - { name: cover, label: Cover, widget: image, required: false }
+      - { name: photos, label: Photos, widget: list, required: false, field: { name: photo, label: Photo, widget: image } }
+      - { name: noindex, label: No Index, widget: boolean, required: false }
+      - { name: private, label: Private, widget: boolean, required: false }
+      - name: visits
+        label: Visits
+        widget: list
+        required: false
+        fields:
+          - { name: visitId, label: Visit ID, widget: string }
+          - { name: visitedAt, label: Visited At, widget: datetime, date_only: true, format: YYYY-MM-DD }
+          - { name: rating, label: Rating, widget: number, required: false, value_type: float, min: 0, max: 5 }
+          - { name: note, label: Note, widget: text, required: false }
+          - name: people
+            label: People
+            widget: list
+            required: false
+            fields:
+              - { name: name, label: Name, widget: string }
+              - { name: url, label: URL, widget: string, required: false }
+          - { name: privateNote, label: Private Note, widget: text, required: false }
+          - { name: private, label: Private, widget: boolean, required: false }
+
   - name: "sections"
     label: "分区"
     label_singular: "分区"
