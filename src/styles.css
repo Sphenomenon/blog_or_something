@@ -2509,6 +2509,910 @@ body::after {
   border: 0;
 }
 
+/* ── Food Map ─────────────────────────────────────────────────────────── */
+
+.page-panel--food-map {
+  border-left: var(--border-accent);
+  background:
+    linear-gradient(160deg, rgb(28 35 34 / 0.92), rgb(17 21 23 / 0.97)),
+    radial-gradient(circle at 12% 4%, rgb(80 112 106 / 0.12), transparent 28%),
+    radial-gradient(circle at 94% 8%, rgb(179 154 99 / 0.08), transparent 34%),
+    repeating-linear-gradient(to right, transparent 0, transparent 71px, rgb(255 255 255 / 0.012) 71px, rgb(255 255 255 / 0.012) 72px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 47px, rgb(255 255 255 / 0.012) 47px, rgb(255 255 255 / 0.012) 48px);
+}
+
+.page-panel--food-map::before {
+  background:
+    linear-gradient(135deg, transparent 0 42%, rgb(179 154 99 / 0.075) 42% 42.6%, transparent 42.6% 100%),
+    linear-gradient(45deg, transparent 0 72%, rgb(80 112 106 / 0.085) 72% 72.6%, transparent 72.6% 100%),
+    var(--texture-ledger),
+    var(--texture-noise);
+  opacity: 0.36;
+}
+
+.page-panel--food-map .page-panel-header {
+  padding-bottom: var(--space-5);
+  border-bottom: var(--border-dashed);
+}
+
+.food-map-view,
+.food-map-view * {
+  min-width: 0;
+}
+
+.food-map-status-row,
+.food-map-source-list,
+.food-map-card-tags,
+.food-map-detail-tags,
+.food-map-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.food-map-status-badge,
+.food-map-badge,
+.food-map-source-status,
+.food-map-source-badge,
+.food-map-count,
+.food-map-card-tag,
+.food-map-detail-tag,
+.food-map-card-link,
+.food-map-visit-date,
+.food-map-visit-rating {
+  display: inline-flex;
+  align-items: center;
+  border: var(--border-subtle);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface-wash);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: var(--text-tracking-ui);
+  line-height: var(--text-body-line-tight);
+}
+
+.food-map-status-badge--loading,
+.food-map-source-badge--local,
+.food-map-spot-card--selected .food-map-card-link {
+  border-color: rgb(179 154 99 / 0.42);
+  background: rgb(179 154 99 / 0.11);
+  color: var(--text-0);
+}
+
+.food-map-source-badge--external {
+  border-color: rgb(126 74 67 / 0.56);
+  background: rgb(126 74 67 / 0.14);
+  color: var(--text-1);
+}
+
+.food-map-badge,
+.food-map-source-status,
+.food-map-count {
+  border-color: rgb(80 112 106 / 0.46);
+  background: rgb(80 112 106 / 0.12);
+}
+
+.food-map-source-status {
+  color: var(--text-0);
+}
+
+.food-map-external-warning,
+.food-map-map-status {
+  border: var(--border-dashed);
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(90deg, rgb(168 108 61 / 0.12), transparent),
+    rgb(18 22 24 / 0.72);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  padding: var(--space-3) var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.food-map-external-warning {
+  margin-bottom: var(--space-5);
+}
+
+.food-map-external-warning--compact {
+  border-color: rgb(168 108 61 / 0.58);
+  background:
+    linear-gradient(90deg, rgb(168 108 61 / 0.15), transparent),
+    rgb(18 22 24 / 0.72);
+}
+
+.food-map-share-panel {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: center;
+  margin-bottom: var(--space-5);
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(135deg, rgb(80 112 106 / 0.11), transparent 42%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.034), rgb(255 255 255 / 0.014)),
+    rgb(16 20 22 / 0.8);
+  padding: var(--space-5);
+  overflow: hidden;
+}
+
+.food-map-share-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 68%, rgb(179 154 99 / 0.06) 68% 68.7%, transparent 68.7% 100%),
+    repeating-linear-gradient(to right, transparent 0 44px, rgb(255 255 255 / 0.018) 44px 45px, transparent 45px 90px),
+    var(--texture-noise);
+  mix-blend-mode: soft-light;
+  opacity: 0.32;
+}
+
+.food-map-share-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.food-map-share-copy {
+  display: flex;
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.food-map-share-copy h2,
+.food-map-share-copy p,
+.food-map-share-feedback {
+  margin: 0;
+}
+
+.food-map-share-copy h2 {
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: clamp(1.02rem, 1.8vw, 1.22rem);
+  line-height: 1.3;
+}
+
+.food-map-share-copy p,
+.food-map-share-feedback {
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.food-map-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.food-map-share-path {
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgb(12 16 18 / 0.74);
+  color: var(--text-0);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: var(--text-body-line-tight);
+  padding: var(--space-3) var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.food-map-share-link {
+  display: inline-flex;
+  align-items: center;
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-wash);
+  color: var(--accent-gold);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  line-height: var(--text-body-line-tight);
+  padding: var(--space-3) var(--space-4);
+  text-decoration-color: rgb(179 154 99 / 0.46);
+  text-underline-offset: 0.2em;
+  transition: border-color var(--duration-fast) var(--ease-archive), color var(--duration-fast) var(--ease-archive), background-color var(--duration-fast) var(--ease-archive), transform var(--duration-fast) var(--ease-archive), box-shadow var(--duration-fast) var(--ease-archive);
+}
+
+.food-map-share-link:hover,
+.food-map-share-link:focus-visible {
+  border-color: var(--accent-gold);
+  background: var(--surface-glow);
+  color: var(--text-0);
+  transform: translateY(calc(-1 * var(--space-1)));
+}
+
+.food-map-share-feedback {
+  grid-column: 1 / -1;
+  min-height: 1.4em;
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+
+.food-map-filters {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.015)),
+    rgb(16 20 22 / 0.78);
+  padding: var(--space-5);
+  overflow: hidden;
+}
+
+.food-map-filters::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 0 52%, rgb(179 154 99 / 0.055) 52% 52.55%, transparent 52.55% 100%),
+    repeating-linear-gradient(to right, transparent 0 38px, rgb(255 255 255 / 0.018) 38px 39px, transparent 39px 78px);
+  opacity: 0.72;
+}
+
+.food-map-filters > * {
+  position: relative;
+  z-index: 1;
+}
+
+.food-map-filter-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(160px, 0.8fr));
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.food-map-filter-group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.food-map-filter-group label {
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: var(--text-tracking-micro);
+}
+
+.food-map-search-input,
+.food-map-select {
+  width: 100%;
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card-alt);
+  color: var(--text-0);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: var(--text-body-line-tight);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color var(--duration-fast) var(--ease-archive), box-shadow var(--duration-fast) var(--ease-archive), background-color var(--duration-fast) var(--ease-archive);
+}
+
+.food-map-search-input::placeholder {
+  color: var(--text-2);
+}
+
+.food-map-search-input:focus-visible,
+.food-map-select:focus-visible,
+.food-map-filter-button:focus-visible,
+.food-map-reset-button:focus-visible,
+.food-map-button:focus-visible,
+.food-map-spot-card:focus-visible,
+.food-map-share-link:focus-visible,
+.food-map-detail a:focus-visible,
+.food-map-marker:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: calc(var(--focus-offset) + 0.1rem);
+  box-shadow:
+    0 0 0 6px var(--focus-halo),
+    0 0 0 1px rgb(255 255 255 / 0.06) inset;
+}
+
+.food-map-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.food-map-filter-button,
+.food-map-reset-button,
+.food-map-button,
+.food-map-marker {
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-wash);
+  color: var(--text-1);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: border-color var(--duration-fast) var(--ease-archive), color var(--duration-fast) var(--ease-archive), background-color var(--duration-fast) var(--ease-archive), transform var(--duration-fast) var(--ease-archive), box-shadow var(--duration-fast) var(--ease-archive);
+}
+
+.food-map-filter-button,
+.food-map-reset-button,
+.food-map-button {
+  padding: var(--space-3) var(--space-4);
+}
+
+.food-map-filter-button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: var(--text-tracking-ui);
+}
+
+.food-map-filter-button:hover,
+.food-map-filter-button[aria-pressed="true"],
+.food-map-reset-button:hover,
+.food-map-button:hover,
+.food-map-marker:hover {
+  border-color: var(--accent-gold);
+  background: var(--surface-glow);
+  color: var(--text-0);
+  transform: translateY(calc(-1 * var(--space-1)));
+}
+
+.food-map-filter-button[aria-pressed="true"] {
+  box-shadow: 0 0 0 1px rgb(179 154 99 / 0.18) inset;
+}
+
+.food-map-reset-button {
+  color: var(--text-2);
+}
+
+.food-map-empty-state,
+.food-map-no-results {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  border: var(--border-dashed);
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(80 112 106 / 0.12), transparent 28%),
+    rgb(17 21 23 / 0.74);
+  padding: clamp(var(--space-6), 4vw, 2.5rem);
+}
+
+.food-map-no-results {
+  border-color: rgb(168 108 61 / 0.62);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(168 108 61 / 0.14), transparent 28%),
+    rgb(17 21 23 / 0.74);
+}
+
+.food-map-empty-state h2,
+.food-map-no-results h2,
+.food-map-map-shell h2 {
+  margin: 0;
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.food-map-empty-state p,
+.food-map-no-results p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--text-1);
+  text-wrap: pretty;
+}
+
+.food-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.85fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.food-map-main,
+.food-map-side {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.food-map-side {
+  position: sticky;
+  top: var(--space-6);
+}
+
+.food-map-list,
+.food-map-visits {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.food-map-list li {
+  min-width: 0;
+}
+
+.food-map-spot-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(175deg, rgb(33 38 41 / 0.68), rgb(21 25 27 / 0.84)),
+    radial-gradient(circle at 86% 0%, rgb(80 112 106 / 0.1), transparent 36%);
+  color: inherit;
+  padding: var(--space-5);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  box-shadow: 0 0 0 1px transparent;
+  transition: border-color var(--duration-normal) var(--ease-archive), background var(--duration-normal) var(--ease-archive), transform var(--duration-normal) var(--ease-archive), box-shadow var(--duration-normal) var(--ease-archive);
+}
+
+.food-map-spot-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 42%, rgb(179 154 99 / 0.1) 48%, transparent 54% 100%),
+    linear-gradient(180deg, transparent 0 82%, rgb(255 255 255 / 0.026) 82% 82.8%, transparent 82.8% 100%);
+  background-position: -150% 0, center;
+  background-size: 220% 100%, auto;
+  opacity: 0.5;
+  transform: translateX(calc(-1 * var(--space-4)));
+  transition: opacity var(--duration-normal) var(--ease-archive), transform var(--duration-slow) var(--ease-archive), background-position var(--duration-slow) var(--ease-archive);
+}
+
+.food-map-spot-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.food-map-spot-card:hover,
+.food-map-spot-card--selected {
+  border-color: var(--accent-gold);
+  background:
+    linear-gradient(175deg, rgb(39 45 47 / 0.78), rgb(22 27 28 / 0.92)),
+    radial-gradient(circle at 86% 0%, rgb(179 154 99 / 0.12), transparent 38%);
+  box-shadow:
+    0 0 0 1px rgb(179 154 99 / 0.16),
+    0 14px 28px rgb(0 0 0 / 0.24);
+  transform: translateY(calc(-1 * var(--space-1)));
+}
+
+.food-map-spot-card:hover::before,
+.food-map-spot-card--selected::before {
+  background-position: 120% 0, center;
+  opacity: 0.92;
+  transform: translateX(0);
+}
+
+.food-map-card-header,
+.food-map-card-meta {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.food-map-card-title,
+.food-map-marker-title {
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.food-map-card-meta,
+.food-map-card-address,
+.food-map-marker-address,
+.food-map-detail-meta,
+.food-map-detail-address {
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.food-map-card-description,
+.food-map-card-note,
+.food-map-detail-description,
+.food-map-detail-note,
+.food-map-visit-note {
+  color: var(--text-1);
+  line-height: 1.75;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.food-map-card-note,
+.food-map-detail-note {
+  color: var(--text-0);
+}
+
+.food-map-card-tags,
+.food-map-detail-tags {
+  margin-top: var(--space-1);
+}
+
+.food-map-detail,
+.food-map-map-shell {
+  position: relative;
+  display: grid;
+  gap: var(--space-4);
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.015)),
+    var(--surface-card);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-ink);
+  overflow: hidden;
+}
+
+.food-map-detail::before,
+.food-map-map-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 76%, rgb(255 255 255 / 0.025) 76% 76.8%, transparent 76.8% 100%),
+    var(--texture-noise);
+  mix-blend-mode: soft-light;
+  opacity: 0.28;
+}
+
+.food-map-detail > *,
+.food-map-map-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.food-map-detail--empty {
+  border-style: dashed;
+  background: rgb(19 23 26 / 0.58);
+}
+
+.food-map-detail-header {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-dashed);
+}
+
+.food-map-detail-title {
+  margin: 0;
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.4vw, 1.62rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.food-map-detail p {
+  margin: 0;
+}
+
+.food-map-detail a {
+  color: var(--accent-gold);
+  text-decoration-color: rgb(179 154 99 / 0.46);
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.food-map-visits {
+  padding-top: var(--space-3);
+  border-top: var(--border-dashed);
+}
+
+.food-map-visit {
+  display: grid;
+  gap: var(--space-2);
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.025);
+  padding: var(--space-3);
+}
+
+.food-map-visit-date {
+  justify-self: start;
+  color: var(--accent-gold);
+}
+
+.food-map-map-fallback {
+  min-height: 320px;
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(circle at 20% 24%, rgb(80 112 106 / 0.22), transparent 18%),
+    radial-gradient(circle at 78% 60%, rgb(179 154 99 / 0.13), transparent 22%),
+    repeating-linear-gradient(to right, transparent 0 31px, rgb(255 255 255 / 0.024) 31px 32px, transparent 32px 64px),
+    repeating-linear-gradient(to bottom, transparent 0 31px, rgb(255 255 255 / 0.02) 31px 32px, transparent 32px 64px),
+    rgb(12 16 18 / 0.78);
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+.food-map-amap-frame {
+  position: absolute;
+  inset: auto var(--space-5) var(--space-5) var(--space-5);
+  min-height: 320px;
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(circle at 20% 24%, rgb(80 112 106 / 0.18), transparent 18%),
+    rgb(12 16 18 / 0.78);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.food-map-map-fallback[data-amap-backup="true"] {
+  min-height: auto;
+  background: rgb(12 16 18 / 0.48);
+}
+
+.food-map-amap-frame[data-amap-active="true"] {
+  position: relative;
+  inset: auto;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.food-map-amap-canvas {
+  min-height: inherit;
+  width: 100%;
+  height: max(320px, 42vh);
+}
+
+.food-map-marker-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.food-map-marker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  width: 100%;
+  padding: var(--space-3);
+  text-align: left;
+}
+
+.food-map-marker--selected {
+  border-color: var(--accent-gold);
+  background: rgb(179 154 99 / 0.11);
+  color: var(--text-0);
+  box-shadow: 0 0 0 1px rgb(179 154 99 / 0.14) inset;
+}
+
+.food-map-marker--rating-loved {
+  border-color: rgb(179 154 99 / 0.42);
+}
+
+.food-map-marker--rating-good {
+  border-color: rgb(80 112 106 / 0.42);
+}
+
+.food-map-marker--rating-default {
+  border-color: var(--line-0);
+}
+
+.food-map-marker-index {
+  display: grid;
+  place-items: center;
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  border: var(--border-subtle);
+  border-radius: 50%;
+  background: rgb(179 154 99 / 0.1);
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.food-map-marker--rating-loved .food-map-marker-index {
+  border-color: rgb(179 154 99 / 0.58);
+  background:
+    radial-gradient(circle at 50% 30%, rgb(179 154 99 / 0.26), transparent 60%),
+    rgb(179 154 99 / 0.12);
+  color: var(--text-0);
+  box-shadow: 0 0 18px rgb(179 154 99 / 0.16);
+}
+
+.food-map-marker--rating-good .food-map-marker-index {
+  border-color: rgb(80 112 106 / 0.58);
+  background:
+    radial-gradient(circle at 50% 30%, rgb(80 112 106 / 0.25), transparent 60%),
+    rgb(80 112 106 / 0.13);
+  color: var(--text-0);
+}
+
+.food-map-amap-marker {
+  position: relative;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - (var(--space-6) * 2)));
+  background:
+    linear-gradient(175deg, rgb(33 38 41 / 0.88), rgb(18 22 24 / 0.96)),
+    radial-gradient(circle at 86% 0%, rgb(179 154 99 / 0.1), transparent 36%);
+  box-shadow:
+    0 12px 24px rgb(0 0 0 / 0.28),
+    0 0 0 1px rgb(255 255 255 / 0.035) inset;
+  transform-origin: 50% 100%;
+}
+
+.food-map-amap-marker::after {
+  content: "";
+  position: absolute;
+  inset: auto calc(50% - var(--space-2)) calc(-1 * var(--space-2));
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  border-right: var(--border-subtle);
+  border-bottom: var(--border-subtle);
+  background: rgb(18 22 24 / 0.96);
+  transform: rotate(45deg);
+}
+
+.food-map-amap-marker:hover {
+  box-shadow:
+    0 16px 30px rgb(0 0 0 / 0.34),
+    0 0 0 1px rgb(179 154 99 / 0.18) inset,
+    0 0 20px rgb(179 154 99 / 0.12);
+  transform: scale(1.04);
+}
+
+.food-map-amap-marker__copy {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.food-map-amap-marker__rating {
+  font-size: 0.62rem;
+  letter-spacing: 0;
+}
+
+.food-map-info-window {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--space-3);
+  width: min(20rem, calc(100vw - (var(--space-6) * 2)));
+  border: var(--border-subtle);
+  border-left: var(--border-accent);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(160deg, rgb(31 36 39 / 0.96), rgb(17 21 23 / 0.98)),
+    radial-gradient(circle at 94% 4%, rgb(179 154 99 / 0.12), transparent 34%),
+    var(--texture-noise);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  line-height: 1.65;
+  padding: var(--space-5);
+  box-shadow: var(--shadow-ink);
+  overflow: hidden;
+}
+
+.food-map-info-window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 0 48%, rgb(179 154 99 / 0.075) 48% 48.6%, transparent 48.6% 100%),
+    repeating-linear-gradient(to right, transparent 0 38px, rgb(255 255 255 / 0.018) 38px 39px, transparent 39px 78px);
+  mix-blend-mode: soft-light;
+  opacity: 0.68;
+}
+
+.food-map-info-window > * {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.food-map-info-window__eyebrow,
+.food-map-info-window__meta,
+.food-map-info-window__rating {
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: var(--text-tracking-ui);
+  line-height: var(--text-body-line-tight);
+}
+
+.food-map-info-window__eyebrow,
+.food-map-info-window__rating {
+  color: var(--accent-gold);
+}
+
+.food-map-info-window__title {
+  margin: 0;
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+}
+
+.food-map-info-window__body,
+.food-map-info-window__address,
+.food-map-info-window__recommend {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.food-map-info-window__address {
+  color: var(--text-2);
+}
+
+.food-map-info-window__tags,
+.food-map-info-window__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.food-map-info-window__tag,
+.food-map-info-window__link {
+  display: inline-flex;
+  align-items: center;
+  border: var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-wash);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: var(--text-tracking-ui);
+  line-height: var(--text-body-line-tight);
+  padding: var(--space-1) var(--space-3);
+}
+
+.food-map-info-window__link {
+  border-color: rgb(179 154 99 / 0.44);
+  color: var(--accent-gold);
+  text-decoration-color: rgb(179 154 99 / 0.46);
+  text-underline-offset: 0.2em;
+}
+
+.food-map-map-shell--amap .amap-info-content:has(.food-map-info-window) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.food-map-map-shell--amap .amap-info-close:has(+ .amap-info-content .food-map-info-window),
+.food-map-map-shell--amap .amap-info-sharp:has(+ .amap-info-content .food-map-info-window) {
+  color: var(--text-0);
+}
+
 /* ── Friend Links ─────────────────────────────────────────────────────── */
 
 .friend-links-grid {
@@ -2612,6 +3516,10 @@ body::after {
     grid-template-columns: 1fr;
   }
 
+  .food-map-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr);
+  }
+
   .article-layout {
     grid-template-columns: 1fr;
     gap: var(--space-5);
@@ -2642,6 +3550,16 @@ body::after {
   .page-panel-header {
     flex-direction: column;
     align-items: start;
+  }
+
+  .food-map-filter-row,
+  .food-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .food-map-side {
+    position: static;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr);
   }
 
   .section-hero {
@@ -2829,6 +3747,89 @@ body::after {
     align-items: start;
   }
 
+  .page-panel--food-map {
+    padding: var(--space-5);
+  }
+
+  .page-panel--food-map .page-panel-header,
+  .food-map-summary,
+  .food-map-status-row,
+  .food-map-source-list {
+    align-items: stretch;
+  }
+
+  .food-map-status-row,
+  .food-map-source-list,
+  .food-map-summary,
+  .food-map-share-actions,
+  .food-map-side {
+    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .food-map-share-panel {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+
+  .food-map-share-copy {
+    flex-direction: column;
+  }
+
+  .food-map-share-link,
+  .food-map-share-path {
+    width: 100%;
+  }
+
+  .food-map-filters,
+  .food-map-spot-card,
+  .food-map-detail,
+  .food-map-map-shell {
+    padding: var(--space-4);
+  }
+
+  .food-map-search-input,
+  .food-map-select,
+  .food-map-filter-button,
+  .food-map-reset-button,
+  .food-map-button,
+  .food-map-spot-card,
+  .food-map-marker {
+    min-height: 44px;
+  }
+
+  .food-map-filter-button,
+  .food-map-reset-button,
+  .food-map-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .food-map-card-meta,
+  .food-map-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .food-map-map-fallback {
+    min-height: 240px;
+    max-height: 60vh;
+  }
+
+  .food-map-amap-frame,
+  .food-map-amap-canvas {
+    min-height: 240px;
+  }
+
+  .food-map-marker {
+    grid-template-columns: 1fr;
+  }
+
+  .food-map-marker-index {
+    inline-size: 1.7rem;
+    block-size: 1.7rem;
+  }
+
   .page-panel-meta {
     white-space: normal;
   }
@@ -2887,6 +3888,11 @@ body::after {
   .hero-title__character,
   .archive-card,
   .card-hit,
+  .food-map-filter-button,
+  .food-map-reset-button,
+  .food-map-button,
+  .food-map-spot-card,
+  .food-map-marker,
   .friend-link-card,
   .archive-group button,
   .music-easter-egg,
@@ -2910,6 +3916,12 @@ body::after {
 
   .archive-card:hover,
   .archive-card:focus-within,
+  .food-map-filter-button:hover,
+  .food-map-reset-button:hover,
+  .food-map-button:hover,
+  .food-map-spot-card:hover,
+  .food-map-spot-card--selected,
+  .food-map-marker:hover,
   .friend-link-card:hover,
   .friend-link-card:focus-visible,
   .archive-group button:hover,
@@ -2928,6 +3940,9 @@ body::after {
   .archive-card::before,
   .archive-card:hover::before,
   .archive-card:focus-within::before,
+  .food-map-spot-card::before,
+  .food-map-spot-card:hover::before,
+  .food-map-spot-card--selected::before,
   .friend-link-card::before,
   .friend-link-card:hover::before,
   .friend-link-card:focus-visible::before {
