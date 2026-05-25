@@ -1,0 +1,21 @@
+spotId: chengdu-rongcheng-shuangshuang-meiwa-fish
+name: 蓉城霜霜美娃鱼
+status: published
+city: 成都
+district: 郫都区
+category: 自助餐
+address: 郫都区金怡巷85号
+coordinates:
+  lng: 103.95206540822981
+  lat: 30.785646101310576
+price: 70
+rating: 5
+recommend:
+  - 红油美娃
+description: 郫都区美娃鱼排行榜第一名，无需多言
+amapUrl: https://surl.amap.com/88T27OSkgd6
+showAmapLink: true
+coordinateSystem: GCJ-02
+visits:
+  - visitedAt: 2026-05-24
+    rating: 5

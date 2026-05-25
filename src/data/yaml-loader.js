@@ -13,7 +13,11 @@ const sectionsGlob = import.meta.glob("../content/sections/*.yaml", {
   eager: true,
 });
 
-const sectionObjects = Object.values(sectionsGlob);
+function unwrapYamlModule(module) {
+  return module?.default ?? module;
+}
+
+const sectionObjects = Object.values(sectionsGlob).map(unwrapYamlModule);
 
 if (!sectionObjects.length) {
   fail("no section YAML files found via glob");
