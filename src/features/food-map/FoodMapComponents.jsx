@@ -52,7 +52,7 @@ function getAmapPanelStatusText(state, coordinateCount, error) {
   }
 
   if (state === FOOD_MAP_AMAP_LOADER_STATES.ready) {
-    return "高德地图已就绪；点击地图 marker 或地点卡片会同步选中同一个公开地点。";
+    return "";
   }
 
   if (state === FOOD_MAP_AMAP_LOADER_STATES.failed) {
@@ -519,7 +519,7 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
   return (
     <section className="food-map-map-shell food-map-map-shell--amap" aria-label="美食地图" data-amap-state={adapterState}>
       <h2>地图坐标</h2>
-      <div className="food-map-map-status" role="status">{statusText}</div>
+      {statusText && <div className="food-map-map-status" role="status">{statusText}</div>}
       <div className="food-map-amap-frame" aria-hidden={showFallback} data-amap-active={isReady ? "true" : "false"}>
         <div ref={mapElementRef} className="food-map-amap-canvas" aria-label="高德地图" />
       </div>

@@ -15,8 +15,6 @@ import {
 } from "../features/food-map/FoodMapComponents.jsx";
 import { revealFrame, staggerContainer } from "../lib/motion.js";
 
-const FOOD_MAP_SHARED_JSON_PATH = "/food-map/index.json";
-
 function hasActiveFilters(filters) {
   return Object.entries(filters).some(([key, value]) => {
     if (key === "source") return value !== FOOD_MAP_DEFAULT_FILTERS.source;
@@ -38,7 +36,6 @@ export function FoodMapView() {
   const [filters, setFilters] = useState(FOOD_MAP_DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState(publicFoodMapPlaces[0]?.id ?? "");
   const [selectionRequestId, setSelectionRequestId] = useState(0);
-  const [copyStatus, setCopyStatus] = useState("idle");
 
   const places = aggregationState.places;
   const runtimeWarnings = [...new Set([...aggregationState.warnings, ...aggregationState.errors])];
@@ -122,21 +119,6 @@ export function FoodMapView() {
     setSelectionRequestId((currentRequestId) => currentRequestId + 1);
   }, []);
 
-  async function copySharedJsonUrl() {
-    const clipboard = typeof window === "undefined" ? undefined : window.navigator?.clipboard;
-    if (!clipboard?.writeText) {
-      setCopyStatus("failed");
-      return;
-    }
-
-    try {
-      await clipboard.writeText(`${window.location.origin}${FOOD_MAP_SHARED_JSON_PATH}`);
-      setCopyStatus("copied");
-    } catch {
-      setCopyStatus("failed");
-    }
-  }
-
   const totalCount = places.length;
   const localCount = places.filter((spot) => spot.source?.type !== "external").length;
   const externalCount = totalCount - localCount;
@@ -172,38 +154,11 @@ export function FoodMapView() {
         </div>
       </header>
 
-      {externalCount > 0 && (
-        <div className="food-map-external-warning" role="note">
-          已载入 {aggregationState.sources.length} 个外部来源。外部来源只显示共享 JSON 中的公开字段；本地私密访问人与私密备注不会进入这里。
-        </div>
-      )}
-
       {runtimeWarnings.length > 0 && (
         <div className="food-map-external-warning food-map-external-warning--compact" role="status" aria-live="polite">
           外部来源同步有警告，本地地点已保留{failedSourceNames.length > 0 ? `；失败来源：${failedSourceNames.join("、")}` : "。"}
         </div>
       )}
-
-      <section className="food-map-share-panel" aria-labelledby="food-map-share-title">
-        <div className="food-map-share-copy">
-          <span className="food-map-source-badge food-map-source-badge--local">共享 JSON</span>
-          <div>
-            <h2 id="food-map-share-title">公开订阅入口</h2>
-            <p>把这个静态端点交给朋友站点读取；这里只暴露已发布的公开字段。</p>
-          </div>
-        </div>
-        <div className="food-map-share-actions">
-          <code className="food-map-share-path">{FOOD_MAP_SHARED_JSON_PATH}</code>
-          <a className="food-map-share-link" href={FOOD_MAP_SHARED_JSON_PATH} target="_blank" rel="noopener noreferrer">直接打开</a>
-          <button className="food-map-button food-map-share-button" type="button" onClick={copySharedJsonUrl}>
-            {copyStatus === "copied" ? "已复制" : "复制链接"}
-          </button>
-        </div>
-        <p className="food-map-share-feedback" role="status" aria-live="polite">
-          {copyStatus === "copied" && "已复制"}
-          {copyStatus === "failed" && "无法自动复制，请手动复制上方路径。"}
-        </p>
-      </section>
 
       <FoodMapFilters
         filters={filters}
