@@ -13,6 +13,18 @@ const edgeCaseEvidencePath = resolve(".sisyphus/evidence/task-11-browser-edge-ca
 const blockedThirdPartyHosts = new Set(["identity.netlify.com", "events.vercount.one", "music.163.com"]);
 const friendFeedUrl = "https://friend-food-map.test/food-map/index.json";
 const brokenFeedUrl = "https://broken-friend-source.test/food-map/index.json";
+const removedReaderFacingStrings = [
+  "已载入 1 个外部来源",
+  "外部来源只显示共享 JSON 中的公开字段",
+  "高德地图已就绪",
+  "点击地图 marker 或地点卡片会同步选中同一个公开地点",
+  "共享 JSON",
+  "公开订阅入口",
+  "把这个静态端点交给朋友站点读取",
+  "/food-map/index.json",
+  "直接打开",
+  "复制链接"
+];
 
 const friendSources = [
   {
@@ -161,6 +173,20 @@ function assertNoBrowserErrors(errors, consoleEntries) {
   return filteredConsole;
 }
 
+function assertRemovedReaderCopyAbsent(state, context) {
+  for (const text of removedReaderFacingStrings) {
+    assert.equal(state.bodyText.includes(text), false, `${context} should not render removed reader-facing copy: ${text}`);
+  }
+}
+
+function assertShareControlsAbsent(state, context) {
+  assert.equal(state.sharePanelVisible, false, `${context} should not render share JSON panel`);
+  assert.equal(state.shareHref, "", `${context} should not render share JSON link`);
+  assert.equal(state.sharePath, "", `${context} should not render share JSON path`);
+  assert.equal(state.copyButtonText, "", `${context} should not render copy button`);
+  assert.equal(state.shareFeedback, "", `${context} should not render share feedback`);
+}
+
 async function writeEvidence(path, payload) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify({ command, generatedAt: new Date().toISOString(), ...payload }, null, 2)}\n`);
@@ -280,15 +306,11 @@ async function runPopupScenario(browser, baseUrl) {
   const { context, page, errors, consoleEntries } = await createBrowserPage(browser, "popup");
   try {
     await waitForFoodMapReady(page, baseUrl);
-    await page.locator('.food-map-share-button').click();
-    await page.waitForFunction(() => document.querySelector('.food-map-share-button')?.textContent?.includes('已复制'));
-    const afterShareCopy = await collectState(page);
-    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-    const expectedShareUrl = `${baseUrl}/food-map/index.json`;
-    assert.equal(afterShareCopy.sharePath, "/food-map/index.json", "visible share path should point to shared JSON");
-    assert.equal(afterShareCopy.shareHref, expectedShareUrl, "direct share link should resolve to current-origin JSON endpoint");
-    assert.equal(clipboardText, expectedShareUrl, "copy action should write absolute current-origin shared JSON URL");
-    assert.equal(afterShareCopy.shareFeedback, "已复制", "copy status should report success");
+    const readyState = await collectState(page);
+    assert.equal(readyState.amapState, "ready", "mocked AMap should still reach ready state");
+    assert.ok(readyState.markerTitles.length > 0, "mocked AMap should still render markers");
+    assertShareControlsAbsent(readyState, "ready food map");
+    assertRemovedReaderCopyAbsent(readyState, "ready food map");
 
     const firstMarker = page.locator('.amap-mock-marker-hit').first();
     await firstMarker.click();
@@ -316,10 +338,13 @@ async function runPopupScenario(browser, baseUrl) {
       status: "PASS",
       aggregateVerifyWiring: "Dedicated npm run verify:food-map-browser command; not folded into npm run verify:food-map so the aggregate verifier remains the existing unit/build gate while browser QA can be run explicitly with Playwright.",
       assertions: {
-        sharePathVisible: afterShareCopy.sharePath === "/food-map/index.json",
-        shareHrefCurrentOrigin: afterShareCopy.shareHref === expectedShareUrl,
-        clipboardCopiedCurrentOriginJsonUrl: clipboardText === expectedShareUrl,
-        shareCopyFeedbackVisible: afterShareCopy.shareFeedback === "已复制",
+        amapReadyStatePreserved: readyState.amapState === "ready",
+        markersRendered: readyState.markerTitles.length > 0,
+        sharePanelAbsent: !readyState.sharePanelVisible,
+        sharePathAbsent: readyState.sharePath === "",
+        shareLinkAbsent: readyState.shareHref === "",
+        copyButtonAbsent: readyState.copyButtonText === "",
+        removedReaderCopyAbsent: removedReaderFacingStrings.every((text) => !readyState.bodyText.includes(text)),
         markerClickOpenedPopup: afterMarkerClick.popupVisible,
         markerClickSelectedCard: afterMarkerClick.selectedCards.length === 1,
         detailVisibleAfterMarkerClick: Boolean(afterMarkerClick.detailTitle),
@@ -328,12 +353,7 @@ async function runPopupScenario(browser, baseUrl) {
         cardClickReopenedPopup: afterCardClick.popupVisible,
         cardClickRecordedPan: afterCardClick.calls.some((call) => call.type === 'map:panTo')
       },
-      share: {
-        path: afterShareCopy.sharePath,
-        href: afterShareCopy.shareHref,
-        clipboardText,
-        feedback: afterShareCopy.shareFeedback
-      },
+      removedCopyProbe: removedReaderFacingStrings,
       selectedDetail: afterCardClick.detailTitle,
       markerTitles: afterCardClick.markerTitles,
       amapCallTypes: afterCardClick.calls.map((call) => call.type),
@@ -401,15 +421,13 @@ async function runFallbackAndClipboardScenario(browser, baseUrl) {
     await page.goto(`${baseUrl}/food-map`, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-testid="food-map-view"]');
     await page.waitForFunction(() => ["missing-key", "failed"].includes(document.querySelector('.food-map-map-shell')?.getAttribute('data-amap-state')));
-    await page.locator('.food-map-share-button').click();
-    await page.waitForFunction(() => document.querySelector('.food-map-share-feedback')?.textContent?.includes('无法自动复制'));
     const state = await collectState(page);
 
     assert.match(state.amapState, /^(missing-key|failed)$/, "missing or unavailable AMap should keep the map panel in a fallback state");
     assert.equal(state.fallbackVisible, true, "fallback marker list should remain visible without AMap key");
-    assert.equal(state.sharePanelVisible, true, "share JSON UI should remain visible without AMap key");
-    assert.equal(state.sharePath, "/food-map/index.json", "manual share path should remain visible when clipboard is absent");
-    assert.equal(state.shareFeedback, "无法自动复制，请手动复制上方路径。", "clipboard absence should be visible and non-fatal");
+    assertShareControlsAbsent(state, "fallback food map");
+    assertRemovedReaderCopyAbsent(state, "fallback food map");
+    assert.match(state.bodyText, /(高德地图脚本加载失败|未配置 VITE_AMAP_KEY)/, "fallback diagnostic should explain missing or failed AMap setup");
 
     const filteredConsole = assertNoBrowserErrors(errors, consoleEntries);
     const evidence = {
@@ -417,12 +435,16 @@ async function runFallbackAndClipboardScenario(browser, baseUrl) {
       assertions: {
         missingOrFailedAmapState: ["missing-key", "failed"].includes(state.amapState),
         fallbackVisible: state.fallbackVisible,
-        sharePanelVisible: state.sharePanelVisible,
-        visibleSharePath: state.sharePath === "/food-map/index.json",
-        clipboardAbsenceNonFatal: state.shareFeedback === "无法自动复制，请手动复制上方路径。"
+        diagnosticCopyVisible: /(高德地图脚本加载失败|未配置 VITE_AMAP_KEY)/.test(state.bodyText),
+        sharePanelAbsent: !state.sharePanelVisible,
+        sharePathAbsent: state.sharePath === "",
+        shareLinkAbsent: state.shareHref === "",
+        copyButtonAbsent: state.copyButtonText === "",
+        shareFeedbackAbsent: state.shareFeedback === "",
+        removedReaderCopyAbsent: removedReaderFacingStrings.every((text) => !state.bodyText.includes(text))
       },
       statusText: state.statusText,
-      share: { path: state.sharePath, feedback: state.shareFeedback },
+      removedCopyProbe: removedReaderFacingStrings,
       consoleErrors: filteredConsole,
       pageErrors: errors
     };
