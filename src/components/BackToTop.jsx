@@ -7,12 +7,10 @@ const PROGRESS_RING_RADIUS = 22;
 const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 
 function getScrollState() {
-  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-  const scrollableDistance = Math.max(
-    0,
-    document.documentElement.scrollHeight - window.innerHeight
-  );
-  const progress = scrollableDistance > 0 ? Math.min(1, scrollTop / scrollableDistance) : 0;
+  const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+  const scrollTop = Math.max(0, scrollingElement?.scrollTop ?? window.scrollY ?? 0);
+  const scrollableDistance = Math.max(0, (scrollingElement?.scrollHeight ?? 0) - (scrollingElement?.clientHeight ?? 0));
+  const progress = scrollableDistance > 0 ? Math.min(1, Math.max(0, scrollTop / scrollableDistance)) : 0;
   const canScroll = scrollableDistance > MIN_SCROLLABLE_DISTANCE;
 
   return {
@@ -117,7 +115,6 @@ export function BackToTop({ routeKey }) {
           cx="28"
           cy="28"
           r={PROGRESS_RING_RADIUS}
-          pathLength="100"
           strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
           strokeDashoffset={progressOffset}
         />
