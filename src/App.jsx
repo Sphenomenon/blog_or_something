@@ -41,6 +41,7 @@ export default function App() {
   const route = useMemo(() => parseRoute(pathname), [pathname]);
   const selectedPost = route.kind === "post" ? postBySlug[route.slug] ?? null : null;
   const selectedSection = route.kind === "section" ? route.sectionSlug : null;
+  const activeHeaderSection = selectedSection ?? selectedPost?.section ?? "";
   const selectedSectionData = selectedSection ? getSectionBySlug(selectedSection) : null;
   const isNotFound = route.kind === "not-found" || (route.kind === "post" && !selectedPost) || (route.kind === "section" && !selectedSectionData);
   const routeFrameKey = `${route.kind}:${normalizePath(pathname)}:${route.kind === "home" && !greetingDismissed ? "gate" : "view"}`;
@@ -197,7 +198,7 @@ export default function App() {
     <div className="app-shell">
       {(!(route.kind === "home" && !greetingDismissed)) && (
         <SiteHeader
-          activeSectionSlug={selectedSection ?? ""}
+          activeSectionSlug={activeHeaderSection}
           activeView={activeView}
           onSectionChange={openSection}
           onViewChange={handleViewChange}
