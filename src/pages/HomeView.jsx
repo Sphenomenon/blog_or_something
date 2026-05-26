@@ -7,28 +7,147 @@ import { archiveEase, durationFast, reducedMotionTransition, revealFrame, stagge
 import { site } from "../data/yaml-loader.js";
 
 const heroTitleCharacters = Array.from(site.home_hero_title);
+const defaultHeroTitleEffect = "memory-fade";
+const heroTitleEffects = new Set(["fading-font", "vanishing-points", "memory-fade", "blur-focus"]);
+
+function getHeroTitleCharacterState(shouldReduceMotion = false) {
+  return typeof shouldReduceMotion === "object" ? shouldReduceMotion : { shouldReduceMotion };
+}
+
+function getHeroTitleEffect() {
+  const effect = new URLSearchParams(window.location.search).get("heroTitleEffect");
+  return heroTitleEffects.has(effect) ? effect : defaultHeroTitleEffect;
+}
+
+function getHiddenHeroTitleCharacter({ effect, index }) {
+  if (effect === "fading-font") {
+    return {
+      opacity: index % 4 === 0 ? 0.12 : 0.28,
+      x: 0,
+      y: 0,
+      scale: 1,
+      rotate: 0,
+      filter: "blur(0.18rem)",
+      textShadow: "0 0 0.62rem rgb(232 225 210 / 0.12)",
+    };
+  }
+
+  if (effect === "vanishing-points") {
+    return {
+      opacity: index % 3 === 0 ? 0.1 : 0.22,
+      x: 0,
+      y: 2,
+      scale: 1,
+      rotate: 0,
+      filter: "blur(0.42rem)",
+      textShadow: "0 0 0.9rem rgb(179 154 99 / 0.22)",
+    };
+  }
+
+  if (effect === "memory-fade") {
+    return {
+      opacity: 0.18,
+      x: 0,
+      y: 1,
+      scale: 1,
+      rotate: 0,
+      filter: "blur(0.24rem)",
+      textShadow: "0 0 0.72rem rgb(165 168 163 / 0.16)",
+    };
+  }
+
+  return {
+    opacity: 0.16,
+    x: 0,
+    y: 1,
+    scale: 1,
+    rotate: 0,
+    filter: "blur(0.36rem)",
+    textShadow: "0 0 0 rgb(179 154 99 / 0)",
+  };
+}
+
+function getVisibleHeroTitleCharacter({ effect, shouldReduceMotion }) {
+  const settled = {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    filter: "blur(0)",
+    textShadow: "0 0 0 rgb(179 154 99 / 0)",
+  };
+
+  if (shouldReduceMotion) {
+    return {
+      ...settled,
+      transition: reducedMotionTransition,
+    };
+  }
+
+  if (effect === "memory-fade") {
+    return {
+      ...settled,
+      opacity: [0.18, 0.88, 0.42, 1],
+      y: [1, 0, 0, 0],
+      filter: ["blur(0.24rem)", "blur(0.04rem)", "blur(0.2rem)", "blur(0)"],
+      textShadow: [
+        "0 0 0.72rem rgb(165 168 163 / 0.16)",
+        "0 0 0.24rem rgb(232 225 210 / 0.08)",
+        "0 0 0.58rem rgb(165 168 163 / 0.12)",
+        "0 0 0 rgb(179 154 99 / 0)",
+      ],
+      transition: {
+        duration: durationFast * 5,
+        ease: archiveEase,
+        times: [0, 0.34, 0.68, 1],
+      },
+    };
+  }
+
+  const durationByEffect = {
+    "fading-font": durationFast * 4.6,
+    "vanishing-points": durationFast * 4.8,
+    "blur-focus": durationFast * 5.2,
+  };
+
+  return {
+    ...settled,
+    transition: {
+      duration: durationByEffect[effect] ?? durationByEffect[defaultHeroTitleEffect],
+      ease: archiveEase,
+    },
+  };
+}
 
 const heroTitleCharacter = {
-  hidden: {
-    opacity: 0,
-    y: 10,
-    filter: "blur(0.18rem)",
+  hidden: (custom = false) => {
+    const { effect = defaultHeroTitleEffect, index = 0, shouldReduceMotion = false } = getHeroTitleCharacterState(custom);
+
+    if (shouldReduceMotion) {
+      return {
+        opacity: 1,
+        x: 0,
+        y: 0,
+        scale: 1,
+        rotate: 0,
+        filter: "blur(0)",
+        textShadow: "0 0 0 rgb(179 154 99 / 0)",
+      };
+    }
+
+    return getHiddenHeroTitleCharacter({ effect, index });
   },
-  visible: (shouldReduceMotion = false) => ({
-    opacity: 1,
-    y: 0,
-    filter: "blur(0)",
-    transition: shouldReduceMotion
-      ? reducedMotionTransition
-      : {
-          duration: durationFast,
-          ease: archiveEase,
-        },
-  }),
+  visible: (custom = false) => {
+    const { effect = defaultHeroTitleEffect, shouldReduceMotion = false } = getHeroTitleCharacterState(custom);
+
+    return getVisibleHeroTitleCharacter({ effect, shouldReduceMotion });
+  },
 };
 
 function HeroPanel() {
   const shouldReduceMotion = useReducedMotion();
+  const heroTitleEffect = getHeroTitleEffect();
 
   function handleGoDown() {
     const archiveIndex = document.querySelector("#home-archive-index");
@@ -61,6 +180,7 @@ function HeroPanel() {
         <motion.h1
           id="hero-title"
           className="hero-title"
+          data-hero-title-effect={heroTitleEffect}
           data-testid="home-hero-title"
           aria-label={site.home_hero_title}
           variants={staggerContainer}
@@ -72,7 +192,7 @@ function HeroPanel() {
               className="hero-title__character"
               aria-hidden="true"
               variants={heroTitleCharacter}
-              custom={shouldReduceMotion}
+              custom={{ effect: heroTitleEffect, index, shouldReduceMotion }}
             >
               {character === " " ? "\u00A0" : character}
             </motion.span>
