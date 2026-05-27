@@ -1,0 +1,21 @@
+spotId: chengdu-mococo-mexican-restaurant
+name: M'OCOCO墨西哥餐厅
+status: published
+city: 成都
+district: 金牛区
+category: 墨西哥菜
+address: 成都市金牛区上城天街成华西街299号5栋附107号
+coordinates:
+  lng: 104.071017
+  lat: 30.684007
+price: 55
+rating: 4.8
+recommend:
+  - 柠檬黄油青口贝
+description: 网红店，氛围好，不过消费亲民
+amapUrl: https://surl.amap.com/fW48qJ8laCK
+showAmapLink: true
+coordinateSystem: GCJ-02
+visits:
+  - visitedAt: 2026-05-26
+    rating: 4.8

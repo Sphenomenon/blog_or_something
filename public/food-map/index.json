@@ -12,9 +12,30 @@
     "name": "Nocturne Archive",
     "url": "https://blog.sphenicidition.top"
   },
-  "generatedAt": "2026-05-25T12:16:16.609Z",
+  "generatedAt": "2026-05-27T12:06:52.921Z",
   "coordinateSystem": "GCJ-02",
   "spots": [
+    {
+      "id": "chengdu-mococo-mexican-restaurant",
+      "name": "M'OCOCO墨西哥餐厅",
+      "city": "成都",
+      "address": "成都市金牛区上城天街成华西街299号5栋附107号",
+      "lng": 104.071017,
+      "lat": 30.684007,
+      "coordinateSystem": "GCJ-02",
+      "category": "墨西哥菜",
+      "price": 55,
+      "rating": 4.8,
+      "recommend": [
+        "柠檬黄油青口贝"
+      ],
+      "amapUrl": "https://surl.amap.com/fW48qJ8laCK",
+      "source": {
+        "type": "local",
+        "id": "local",
+        "name": "Local"
+      }
+    },
     {
       "id": "chengdu-rongcheng-shuangshuang-meiwa-fish",
       "name": "蓉城霜霜美娃鱼",
