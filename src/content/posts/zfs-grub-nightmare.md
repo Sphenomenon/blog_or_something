@@ -7,9 +7,19 @@ date: 2026-05-22
 section: tech
 status: published
 reading: 6 min
-tags: [Linux, ZFS, GRUB, systemd-boot, 故障排查, 内核]
+tags:
+  - Linux
+  - ZFS
+  - GRUB
+  - systemd-boot
+  - 故障排查
+  - 内核
 category: Tech
-sections: [第一次, 第二次, 邪修, 叛逃]
+sections:
+  - 第一次
+  - 第二次
+  - 邪修
+  - 叛逃
 ---
 
 ## 第一次
@@ -100,6 +110,4 @@ done
 
 **就和 22.04 过一辈子吧。**
 
-追加：笔者在 25 年 10 月逃到了 Fedora 床上。
-
-冷静，克制。
+P.S.笔者在 25 年 10 月逃到了 Fedora 床上。
