@@ -3,20 +3,15 @@ id: AR-2026-124
 slug: wu-yue-sui-bi
 title: 五月随笔
 excerpt: 2026/5
-date: 2026-05-23
+date: 2026-06-06
 section: diary
 status: published
 reading: 3 min
 tags:
   - 日记
-  - 校庆
   - 生活
-  - 博客
 category: Diary
-sections:
-  - 校庆
-  - 回程
-  - 博客
+sections: []
 ---
 
 ## 2026/5/15
