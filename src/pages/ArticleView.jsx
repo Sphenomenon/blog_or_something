@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { init } from "@waline/client";
 import "@waline/client/style";
 import { getArticleNeighbors, normalizeCanonicalArticleCommentPath } from "../data/posts.js";
@@ -68,6 +68,7 @@ function renderInline(text, keyPrefix) {
 function parseMarkdown(markdown) {
   const blocks = [];
   const headings = [];
+  const headingIdCounts = new Map();
   const lines = markdown.split("\n");
   let index = 0;
 
@@ -101,16 +102,18 @@ function parseMarkdown(markdown) {
 
     if (trimmed.startsWith("### ")) {
       const text = trimmed.slice(4).trim();
-      blocks.push({ type: "h3", text });
-      headings.push(text);
+      const id = createUniqueSectionId(text, headingIdCounts);
+      blocks.push({ type: "h3", text, id });
+      headings.push({ id, label: text });
       index += 1;
       continue;
     }
 
     if (trimmed.startsWith("## ")) {
       const text = trimmed.slice(3).trim();
-      blocks.push({ type: "h2", text });
-      headings.push(text);
+      const id = createUniqueSectionId(text, headingIdCounts);
+      blocks.push({ type: "h2", text, id });
+      headings.push({ id, label: text });
       index += 1;
       continue;
     }
@@ -199,11 +202,22 @@ function parseMarkdown(markdown) {
 }
 
 function normalizeSectionSlug(section) {
-  return String(section || "")
+  const slug = String(section || "")
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-_]/g, "");
+    .replace(/[^\p{Letter}\p{Number}_-]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "section";
+}
+
+function createUniqueSectionId(section, counts) {
+  const slug = normalizeSectionSlug(section);
+  const count = counts.get(slug) ?? 0;
+  counts.set(slug, count + 1);
+
+  return count === 0 ? slug : `${slug}-${count + 1}`;
 }
 
 function hasFrontmatterSections(postSections) {
@@ -214,9 +228,32 @@ function hasFrontmatterSections(postSections) {
   return !(postSections.length === 1 && postSections[0] === "正文");
 }
 
+function buildTocItems(postSections, headings) {
+  if (!hasFrontmatterSections(postSections)) {
+    return headings;
+  }
+
+  const availableHeadings = [...headings];
+  const frontmatterSections = postSections.map((section) => {
+    const matchingHeadingIndex = availableHeadings.findIndex((heading) => heading.label === section);
+
+    if (matchingHeadingIndex === -1) {
+      return null;
+    }
+
+    const [matchingHeading] = availableHeadings.splice(matchingHeadingIndex, 1);
+    return {
+      id: matchingHeading.id,
+      label: section
+    };
+  });
+
+  return frontmatterSections.every(Boolean) ? frontmatterSections : headings;
+}
+
 export function ArticleView({ post, onOpenPost, pathname }) {
-  const { blocks, headings } = parseMarkdown(post.content || "");
-  const tocSections = hasFrontmatterSections(post.sections) ? post.sections : headings;
+  const { blocks, headings } = useMemo(() => parseMarkdown(post.content || ""), [post.content]);
+  const tocSections = useMemo(() => buildTocItems(post.sections, headings), [headings, post.sections]);
   const sectionMeta = getSectionBySlug(post.section);
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
   const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
@@ -225,13 +262,27 @@ export function ArticleView({ post, onOpenPost, pathname }) {
   const walineServerURL = import.meta.env.VITE_WALINE_SERVER_URL?.trim() ?? "";
   const walineContainerRef = useRef(null);
   const walineInstanceRef = useRef(null);
-  const [activeSection, setActiveSection] = useState(tocSections[0] ?? "正文");
+  const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
 
   useEffect(() => {
-    setActiveSection(tocSections[0] ?? "正文");
+    setActiveSectionId(tocSections[0]?.id ?? "section");
   }, [post.id, tocSections]);
+
+  const handleTocClick = (section) => {
+    const target = document.getElementById(section.id);
+
+    if (!target) {
+      return;
+    }
+
+    setActiveSectionId(section.id);
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  };
 
   useEffect(() => {
     if (!walineServerURL || !walineContainerRef.current) {
@@ -312,11 +363,11 @@ export function ArticleView({ post, onOpenPost, pathname }) {
           const key = `block-${blockIndex}`;
 
           if (block.type === "h2") {
-            return <h2 key={key}>{block.text}</h2>;
+            return <h2 key={key} id={block.id}>{block.text}</h2>;
           }
 
           if (block.type === "h3") {
-            return <h3 key={key}>{block.text}</h3>;
+            return <h3 key={key} id={block.id}>{block.text}</h3>;
           }
 
           if (block.type === "blockquote") {
@@ -403,21 +454,20 @@ export function ArticleView({ post, onOpenPost, pathname }) {
           <h4>目录 TOC</h4>
           <ol>
             {tocSections.map((section, index) => {
-              const isActive = activeSection === section;
-              const sectionSlug = normalizeSectionSlug(section);
+              const isActive = activeSectionId === section.id;
 
               return (
-                <li key={section} className={isActive ? "active" : ""}>
+                <li key={section.id} className={isActive ? "active" : ""}>
                   <button
                     type="button"
                     data-testid={`toc-${index + 1}`}
-                    onClick={() => setActiveSection(section)}
+                    onClick={() => handleTocClick(section)}
                     aria-current={isActive ? "true" : undefined}
                     data-active={isActive ? "true" : undefined}
-                    data-section={sectionSlug || undefined}
+                    data-section={section.id}
                   >
                     <span className="toc-index">{String(index + 1).padStart(2, "0")}</span>
-                    <span className="toc-label">{section}</span>
+                    <span className="toc-label">{section.label}</span>
                   </button>
                 </li>
               );
