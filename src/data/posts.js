@@ -3,14 +3,13 @@ import {
   getArchivePostsByYear,
   getArchiveYears,
   getSectionRepresentativePosts,
-  normalizeCanonicalArticleCommentPath,
   posts,
   sortedPosts
 } from "./content.js";
 
 export { posts };
 export { sortedPosts };
-export { getSectionRepresentativePosts, getArticleNeighbors, getArchiveYears, getArchivePostsByYear, normalizeCanonicalArticleCommentPath };
+export { getSectionRepresentativePosts, getArticleNeighbors, getArchiveYears, getArchivePostsByYear };
 
 export function getTagCounts() {
   return posts.reduce((acc, post) => {

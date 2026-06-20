@@ -237,16 +237,3 @@ export function getArchiveYears() {
 export function getArchivePostsByYear(year) {
   return sortedPosts.filter((post) => post.year === year);
 }
-
-export function normalizeCanonicalArticleCommentPath(pathname) {
-  const withoutQuery = String(pathname || "").split("?")[0].split("#")[0];
-  if (withoutQuery === "") {
-    return "/";
-  }
-
-  if (withoutQuery === "/") {
-    return "/";
-  }
-
-  return withoutQuery.replace(/\/+$/, "");
-}

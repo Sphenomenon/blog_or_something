@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { init } from "@waline/client";
-import "@waline/client/style";
-import { getArticleNeighbors, normalizeCanonicalArticleCommentPath } from "../data/posts.js";
+import { useEffect, useMemo, useState } from "react";
+import Giscus from "@giscus/react";
+import { getArticleNeighbors } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
 
 function renderInline(text, keyPrefix) {
@@ -251,17 +250,14 @@ function buildTocItems(postSections, headings) {
   return frontmatterSections.every(Boolean) ? frontmatterSections : headings;
 }
 
-export function ArticleView({ post, onOpenPost, pathname }) {
+export function ArticleView({ post, onOpenPost }) {
   const { blocks, headings } = useMemo(() => parseMarkdown(post.content || ""), [post.content]);
   const tocSections = useMemo(() => buildTocItems(post.sections, headings), [headings, post.sections]);
   const sectionMeta = getSectionBySlug(post.section);
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
   const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
-  const commentPath = useMemo(() => normalizeCanonicalArticleCommentPath(pathname ?? `/posts/${post.slug}`), [pathname, post.slug]);
-  const walineServerURL = import.meta.env.VITE_WALINE_SERVER_URL?.trim() ?? "";
-  const walineContainerRef = useRef(null);
-  const walineInstanceRef = useRef(null);
+  const hasGiscusConfig = Boolean(import.meta.env.VITE_GISCUS_REPO_ID && import.meta.env.VITE_GISCUS_CATEGORY_ID);
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
@@ -283,28 +279,6 @@ export function ArticleView({ post, onOpenPost, pathname }) {
       block: "start"
     });
   };
-
-  useEffect(() => {
-    if (!walineServerURL || !walineContainerRef.current) {
-      walineInstanceRef.current?.destroy?.();
-      walineInstanceRef.current = null;
-      return undefined;
-    }
-
-    walineInstanceRef.current?.destroy?.();
-    walineInstanceRef.current = init({
-      el: walineContainerRef.current,
-      serverURL: walineServerURL,
-      login: "force",
-      path: commentPath,
-      dark: true
-    });
-
-    return () => {
-      walineInstanceRef.current?.destroy?.();
-      walineInstanceRef.current = null;
-    };
-  }, [commentPath, walineServerURL]);
 
   return (
     <section className="article-layout" aria-label="文章页">
@@ -441,10 +415,25 @@ export function ArticleView({ post, onOpenPost, pathname }) {
         </section>
 
         <section className="article-comments" aria-label="文章评论">
-          {walineServerURL ? (
-            <div ref={walineContainerRef} data-testid="article-comments-container" />
+          {hasGiscusConfig ? (
+            <div data-testid="article-comments-container">
+              <Giscus
+                repo={import.meta.env.VITE_GISCUS_REPO || "Sphenomenon/blog_or_something"}
+                repoId={import.meta.env.VITE_GISCUS_REPO_ID}
+                category={import.meta.env.VITE_GISCUS_CATEGORY || "Announcements"}
+                categoryId={import.meta.env.VITE_GISCUS_CATEGORY_ID}
+                mapping="pathname"
+                strict="1"
+                reactionsEnabled="1"
+                emitMetadata="0"
+                inputPosition="bottom"
+                theme="transparent_dark"
+                lang="zh-CN"
+                loading="lazy"
+              />
+            </div>
           ) : (
-            <p data-testid="article-comments-disabled">评论暂不可用：未配置 VITE_WALINE_SERVER_URL。</p>
+            <p data-testid="article-comments-disabled">评论暂不可用：未配置 Giscus。</p>
           )}
         </section>
 
