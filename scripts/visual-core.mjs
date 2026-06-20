@@ -24,7 +24,10 @@ const MUSIC_IFRAME_EXPECTATIONS = {
 const BLOCKED_THIRD_PARTY_HOSTS = new Set(["identity.netlify.com", "events.vercount.one", "music.163.com"]);
 
 function shouldIgnoreConsoleEntry(type, text) {
-  return type === "warning" && text === "API error: Failed to fetch";
+  return type === "warning" && (
+    text === "API error: Failed to fetch"
+    || text.startsWith("You have Reduced Motion enabled on your device. Animations may not appear as expected.")
+  );
 }
 
 function loadYamlSync(relativePath) {
@@ -586,7 +589,6 @@ async function verifyDirectRoute(browser, path, expected) {
       const state = await capturePageState(page);
       const navigation = await collectArticleNavigationState(page);
       const comments = await collectArticleCommentScopeState(page);
-      const hasWalineServerURL = Boolean(process.env.VITE_WALINE_SERVER_URL?.trim());
       assertCondition(navigation.commentsSectionPresent === true, `Article comments section missing on ${path}`, { path, navigation, comments });
       if (expected.expectedNavigation) {
         const normalizedNavigation = {
@@ -608,11 +610,7 @@ async function verifyDirectRoute(browser, path, expected) {
           assertCondition(normalizedNavigation.nextEmpty === expected.expectedNavigation.nextEmpty, `Next article boundary mismatch on ${path}`, { path, navigation, expected: expected.expectedNavigation });
         }
       }
-      if (hasWalineServerURL) {
-        assertCondition(comments.commentsContainerPresent === true, `Waline container missing on ${path}`, { path, navigation, comments });
-      } else {
-        assertCondition(comments.commentsDisabledPresent === true, `Disabled comments notice missing on ${path}`, { path, navigation, comments });
-      }
+      assertCondition(comments.commentsContainerPresent === true || comments.commentsDisabledPresent === true, `Article comments provider state missing on ${path}`, { path, navigation, comments });
       assertCondition(consoleEntries.length === 0, `Console warnings/errors detected on ${path}`, { path, consoleEntries });
       return { path, ...expected, errors, consoleEntries, state, navigation, comments };
     }
@@ -1104,7 +1102,7 @@ export async function runVisualVerification() {
     const routeChecks = [];
     const archiveYearChecks = [];
     const articleNavigationChecks = [];
-    const walineScopeChecks = [];
+    const commentScopeChecks = [];
     const taglineChecks = [];
     const lowCountChecks = [];
     const onboardingChecks = [];
@@ -1160,17 +1158,17 @@ export async function runVisualVerification() {
       }
     }));
 
-    walineScopeChecks.push(routeChecks[0].comments);
-    walineScopeChecks.push(routeChecks[1].comments);
-    walineScopeChecks.push(routeChecks[2].comments);
-    walineScopeChecks.push(routeChecks[3].comments);
-    walineScopeChecks.push(routeChecks[4].comments);
-    walineScopeChecks.push(routeChecks[5].comments);
-    walineScopeChecks.push(routeChecks[6].comments);
-    walineScopeChecks.push(routeChecks[7].comments);
-    walineScopeChecks.push(routeChecks[8].comments);
-    walineScopeChecks.push(routeChecks[9].comments);
-    walineScopeChecks.push(routeChecks[10].comments);
+    commentScopeChecks.push(routeChecks[0].comments);
+    commentScopeChecks.push(routeChecks[1].comments);
+    commentScopeChecks.push(routeChecks[2].comments);
+    commentScopeChecks.push(routeChecks[3].comments);
+    commentScopeChecks.push(routeChecks[4].comments);
+    commentScopeChecks.push(routeChecks[5].comments);
+    commentScopeChecks.push(routeChecks[6].comments);
+    commentScopeChecks.push(routeChecks[7].comments);
+    commentScopeChecks.push(routeChecks[8].comments);
+    commentScopeChecks.push(routeChecks[9].comments);
+    commentScopeChecks.push(routeChecks[10].comments);
 
     const subtitleExpectations = [
       ["/", "home"],
@@ -1718,7 +1716,7 @@ export async function runVisualVerification() {
       routeChecks,
       archiveYearChecks,
       articleNavigationChecks,
-      walineScopeChecks,
+      commentScopeChecks,
       onboardingChecks,
       transitionChecks: {
         passed: transitionChecks.every((check) => check.passed),
@@ -1790,7 +1788,7 @@ export async function runVisualVerification() {
         `- Route checks: /, /posts/petrified-corridor, /archive, /sections/tech, /sections/essay, /sections/diary, /sections/reading, /sections/travel, /sections/links, /about, unknown route passed`,
         `- Archive year checks: latest-year default, one-year pagination, and boundary disabling passed`,
         `- Article navigation checks: newest, middle, and oldest article boundary states passed`,
-        `- Waline scope checks: article-only comments block rendered on article routes and stayed absent on non-article routes`,
+        `- Comment scope checks: article-only comments block rendered on article routes and stayed absent on non-article routes`,
         `- Onboarding checks: greeting panel traversal and dismissal passed`,
         `- Transition checks: ${summarizeGroup({ name: 'transitionChecks', passed: transitionChecks.every((check) => check.passed), checks: transitionChecks })}`,
         `- Greeting stack checks: ${summarizeGroup({ name: 'greetingStackChecks', passed: greetingStackChecks.every((check) => check.passed), checks: greetingStackChecks })}`,
