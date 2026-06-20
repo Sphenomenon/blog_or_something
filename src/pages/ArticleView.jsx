@@ -3,6 +3,11 @@ import Giscus from "@giscus/react";
 import { getArticleNeighbors } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
 
+const GISCUS_REPO = "Sphenomenon/blog_or_something";
+const GISCUS_REPO_ID = "R_kgDOSk91lw";
+const GISCUS_CATEGORY = "Announcements";
+const GISCUS_CATEGORY_ID = "DIC_kwDOSk91l84C_iQE";
+
 function renderInline(text, keyPrefix) {
   const nodes = [];
   let cursor = 0;
@@ -257,7 +262,6 @@ export function ArticleView({ post, onOpenPost }) {
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
   const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
-  const hasGiscusConfig = Boolean(import.meta.env.VITE_GISCUS_REPO_ID && import.meta.env.VITE_GISCUS_CATEGORY_ID);
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
@@ -415,26 +419,22 @@ export function ArticleView({ post, onOpenPost }) {
         </section>
 
         <section className="article-comments" aria-label="文章评论">
-          {hasGiscusConfig ? (
-            <div data-testid="article-comments-container">
-              <Giscus
-                repo={import.meta.env.VITE_GISCUS_REPO || "Sphenomenon/blog_or_something"}
-                repoId={import.meta.env.VITE_GISCUS_REPO_ID}
-                category={import.meta.env.VITE_GISCUS_CATEGORY || "Announcements"}
-                categoryId={import.meta.env.VITE_GISCUS_CATEGORY_ID}
-                mapping="pathname"
-                strict="1"
-                reactionsEnabled="1"
-                emitMetadata="0"
-                inputPosition="bottom"
-                theme="transparent_dark"
-                lang="zh-CN"
-                loading="lazy"
-              />
-            </div>
-          ) : (
-            <p data-testid="article-comments-disabled">评论暂不可用：未配置 Giscus。</p>
-          )}
+          <div data-testid="article-comments-container">
+            <Giscus
+              repo={GISCUS_REPO}
+              repoId={GISCUS_REPO_ID}
+              category={GISCUS_CATEGORY}
+              categoryId={GISCUS_CATEGORY_ID}
+              mapping="pathname"
+              strict="1"
+              reactionsEnabled="1"
+              emitMetadata="0"
+              inputPosition="bottom"
+              theme="transparent_dark"
+              lang="zh-CN"
+              loading="lazy"
+            />
+          </div>
         </section>
 
       </article>
