@@ -7,7 +7,7 @@ date: 2026-05-12
 section: reading
 status: Draft
 reading: 12 min
-tags: [阅读笔记, 方法论]
+tags: [阅读]
 category: Index Theory
 sections: [命名, 标签, 记忆回路, 未完成索引]
 ---

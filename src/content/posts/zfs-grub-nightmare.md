@@ -7,13 +7,7 @@ date: 2026-05-22
 section: tech
 status: published
 reading: 6 min
-tags:
-  - Linux
-  - ZFS
-  - GRUB
-  - systemd-boot
-  - 故障排查
-  - 内核
+tags: [技术]
 category: Tech
 sections:
   - 第一次

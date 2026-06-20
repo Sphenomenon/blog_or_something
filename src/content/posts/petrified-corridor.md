@@ -7,7 +7,7 @@ date: 2026-05-20
 section: essay
 status: Published
 reading: 8 min
-tags: [梦境记录, 世界观, 研究]
+tags: [随笔]
 category: Field Notes
 sections: [前言, 结构层, 梦层, 石化层, 结语]
 ---

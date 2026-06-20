@@ -7,7 +7,7 @@ date: 2026-05-23
 section: reading
 status: published
 reading: 3 min
-tags: [SCP, 阅读, 基金会]
+tags: [阅读]
 category: Reading
 sections: [阅读摘录]
 ---

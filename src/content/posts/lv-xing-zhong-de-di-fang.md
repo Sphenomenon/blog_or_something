@@ -7,7 +7,7 @@ date: 2026-05-23
 section: travel
 status: published
 reading: 2 min
-tags: [游记, 旅行, 足迹]
+tags: [旅行]
 category: Travel
 sections: [已走过的路]
 ---

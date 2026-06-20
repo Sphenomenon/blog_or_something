@@ -7,12 +7,7 @@ date: 2026-05-22
 section: essay
 status: published
 reading: 5 min
-tags:
-  - 随笔
-  - 高考
-  - 志愿填报
-  - 家庭
-  - 大学
+tags: [随笔]
 category: Essay
 sections: [志愿填报师, 我的经历, 离别]
 ---

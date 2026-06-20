@@ -7,9 +7,7 @@ date: 2026-06-06
 section: diary
 status: published
 reading: 3 min
-tags:
-  - 日记
-  - 生活
+tags: [日记]
 category: Diary
 sections: []
 ---

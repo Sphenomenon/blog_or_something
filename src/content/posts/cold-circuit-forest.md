@@ -7,7 +7,7 @@ date: 2026-04-29
 section: tech
 status: Published
 reading: 10 min
-tags: [技术, 系统设计]
+tags: [技术]
 category: Systems
 sections: [拓扑, 线路, 边界, 检索]
 ---

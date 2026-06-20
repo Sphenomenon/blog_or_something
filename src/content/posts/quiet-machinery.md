@@ -7,7 +7,7 @@ date: 2025-12-03
 section: diary
 status: Sealed
 reading: 7 min
-tags: [随笔, 内容系统]
+tags: [随笔]
 category: Essay
 sections: [机器, 碎片, 封存]
 ---
