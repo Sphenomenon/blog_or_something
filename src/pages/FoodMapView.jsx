@@ -146,7 +146,7 @@ export function FoodMapView() {
         <div>
           <p className="hero-code">FOOD MAP / PUBLIC ATLAS</p>
           <h1>美食地图</h1>
-          <p className="page-panel-lead">把公开可分享的餐馆、咖啡馆和路边小店收进同一张轻量地图；没有密钥时也能用列表和 fallback marker 浏览。</p>
+          <p className="page-panel-lead">把公开可分享的餐馆、咖啡馆和路边小店收进同一张轻量地图；没有地图密钥时，也能先用列表浏览。</p>
         </div>
         <div className="food-map-status-row" aria-label="美食地图状态">
           <span className="food-map-status-badge food-map-status-badge--loading">{totalCount} 个公开地点</span>
