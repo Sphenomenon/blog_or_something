@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
+import { SectionMark } from "../components/SectionMark.jsx";
 import { friendLinks } from "../data/links.js";
 import { getSectionRepresentativePosts } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
@@ -44,9 +45,14 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
       <p className="hero-code">SECTION / {section.navKicker.toUpperCase()}</p>
       <div className="section-hero">
         <div className="section-hero-copy">
-          <p className="section-hero-kicker">{section.shortLabel}</p>
-          <h1 id={`section-title-${section.slug}`}>{section.label}</h1>
-          <p className="page-panel-lead">{section.intro}</p>
+          <div className="section-hero-mark-wrap" data-testid="section-mark" data-section-mark={section.slug}>
+            <SectionMark slug={section.slug} className="section-mark--hero" title={`${section.label}栏目标记`} />
+          </div>
+          <div className="section-hero-text">
+            <p className="section-hero-kicker">{section.shortLabel}</p>
+            <h1 id={`section-title-${section.slug}`}>{section.label}</h1>
+            <p className="page-panel-lead">{section.intro}</p>
+          </div>
         </div>
 
         <dl className="section-metadata" aria-label="栏目元数据">
@@ -98,7 +104,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
         <section className="section-posts" aria-label="栏目文章列表">
           <div className="section-posts-header">
             <h2 className="section-title">代表作</h2>
-            <p className="section-posts-note">按最新时间截取最多三篇，低数量栏目只展示现有条目。</p>
+            <p className="section-posts-note">LATEST 3 / LOW-COUNT OK · 最新三篇 / 少量照常。</p>
           </div>
 
           {sectionPosts.length === 0 ? (

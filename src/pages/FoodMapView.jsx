@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { SectionMark } from "../components/SectionMark.jsx";
 import { aggregateFoodMapExternalSources, loadFoodMapSourceConfig } from "../features/food-map/index.js";
 import { localFoodMapPlaces, publicFoodMapPlaces } from "../features/food-map/loader.js";
 import {
@@ -143,10 +144,13 @@ export function FoodMapView() {
       custom={shouldReduceMotion}
     >
       <header className="page-panel-header page-panel-header--stacked">
-        <div>
-          <p className="hero-code">FOOD MAP / PUBLIC ATLAS</p>
-          <h1>美食地图</h1>
-          <p className="page-panel-lead">把公开可分享的餐馆、咖啡馆和路边小店收进同一张轻量地图；没有地图密钥时，也能先用列表浏览。</p>
+        <div className="food-map-header-copy">
+          <SectionMark slug="food-map" className="section-mark--compact food-map-header-mark" title="美食地图标记" />
+          <div>
+            <p className="hero-code">FOOD MAP / PUBLIC ATLAS</p>
+            <h1>美食地图</h1>
+            <p className="page-panel-lead">公开餐馆菜单 / 地图可选 / 无密钥走列表。</p>
+          </div>
         </div>
         <div className="food-map-status-row" aria-label="美食地图状态">
           <span className="food-map-status-badge food-map-status-badge--loading">{totalCount} 个公开地点</span>
