@@ -1,7 +1,7 @@
 code_header: MANIFEST / DESIGN SYSTEM
 page_title: 关于这座档案馆
-lead_text: 这是一个以长期写作为目标的私人档案系统。它更像一张制度卡：说明用途、边界和它愿意容纳的内容。
-body_text: 这是一个为长期写作准备的私人档案系统：它接受技术文章、随笔、梦境记录、世界观设定、研究笔记和文学碎片。
+lead_text: 私人写作档案，长期存放。
+body_text: 收录技术、随笔、梦、读书笔记与碎片。内容按栏目入柜，保留 CC 边界说明。
 design_system:
   - term: Dreamers
     description: 白日梦
