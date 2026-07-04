@@ -262,6 +262,7 @@ export function ArticleView({ post, onOpenPost }) {
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
   const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
+  const articleClassName = post.slug === "swjtu-2026-major-group-forecast" ? "prose reveal prose--dense-report" : "prose reveal";
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
@@ -299,7 +300,7 @@ export function ArticleView({ post, onOpenPost }) {
         </ul>
       </aside>
 
-      <article className="prose reveal" lang="zh-Hans">
+      <article className={articleClassName} lang="zh-Hans" data-post-slug={post.slug}>
         <header className="article-hero">
           <p className="archive-id">{post.id}</p>
           <h1>{post.title}</h1>

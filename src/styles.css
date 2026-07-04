@@ -1901,6 +1901,98 @@ body::after {
   font-size: 0.84rem;
 }
 
+.prose--dense-report {
+  max-width: min(1120px, 100%);
+  padding: clamp(var(--space-5), 2vw, var(--space-7));
+}
+
+.prose--dense-report .article-hero {
+  padding: clamp(var(--space-5), 2vw, var(--space-7));
+  margin-bottom: var(--space-5);
+}
+
+.prose--dense-report .article-hero h1 {
+  font-size: clamp(1.36rem, 2.4vw, 2rem);
+}
+
+.prose--dense-report .article-nav {
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.prose--dense-report h2 {
+  margin-top: clamp(1.7rem, 3vw, 2.4rem);
+  padding-top: var(--space-4);
+}
+
+.prose--dense-report h3 {
+  margin-top: var(--space-6);
+}
+
+.prose--dense-report p,
+.prose--dense-report li {
+  line-height: 1.72;
+}
+
+.prose--dense-report p {
+  margin-block: var(--space-4);
+}
+
+.prose--dense-report ul,
+.prose--dense-report ol {
+  padding-left: 1.25rem;
+}
+
+.prose--dense-report table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: var(--space-5) 0;
+  overflow-x: auto;
+  table-layout: auto;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  line-height: 1.48;
+  white-space: nowrap;
+}
+
+.prose--dense-report th,
+.prose--dense-report td {
+  min-width: 7.5rem;
+  padding: var(--space-2) var(--space-3);
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.prose--dense-report th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.prose--dense-report td:first-child,
+.prose--dense-report th:first-child {
+  min-width: 8.6rem;
+  white-space: normal;
+}
+
+.prose--dense-report blockquote {
+  margin-block: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+}
+
+.prose--dense-report pre {
+  margin-block: var(--space-5);
+  font-size: 0.78rem;
+}
+
+.prose--dense-report code {
+  white-space: pre-wrap;
+}
+
 .page-panel {
   position: relative;
   isolation: isolate;
