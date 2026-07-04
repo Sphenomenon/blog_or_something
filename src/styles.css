@@ -111,6 +111,10 @@
   --dusk-register-offset-x: var(--space-2);
   --dusk-register-offset-y: var(--space-1);
   --dusk-register-mark: linear-gradient(90deg, rgb(126 74 67 / 0.26), transparent 62%);
+
+  --layout-shell-max: 1720px;
+  --layout-shell-gutter: clamp(1.2rem, 3.2vw, 3.6rem);
+  --layout-article-center-max: minmax(0, 1.5fr);
 }
 
 /* Dusk menu/object grammar primitives. These classes are intentionally CSS-only foundations for later route refinements. */
@@ -349,7 +353,7 @@ body::after {
 
 .app-shell {
   position: relative;
-  width: min(1320px, 100% - 2.4rem);
+  width: min(var(--layout-shell-max), calc(100% - var(--layout-shell-gutter) - var(--layout-shell-gutter)));
   margin-inline: auto;
   padding-block: var(--space-8) 3rem;
   min-width: 0;
@@ -2042,7 +2046,7 @@ body::after {
   border-color: var(--dusk-line);
   padding-top: var(--space-7);
   display: grid;
-  grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr) minmax(210px, 0.48fr);
+  grid-template-columns: minmax(180px, 0.34fr) var(--layout-article-center-max) minmax(200px, 0.38fr);
   gap: var(--space-7);
   align-items: start;
   overflow-x: clip;
@@ -2214,7 +2218,8 @@ body::after {
 .prose {
   position: relative;
   isolation: isolate;
-  max-width: 74ch;
+  width: 100%;
+  max-width: min(980px, 100%);
   min-width: 0;
   border: var(--border-subtle);
   border-color: var(--dusk-line);
@@ -2560,7 +2565,7 @@ body::after {
 }
 
 .prose--dense-report {
-  max-width: min(1120px, 100%);
+  max-width: min(1280px, 100%);
   padding: clamp(var(--space-5), 2vw, var(--space-7));
 }
 
@@ -4931,6 +4936,39 @@ body::after {
   font-size: 0.82rem;
   color: var(--text-2);
   line-height: 1.5;
+}
+
+@media (width >= 1500px) {
+  .site-header {
+    grid-template-columns: minmax(22rem, 1.05fr) minmax(28rem, 1.28fr) minmax(18rem, 0.72fr);
+  }
+
+  .home-grid {
+    grid-template-columns: minmax(0, 2.35fr) minmax(340px, 0.85fr);
+    gap: var(--space-8);
+  }
+
+  .article-layout {
+    grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1.72fr) minmax(210px, 0.32fr);
+    gap: var(--space-8);
+  }
+
+  .prose {
+    max-width: min(1080px, 100%);
+  }
+
+  .prose--dense-report {
+    max-width: min(1360px, 100%);
+  }
+
+  .section-hero {
+    grid-template-columns: minmax(0, 1.75fr) minmax(320px, 0.75fr);
+  }
+
+  .food-map-layout {
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.78fr);
+    gap: var(--space-8);
+  }
 }
 
 @media (width <= 1180px) {
