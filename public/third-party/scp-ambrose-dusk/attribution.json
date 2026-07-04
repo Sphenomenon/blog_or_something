@@ -1,0 +1,361 @@
+{
+  "sourceWork": {
+    "title": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+    "authors": [
+      "doctor Stanley",
+      "Flea_ZER0"
+    ],
+    "url": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "sourceSite": "SCP-CN 维基",
+    "notice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+    "rollbackNote": "Remove public/third-party/scp-ambrose-dusk/, remove CSS/component asset references, and remove VisualAttribution only if no copied assets remain."
+  },
+  "assets": [
+    {
+      "filename": "page-dusk-bridge.jpg",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera/1920px-Samuel_Beckett_Bridge_at_Sunset_%289618233806%29.jpg",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "global/background atmosphere behind route shell"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "hero-city-glitch.gif",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera/%E5%BA%8F%E5%88%97%2003%2000_00_00-00_00_30.gif",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "home hero visual layer only; reduced-motion/static fallback planned"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg-long.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg_long.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "global/menu panel texture",
+        "home/archive surfaces"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg1-long.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg1_long.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "essay section panel texture",
+        "home sidebar panel texture"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg1.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg1.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "archive-card/review texture variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg2-long.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg2_long.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "diary section panel texture",
+        "links section panel texture"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg2.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg2.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "friend-link card texture variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg3-long.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg3_long.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "reading section panel texture",
+        "article reading surface texture"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg3.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg3.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "article related/comment panel texture variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg4-long.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg4_long.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "tech section panel texture",
+        "travel section panel texture",
+        "food-map page panel texture"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "twbg4.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/collab%3Aicea/twbg4.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "food-map card/detail texture variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-evening-drink.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "home hero secondary strip",
+        "archive surface accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-evening-main.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c3.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "article figure style sample",
+        "reading page accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-evening-dessert.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c2.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "food-map top decorative strip"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-dusk-salad.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d1.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "essay section accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-dusk-cone.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d2.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "links/friend-card accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-dusk-tea.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d3.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "diary section accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-midnight-ice.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m1.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "tech section accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-midnight-moon.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m2.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "travel section accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-midnight-flower.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m3.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "reading section accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-midnight-knot.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m4.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "article footer/related-panel accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-heatdeath-cocktail.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/r1.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "food-map card strip variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-heatdeath-pie.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/r2.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "food-map detail strip variant"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    },
+    {
+      "filename": "banner-heatdeath-ending.png",
+      "sourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/r4.png",
+      "sourcePage": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "author": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "license": "CC BY-SA 3.0",
+      "modified": false,
+      "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
+      "usedOn": [
+        "about/archive lower accent"
+      ],
+      "temporary": true,
+      "accessedAt": "2026-07-04"
+    }
+  ]
+}
