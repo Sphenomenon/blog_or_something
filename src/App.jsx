@@ -17,6 +17,7 @@ import { viewTransition } from "./lib/motion.js";
 
 const ROUTE_TRANSITION_MS = 320;
 const LIST_TRANSITION_MS = 220;
+const NETLIFY_IDENTITY_SCRIPT_URL = "https://identity.netlify.com/v1/netlify-identity-widget.js";
 
 export default function App() {
   const shouldReduceMotion = useReducedMotion();
@@ -141,6 +142,45 @@ export default function App() {
     return () => {
       clearRouteTransitionTimer();
       clearListTransitionTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (document.querySelector('script[data-netlify-identity-widget="true"]')) {
+      return undefined;
+    }
+
+    let idleCallbackId = null;
+    let fallbackTimerId = null;
+    let didScheduleScript = false;
+
+    function appendIdentityWidget() {
+      if (didScheduleScript || document.querySelector('script[data-netlify-identity-widget="true"]')) {
+        return;
+      }
+
+      didScheduleScript = true;
+      const script = document.createElement("script");
+      script.src = NETLIFY_IDENTITY_SCRIPT_URL;
+      script.async = true;
+      script.defer = true;
+      script.dataset.netlifyIdentityWidget = "true";
+      document.body.appendChild(script);
+    }
+
+    if ("requestIdleCallback" in window) {
+      idleCallbackId = window.requestIdleCallback(appendIdentityWidget, { timeout: 2500 });
+    } else {
+      fallbackTimerId = window.setTimeout(appendIdentityWidget, 1200);
+    }
+
+    return () => {
+      if (idleCallbackId !== null) {
+        window.cancelIdleCallback(idleCallbackId);
+      }
+      if (fallbackTimerId !== null) {
+        window.clearTimeout(fallbackTimerId);
+      }
     };
   }, []);
 
