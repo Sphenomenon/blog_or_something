@@ -1075,6 +1075,7 @@ async function collectProseReadabilityState(page) {
       articlePosition: articleStyle.position,
       articleBeforeContent: beforeStyle.content,
       articleBeforeDisplay: beforeStyle.display,
+      articleBeforePointerEvents: beforeStyle.pointerEvents,
       articleAfterContent: afterStyle.content,
       articleAfterDisplay: afterStyle.display,
       paragraphColor: paragraphStyle?.color ?? null,
@@ -1654,10 +1655,10 @@ export async function runVisualVerification() {
 
     const proseReadabilityState = await collectProseReadabilityState(page);
     assertCondition(proseReadabilityState.found === true, "Markdown prose article was not found for readability checks", proseReadabilityState);
-    assertCondition(proseReadabilityState.articleBackgroundImage === "none", "Prose article should not add a decorative background image", proseReadabilityState);
-    assertCondition(proseReadabilityState.articleBeforeContent === "none" && proseReadabilityState.articleAfterContent === "none", "Prose article should not expose pseudo-element overlays", proseReadabilityState);
+    assertCondition(proseReadabilityState.articleBackgroundImage.includes("url(") === false, "Prose article background should not depend on raster image assets", proseReadabilityState);
+    assertCondition(proseReadabilityState.articleBeforeContent !== "none" && proseReadabilityState.articleBeforePointerEvents === "none" && proseReadabilityState.articleAfterContent === "none", "Prose article decorative overlay should stay non-interactive and single-layered", proseReadabilityState);
     assertCondition(proseReadabilityState.paragraphLineHeightRatio !== null && proseReadabilityState.paragraphLineHeightRatio >= 1.5, "Prose paragraph line-height is too tight for readable long-form text", proseReadabilityState);
-    readabilityChecks.push(createCheck("prose-remains-calm-and-readable", proseReadabilityState.found === true && proseReadabilityState.articleBackgroundImage === "none" && proseReadabilityState.articleBeforeContent === "none" && proseReadabilityState.articleAfterContent === "none" && proseReadabilityState.paragraphLineHeightRatio !== null && proseReadabilityState.paragraphLineHeightRatio >= 1.5, proseReadabilityState));
+    readabilityChecks.push(createCheck("prose-remains-calm-and-readable", proseReadabilityState.found === true && proseReadabilityState.articleBackgroundImage.includes("url(") === false && proseReadabilityState.articleBeforeContent !== "none" && proseReadabilityState.articleBeforePointerEvents === "none" && proseReadabilityState.articleAfterContent === "none" && proseReadabilityState.paragraphLineHeightRatio !== null && proseReadabilityState.paragraphLineHeightRatio >= 1.5, proseReadabilityState));
 
     await openView(page, "archive");
     await openView(page, "section-tech");

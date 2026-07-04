@@ -3,6 +3,7 @@ import { useReducedMotion } from "framer-motion";
 
 const VISIBILITY_THRESHOLD = 240;
 const MIN_SCROLLABLE_DISTANCE = 120;
+const SMOOTH_SCROLL_SAFETY_MS = 240;
 const PROGRESS_RING_RADIUS = 22;
 const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 
@@ -77,7 +78,7 @@ export function BackToTop({ routeKey }) {
         if (window.scrollY > 12) {
           window.scrollTo({ top: 0, behavior: "auto" });
         }
-      }, 520);
+      }, SMOOTH_SCROLL_SAFETY_MS);
     }
   }
 

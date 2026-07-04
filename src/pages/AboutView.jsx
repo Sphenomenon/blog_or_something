@@ -1,4 +1,3 @@
-import React from "react";
 import { about } from "../data/yaml-loader.js";
 
 export function AboutView() {
@@ -20,6 +19,7 @@ export function AboutView() {
           </div>
         ))}
       </dl>
+      <p className="about-cc-note">临时视觉素材遵守 CC BY-SA 3.0 协议；此说明仅作当前视觉试用期的简要记录。</p>
     </section>
   );
 }
