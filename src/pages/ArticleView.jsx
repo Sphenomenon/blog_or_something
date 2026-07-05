@@ -7,6 +7,7 @@ const GISCUS_REPO = "Sphenomenon/blog_or_something";
 const GISCUS_REPO_ID = "R_kgDOSk91lw";
 const GISCUS_CATEGORY = "Announcements";
 const GISCUS_CATEGORY_ID = "DIC_kwDOSk91l84C_iQE";
+const PILOT_SCROLL_OFFSET = 96;
 
 function renderInline(text, keyPrefix) {
   const nodes = [];
@@ -255,6 +256,61 @@ function buildTocItems(postSections, headings) {
   return frontmatterSections.every(Boolean) ? frontmatterSections : headings;
 }
 
+function getDecodedHashTargetId() {
+  if (!window.location.hash) {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(window.location.hash.slice(1));
+  } catch {
+    return window.location.hash.slice(1);
+  }
+}
+
+function scrollToPilotHeading(target, behavior) {
+  const targetTop = target.getBoundingClientRect().top + window.scrollY - PILOT_SCROLL_OFFSET;
+
+  window.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior
+  });
+}
+
+function schedulePilotHashScroll(targetId, onTick) {
+  let attempts = 0;
+  let intervalId;
+
+  const scrollTarget = () => {
+    onTick();
+
+    const target = document.getElementById(targetId);
+
+    if (target) {
+      scrollToPilotHeading(target, "auto");
+    }
+
+    attempts += 1;
+
+    if (attempts >= 24 && intervalId) {
+      window.clearInterval(intervalId);
+    }
+  };
+
+  const frameId = window.requestAnimationFrame(() => {
+    scrollTarget();
+    intervalId = window.setInterval(scrollTarget, 120);
+  });
+
+  return () => {
+    window.cancelAnimationFrame(frameId);
+
+    if (intervalId) {
+      window.clearInterval(intervalId);
+    }
+  };
+}
+
 export function ArticleView({ post, onOpenPost }) {
   const { blocks, headings } = useMemo(() => parseMarkdown(post.content || ""), [post.content]);
   const tocSections = useMemo(() => buildTocItems(post.sections, headings), [headings, post.sections]);
@@ -262,14 +318,65 @@ export function ArticleView({ post, onOpenPost }) {
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
   const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
-  const articleClassName = post.slug === "swjtu-2026-major-group-forecast" ? "prose reveal prose--dense-report" : "prose reveal";
+  const isSwjtuReport = post.slug === "swjtu-2026-major-group-forecast";
+  const articleClassName = isSwjtuReport ? "prose reveal prose--dense-report prose--swjtu-report" : "prose reveal";
+  const layoutClassName = isSwjtuReport ? "article-layout article-layout--swjtu-report" : "article-layout";
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
+  const hashSectionId = isSwjtuReport ? getDecodedHashTargetId() : "";
+  const renderedActiveSectionId = tocSections.some((section) => section.id === hashSectionId)
+    ? hashSectionId
+    : activeSectionId;
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
+  const commentsSection = (
+    <section className="article-comments" aria-label="文章评论">
+      <div data-testid="article-comments-container">
+        <Giscus
+          repo={GISCUS_REPO}
+          repoId={GISCUS_REPO_ID}
+          category={GISCUS_CATEGORY}
+          categoryId={GISCUS_CATEGORY_ID}
+          mapping="pathname"
+          strict="1"
+          reactionsEnabled="1"
+          emitMetadata="0"
+          inputPosition="bottom"
+          theme="transparent_dark"
+          lang="zh-CN"
+          loading="lazy"
+        />
+      </div>
+    </section>
+  );
 
   useEffect(() => {
+    if (isSwjtuReport) {
+      const hashTargetId = getDecodedHashTargetId();
+
+      if (tocSections.some((section) => section.id === hashTargetId)) {
+        setActiveSectionId(hashTargetId);
+        return;
+      }
+    }
+
     setActiveSectionId(tocSections[0]?.id ?? "section");
-  }, [post.id, tocSections]);
+  }, [isSwjtuReport, post.id, tocSections]);
+
+  useEffect(() => {
+    if (!isSwjtuReport || !window.location.hash) {
+      return undefined;
+    }
+
+    const targetId = getDecodedHashTargetId();
+
+    if (!tocSections.some((section) => section.id === targetId)) {
+      return undefined;
+    }
+
+    setActiveSectionId(targetId);
+
+    return schedulePilotHashScroll(targetId, () => setActiveSectionId(targetId));
+  }, [isSwjtuReport, post.id, tocSections]);
 
   const handleTocClick = (section) => {
     const target = document.getElementById(section.id);
@@ -279,14 +386,26 @@ export function ArticleView({ post, onOpenPost }) {
     }
 
     setActiveSectionId(section.id);
+    if (isSwjtuReport) {
+      history.replaceState(null, "", `#${section.id}`);
+    }
+
+    if (isSwjtuReport) {
+      scrollToPilotHeading(
+        target,
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+      );
+      return;
+    }
+
     target.scrollIntoView({
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       block: "start"
     });
   };
 
   return (
-    <section className="article-layout" aria-label="文章页">
+    <section className={layoutClassName} aria-label="文章页">
       <aside className="rail rail-left" aria-label="左侧索引">
         <h4>档案柜</h4>
         <ul>
@@ -308,6 +427,13 @@ export function ArticleView({ post, onOpenPost }) {
             {post.category} · {post.date} · {post.reading} · {post.status} · 栏目：
             <a href={`/sections/${post.section}`}>{canonicalSectionLabel}</a>
           </p>
+          {isSwjtuReport ? (
+            <div className="article-hero__pilot-meta" aria-label="试点报告信息">
+              <p className="article-hero__pilot-label">Research Report Pilot</p>
+              <p>{post.excerpt}</p>
+              <p>{tocSections.length} sections</p>
+            </div>
+          ) : null}
           <ul className="tag-list" aria-label="文章标签">
             {post.tags.map((tag) => (
               <li key={tag}>#{tag}</li>
@@ -419,32 +545,17 @@ export function ArticleView({ post, onOpenPost }) {
           ))}
         </section>
 
-        <section className="article-comments" aria-label="文章评论">
-          <div data-testid="article-comments-container">
-            <Giscus
-              repo={GISCUS_REPO}
-              repoId={GISCUS_REPO_ID}
-              category={GISCUS_CATEGORY}
-              categoryId={GISCUS_CATEGORY_ID}
-              mapping="pathname"
-              strict="1"
-              reactionsEnabled="1"
-              emitMetadata="0"
-              inputPosition="bottom"
-              theme="transparent_dark"
-              lang="zh-CN"
-              loading="lazy"
-            />
-          </div>
-        </section>
+        {!isSwjtuReport ? commentsSection : null}
 
       </article>
+
+        {isSwjtuReport ? commentsSection : null}
 
         <aside className="rail rail-right" aria-label="目录">
           <h4>目录 TOC</h4>
           <ol>
             {tocSections.map((section, index) => {
-              const isActive = activeSectionId === section.id;
+              const isActive = renderedActiveSectionId === section.id;
 
               return (
                 <li key={section.id} className={isActive ? "active" : ""}>
