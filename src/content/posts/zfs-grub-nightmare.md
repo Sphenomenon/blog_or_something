@@ -1,9 +1,9 @@
 ---
 id: AR-2026-121
 slug: zfs-grub-nightmare
-title: Ubuntu20.04LTS内核文件丢失的systemd-boot 邪修方案
+title: Ubuntu22.04LTS内核文件丢失的systemd-boot 邪修方案
 excerpt: Ubuntu20.04LTS
-date: 2026-05-22
+date: 2025-09-30
 section: tech
 status: published
 reading: 6 min
@@ -80,9 +80,6 @@ while read file; do
   esac
 done
 ```
-
-这个脚本纯靠 GPT 写的。楼主实在被干得**道心破碎**，GTFW 无数次之后已经完全不想自己动手写了。
-
 ---
 
 ## 叛逃
