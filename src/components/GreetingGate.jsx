@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { greeting } from "../data/yaml-loader.js";
 
@@ -68,14 +68,12 @@ export function GreetingGate({ onEnterHome }) {
     }
 
     if (event.deltaY > 0) {
-      event.preventDefault();
       lastWheelTimeRef.current = now;
       stepPanel(1);
       return;
     }
 
     if (event.deltaY < 0) {
-      event.preventDefault();
       lastWheelTimeRef.current = now;
       stepPanel(-1);
     }
@@ -83,20 +81,18 @@ export function GreetingGate({ onEnterHome }) {
 
   function handleKeyDown(event) {
     if (event.key === "ArrowDown" || event.key === "PageDown") {
-      event.preventDefault();
       stepPanel(1);
       return;
     }
 
     if (event.key === "ArrowUp" || event.key === "PageUp") {
-      event.preventDefault();
       stepPanel(-1);
     }
   }
 
   return (
     <section
-      className="greeting-gate reveal"
+      className="greeting-gate"
       data-testid="greeting-gate"
       aria-labelledby="greeting-title"
       tabIndex={0}
