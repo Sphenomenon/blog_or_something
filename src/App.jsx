@@ -45,6 +45,7 @@ export default function App() {
   const activeHeaderSection = selectedSection ?? selectedPost?.section ?? "";
   const selectedSectionData = selectedSection ? getSectionBySlug(selectedSection) : null;
   const isNotFound = route.kind === "not-found" || (route.kind === "post" && !selectedPost) || (route.kind === "section" && !selectedSectionData);
+  const isGreetingVisible = route.kind === "home" && !greetingDismissed;
   const routeFrameKey = `${route.kind}:${normalizePath(pathname)}:${route.kind === "home" && !greetingDismissed ? "gate" : "view"}`;
 
   const activeView = useMemo(() => {
@@ -236,7 +237,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {(!(route.kind === "home" && !greetingDismissed)) && (
+      {!isGreetingVisible && (
         <SiteHeader
           activeSectionSlug={activeHeaderSection}
           activeView={activeView}
@@ -254,9 +255,9 @@ export default function App() {
       >
         <motion.div
           key={routeFrameKey}
-          className="route-frame"
+          className={`route-frame${isGreetingVisible ? " route-frame--greeting" : ""}`}
           variants={viewTransition}
-          initial={shouldReduceMotion ? false : "initial"}
+          initial={shouldReduceMotion || isGreetingVisible ? false : "initial"}
           animate="animate"
           custom={shouldReduceMotion}
         >

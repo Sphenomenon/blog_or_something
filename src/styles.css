@@ -382,6 +382,11 @@ body::after {
   transition: clip-path var(--duration-slow) var(--ease-archive);
 }
 
+.route-frame--greeting {
+  clip-path: none;
+  will-change: auto;
+}
+
 .route-stage[data-transition-state="transitioning"] {
   opacity: 0.96;
   transform: translateY(var(--space-2));
@@ -398,6 +403,10 @@ body::after {
 
 .route-stage[data-transition-state="idle"] .route-frame {
   clip-path: inset(0 0 0 0 round var(--radius-md));
+}
+
+.route-stage[data-transition-state] .route-frame--greeting {
+  clip-path: none;
 }
 
 .route-stage[data-list-transition-state="refreshing"] .home-grid,
@@ -1064,7 +1073,6 @@ body::after {
   border: var(--border-strong);
   border-radius: var(--radius-md);
   background: rgb(16 18 21 / 0.82);
-  backdrop-filter: blur(10px);
 }
 
 .greeting-gate__panel > * {
@@ -5374,6 +5382,7 @@ body::after {
   .greeting-gate__controls button,
   .greeting-gate__enter {
     width: 100%;
+    flex-basis: auto;
     margin-left: 0;
   }
 
