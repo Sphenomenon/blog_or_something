@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">de_inferno</title>
-  <desc id="desc">Black archival tile with an orange lambda mark</desc>
-  <rect width="256" height="256" rx="32" fill="#111316"/>
-  <path d="M54 52h148v152H54z" fill="none" stroke="#555b60" stroke-width="8"/>
-  <path d="M92 188l43-120 31 87h29" fill="none" stroke="#f39a43" stroke-linecap="square" stroke-linejoin="bevel" stroke-width="18"/>
-  <circle cx="195" cy="155" r="9" fill="#48b9e8"/>
-</svg>
