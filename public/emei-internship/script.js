@@ -91,6 +91,114 @@
     if (!editing) save();
   }
 
+  function createGallery() {
+    if (pageType !== "daily" || document.querySelector("#gallery")) return;
+    const dayMatch = location.pathname.match(/day-(\d{2})\.html$/);
+    const footerPagination = document.querySelector(".prose .day-pagination--footer");
+    if (!dayMatch || !footerPagination) return;
+
+    const dayNumber = dayMatch[1];
+    const dayId = `day-${dayNumber}`;
+    const section = document.createElement("section");
+    section.id = "gallery";
+    section.dataset.toc = "当日影像";
+
+    const heading = document.createElement("h2");
+    heading.textContent = "当日影像";
+    const sectionCode = document.createElement("p");
+    sectionCode.className = "section-code";
+    sectionCode.textContent = "影像 / 实习现场记录";
+    const details = document.createElement("details");
+    details.className = "daily-gallery";
+    const summary = document.createElement("summary");
+    const summaryTitle = document.createElement("span");
+    summaryTitle.className = "daily-gallery__title";
+    summaryTitle.textContent = "当日影像";
+    const summaryDay = document.createElement("span");
+    summaryDay.className = "daily-gallery__day";
+    summaryDay.textContent = `DAY ${dayNumber}`;
+    const summaryStatus = document.createElement("span");
+    summaryStatus.className = "daily-gallery__status";
+    summaryStatus.textContent = "正在读取";
+    const panel = document.createElement("div");
+    panel.className = "daily-gallery__panel";
+    panel.setAttribute("aria-live", "polite");
+
+    summary.append(summaryTitle, summaryDay, summaryStatus);
+    details.append(summary, panel);
+    section.append(heading, sectionCode, details);
+    footerPagination.before(section);
+
+    const showMessage = (message, failed = false) => {
+      panel.replaceChildren();
+      const state = document.createElement("p");
+      state.className = `daily-gallery__empty${failed ? " daily-gallery__empty--error" : ""}`;
+      state.textContent = message;
+      panel.append(state);
+    };
+    const isValidImage = (entry) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry) || typeof entry.file !== "string") return false;
+      const file = entry.file.trim();
+      return file === entry.file && !/[\\/]/.test(file) && file !== "." && file !== ".." && /^[^\0]+\.(?:jpe?g|png|webp|avif|gif)$/i.test(file);
+    };
+
+    fetch(`../images/${dayId}/manifest.json`, { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Manifest request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((manifest) => {
+        if (!manifest || typeof manifest !== "object" || Array.isArray(manifest) || !Array.isArray(manifest.images)) {
+          throw new Error("Invalid gallery manifest");
+        }
+        const images = manifest.images.filter(isValidImage);
+        if (!images.length) {
+          summaryStatus.textContent = "暂无图片";
+          showMessage("该日图片尚未上传");
+          return;
+        }
+
+        const grid = document.createElement("div");
+        grid.className = "daily-gallery__grid";
+        images.forEach((entry, index) => {
+          const sequence = String(index + 1).padStart(2, "0");
+          const imageUrl = `../images/${dayId}/${encodeURIComponent(entry.file)}`;
+          const figure = document.createElement("figure");
+          figure.className = "daily-gallery__card";
+          const link = document.createElement("a");
+          link.className = "daily-gallery__link";
+          link.href = imageUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          const image = document.createElement("img");
+          image.src = imageUrl;
+          image.alt = typeof entry.alt === "string" && entry.alt.trim() ? entry.alt.trim() : `第 ${dayNumber} 天实习记录图片 ${sequence}`;
+          image.loading = "lazy";
+          image.decoding = "async";
+          const caption = document.createElement("figcaption");
+          caption.textContent = typeof entry.caption === "string" && entry.caption.trim() ? entry.caption.trim() : `DAY ${dayNumber} / IMAGE ${sequence}`;
+          image.addEventListener("error", () => {
+            figure.classList.add("daily-gallery__card--unavailable");
+            const unavailable = document.createElement("span");
+            unavailable.className = "daily-gallery__unavailable";
+            unavailable.textContent = "图片暂不可用";
+            link.replaceWith(unavailable);
+          }, { once: true });
+          link.append(image);
+          figure.append(link, caption);
+          grid.append(figure);
+        });
+        panel.replaceChildren(grid);
+        summaryStatus.textContent = `${images.length} 张图片`;
+      })
+      .catch(() => {
+        summaryStatus.textContent = "读取失败";
+        showMessage("影像清单暂时无法读取", true);
+      });
+  }
+
+  createGallery();
+
   const sections = [...document.querySelectorAll(".prose section[data-toc]")];
   const toc = document.querySelector("#toc");
   if (toc) {
