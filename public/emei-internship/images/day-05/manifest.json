@@ -1,0 +1,15 @@
+{
+  "day": "day-05",
+  "images": [
+    {
+      "file": "photo-01.png",
+      "alt": "第 5 天实习现场图片 1",
+      "caption": "PCB 收尾与软硬件准备记录一"
+    },
+    {
+      "file": "photo-02.png",
+      "alt": "第 5 天实习现场图片 2",
+      "caption": "PCB 收尾与软硬件准备记录二"
+    }
+  ]
+}
