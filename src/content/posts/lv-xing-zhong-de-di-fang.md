@@ -7,9 +7,11 @@ date: 2026-05-23
 section: travel
 status: published
 reading: 2 min
-tags: [旅行]
+tags:
+  - 旅行
 category: Travel
-sections: [已走过的路]
+sections:
+  - 已走过的路
 ---
 
 之前没有系统写过游记，所以暂且占坑挖个坑，后续慢慢补上。
@@ -22,7 +24,7 @@ sections: [已走过的路]
 - 四川：成都、乐山、泸州、绵阳、德阳
 - 重庆
 - 福建：厦门
-- 安徽：合肥、阜阳
+- ~~安徽：合肥、阜阳~~
 - 北京
 - 河北：廊坊、雄安
 - 黑龙江：哈尔滨
