@@ -30,7 +30,7 @@ collections:
       - { name: tags, label: Tags, widget: list, field: { name: tag, label: Tag, widget: string } }
       - { name: category, label: Category, widget: string, required: false }
       - { name: sections, label: Sections, widget: list, field: { name: section, label: Section, widget: string }, required: false }
-      - { name: body, label: Body (纯文本), widget: text }
+      - { name: body, label: Body (纯文本), widget: text, hint: "图片请上传至 /images/uploads/，语法见 src/content/README.md（![alt](/images/uploads/…)\n:::image wide|panorama，:::gallery）。inline 图片不支持，每张图需独占一行或位于 directive 内。" }
 
   - name: food_places
     label: Food Places
