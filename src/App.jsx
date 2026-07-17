@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
@@ -18,6 +18,9 @@ import { viewTransition } from "./lib/motion.js";
 const ROUTE_TRANSITION_MS = 320;
 const LIST_TRANSITION_MS = 220;
 const NETLIFY_IDENTITY_SCRIPT_URL = "https://identity.netlify.com/v1/netlify-identity-widget.js";
+const VerificationArticleImagesView = import.meta.env.MODE === "verification"
+  ? lazy(() => import("./verification/ArticleImagesVerificationView.jsx"))
+  : null;
 
 export default function App() {
   const shouldReduceMotion = useReducedMotion();
@@ -54,6 +57,7 @@ export default function App() {
     if (route.kind === "archive") return "archive";
     if (route.kind === "about") return "about";
     if (route.kind === "food-map") return "food-map";
+    if (route.kind === "article-images-verification") return "post";
     return "";
   }, [route.kind, selectedPost]);
 
@@ -279,6 +283,11 @@ export default function App() {
           {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
           {route.kind === "about" && <AboutView />}
           {route.kind === "food-map" && <FoodMapView />}
+          {route.kind === "article-images-verification" && VerificationArticleImagesView && (
+            <Suspense fallback={null}>
+              <VerificationArticleImagesView onNavigate={navigateTo} />
+            </Suspense>
+          )}
           {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} onOpenArchive={() => navigateTo("/archive")} />}
           {isNotFound && (
             <div data-testid="not-found-view">
@@ -315,6 +324,10 @@ function parseRoute(pathname) {
 
   if (normalizedPath === "/food-map") {
     return { kind: "food-map" };
+  }
+
+  if (import.meta.env.MODE === "verification" && normalizedPath === "/__verify__/article-images") {
+    return { kind: "article-images-verification" };
   }
 
   const postMatch = normalizedPath.match(/^\/posts\/([^/]+)$/);

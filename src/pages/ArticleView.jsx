@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Giscus from "@giscus/react";
+import { parseArticleMarkdown } from "../article-media.js";
+import {
+  ArticleMediaFigure,
+  ArticleMediaGallery,
+  ArticleMediaLightbox
+} from "../components/ArticleMedia.jsx";
 import { getArticleNeighbors } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
 
@@ -14,8 +20,8 @@ function renderInline(text, keyPrefix) {
   let cursor = 0;
   let nodeIndex = 0;
 
-  // Combined inline pattern — bold first (since ** contains *), then italic, code, strikethrough, image, link
-  const inlinePattern = /(\*\*|__)(.+?)\1|(\*|_)((?:(?!\3).)+?)\3|`([^`\n]+)`|~~(.+?)~~|!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  // Combined inline pattern — bold first (since ** contains *), then italic, code, strikethrough, link
+  const inlinePattern = /(\*\*|__)(.+?)\1|(\*|_)((?:(?!\3).)+?)\3|`([^`\n]+)`|~~(.+?)~~|\[([^\]]+)\]\(([^)\s]+)\)/g;
 
   let match;
   while ((match = inlinePattern.exec(text)) !== null) {
@@ -41,19 +47,10 @@ function renderInline(text, keyPrefix) {
       nodes.push(<del key={`${keyPrefix}-d-${nodeIndex}`}>{match[6]}</del>);
       nodeIndex++;
     } else if (match[7] !== undefined) {
-      // Image: ![alt](src "title") (groups 7=alt, 8=src, 9=title)
+      // Link: [text](url) (groups 7=text, 8=url)
       nodes.push(
-        <figure key={`${keyPrefix}-img-${nodeIndex}`}>
-          <img src={match[8]} alt={match[7]} loading="lazy" />
-          {match[9] ? <figcaption>{match[9]}</figcaption> : null}
-        </figure>
-      );
-      nodeIndex++;
-    } else if (match[10] !== undefined) {
-      // Link: [text](url) (groups 10=text, 11=url)
-      nodes.push(
-        <a key={`${keyPrefix}-link-${nodeIndex}`} href={match[11]} target="_blank" rel="noreferrer">
-          {match[10]}
+        <a key={`${keyPrefix}-link-${nodeIndex}`} href={match[8]} target="_blank" rel="noreferrer">
+          {match[7]}
         </a>
       );
       nodeIndex++;
@@ -68,161 +65,6 @@ function renderInline(text, keyPrefix) {
   }
 
   return nodes.length ? nodes : text;
-}
-
-function parseMarkdown(markdown) {
-  const blocks = [];
-  const headings = [];
-  const headingIdCounts = new Map();
-  const lines = markdown.split("\n");
-  let index = 0;
-
-  while (index < lines.length) {
-    const line = lines[index].trimEnd();
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("```") || trimmed.startsWith("~~~")) {
-      const fence = trimmed.slice(0, 3);
-      const language = trimmed.slice(3).trim();
-      const codeLines = [];
-      index += 1;
-
-      while (index < lines.length && !lines[index].trim().startsWith(fence)) {
-        codeLines.push(lines[index]);
-        index += 1;
-      }
-
-      if (index < lines.length) {
-        index += 1;
-      }
-
-      blocks.push({ type: "code", code: codeLines.join("\n"), language });
-      continue;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      const text = trimmed.slice(4).trim();
-      const id = createUniqueSectionId(text, headingIdCounts);
-      blocks.push({ type: "h3", text, id });
-      headings.push({ id, label: text });
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      const text = trimmed.slice(3).trim();
-      const id = createUniqueSectionId(text, headingIdCounts);
-      blocks.push({ type: "h2", text, id });
-      headings.push({ id, label: text });
-      index += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith(">")) {
-      const quoteLines = [];
-      while (index < lines.length && lines[index].trim().startsWith(">")) {
-        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
-        index += 1;
-      }
-      blocks.push({ type: "blockquote", text: quoteLines.join(" ") });
-      continue;
-    }
-
-    if (/^[-*]\s+/.test(trimmed)) {
-      const items = [];
-      while (index < lines.length && /^\s*[-*]\s+/.test(lines[index])) {
-        items.push(lines[index].replace(/^\s*[-*]\s+/, "").trim());
-        index += 1;
-      }
-      blocks.push({ type: "ul", items });
-      continue;
-    }
-
-    if (/^\d+\.\s+/.test(trimmed)) {
-      const items = [];
-      while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
-        items.push(lines[index].replace(/^\s*\d+\.\s+/, "").trim());
-        index += 1;
-      }
-      blocks.push({ type: "ol", items });
-      continue;
-    }
-
-    if (/^\|.+\|$/.test(trimmed)) {
-      const tableLines = [];
-      while (index < lines.length && /^\s*\|.+\|\s*$/.test(lines[index])) {
-        tableLines.push(lines[index].trim());
-        index += 1;
-      }
-
-      if (tableLines.length >= 2 && /^\|?[\s:-]+\|[\s|:-]*$/.test(tableLines[1])) {
-        const headers = tableLines[0]
-          .split("|")
-          .map((cell) => cell.trim())
-          .filter(Boolean);
-        const rows = tableLines.slice(2).map((row) =>
-          row
-            .split("|")
-            .map((cell) => cell.trim())
-            .filter(Boolean)
-        );
-        blocks.push({ type: "table", headers, rows });
-        continue;
-      }
-
-      blocks.push({ type: "paragraph", text: tableLines.join(" ") });
-      continue;
-    }
-
-    const paragraph = [trimmed];
-    index += 1;
-    while (index < lines.length) {
-      const peek = lines[index].trim();
-      if (
-        !peek ||
-        peek.startsWith("## ") ||
-        peek.startsWith("### ") ||
-        peek.startsWith(">") ||
-        peek.startsWith("```") ||
-        peek.startsWith("~~~") ||
-        /^[-*]\s+/.test(peek) ||
-        /^\d+\.\s+/.test(peek) ||
-        /^\|.+\|$/.test(peek)
-      ) {
-        break;
-      }
-      paragraph.push(peek);
-      index += 1;
-    }
-
-    blocks.push({ type: "paragraph", text: paragraph.join(" ") });
-  }
-
-  return { blocks, headings };
-}
-
-function normalizeSectionSlug(section) {
-  const slug = String(section || "")
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\p{Letter}\p{Number}_-]+/gu, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return slug || "section";
-}
-
-function createUniqueSectionId(section, counts) {
-  const slug = normalizeSectionSlug(section);
-  const count = counts.get(slug) ?? 0;
-  counts.set(slug, count + 1);
-
-  return count === 0 ? slug : `${slug}-${count + 1}`;
 }
 
 function hasFrontmatterSections(postSections) {
@@ -254,6 +96,27 @@ function buildTocItems(postSections, headings) {
   });
 
   return frontmatterSections.every(Boolean) ? frontmatterSections : headings;
+}
+
+function getArticleMediaPositions(blocks) {
+  let galleryOrder = 0;
+  let mediaOrder = 0;
+
+  return blocks.map((block) => {
+    if (block.type === "image") {
+      mediaOrder += 1;
+      return { mediaOrder, galleryOrder: null };
+    }
+
+    if (block.type === "gallery") {
+      galleryOrder += 1;
+      const mediaStartOrder = mediaOrder + 1;
+      mediaOrder += block.images.length;
+      return { mediaStartOrder, galleryOrder };
+    }
+
+    return null;
+  });
 }
 
 function getDecodedHashTargetId() {
@@ -311,16 +174,28 @@ function schedulePilotHashScroll(targetId, onTick) {
   };
 }
 
-export function ArticleView({ post, onOpenPost }) {
-  const { blocks, headings } = useMemo(() => parseMarkdown(post.content || ""), [post.content]);
+export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
+  const articleSource = post.slug || post.id || "<article>";
+  const { blocks, headings, errors: articleMediaErrors } = useMemo(
+    () => parseArticleMarkdown(post.content || "", { source: articleSource }),
+    [post.content, post.id, post.slug]
+  );
+  const articleMediaPositions = useMemo(() => getArticleMediaPositions(blocks), [blocks]);
   const tocSections = useMemo(() => buildTocItems(post.sections, headings), [headings, post.sections]);
   const sectionMeta = getSectionBySlug(post.section);
   const canonicalSectionLabel = sectionMeta?.label ?? post.section;
-  const neighbors = useMemo(() => getArticleNeighbors(post.slug, post.section), [post.slug, post.section]);
+  const neighbors = useMemo(
+    () => verificationOnly ? { previous: null, next: null } : getArticleNeighbors(post.slug, post.section),
+    [post.slug, post.section, verificationOnly]
+  );
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
   const isSwjtuReport = post.slug === "swjtu-2026-major-group-forecast";
   const articleClassName = isSwjtuReport ? "prose reveal prose--dense-report prose--swjtu-report" : "prose reveal";
-  const layoutClassName = isSwjtuReport ? "article-layout article-layout--swjtu-report" : "article-layout";
+  const layoutClassName = [
+    "article-layout",
+    isSwjtuReport ? "article-layout--swjtu-report" : "",
+    verificationOnly ? "article-layout--verification" : ""
+  ].filter(Boolean).join(" ");
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const hashSectionId = isSwjtuReport ? getDecodedHashTargetId() : "";
   const renderedActiveSectionId = tocSections.some((section) => section.id === hashSectionId)
@@ -328,7 +203,7 @@ export function ArticleView({ post, onOpenPost }) {
     : activeSectionId;
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
-  const commentsSection = (
+  const commentsSection = verificationOnly ? null : (
     <section className="article-comments" aria-label="文章评论">
       <div data-testid="article-comments-container">
         <Giscus
@@ -405,8 +280,9 @@ export function ArticleView({ post, onOpenPost }) {
   };
 
   return (
+    <ArticleMediaLightbox ownerKey={post.slug || post.id}>
     <section className={layoutClassName} aria-label="文章页">
-      <aside className="rail rail-left" aria-label="左侧索引">
+      {!verificationOnly ? <aside className="rail rail-left" aria-label="左侧索引">
         <h4>档案柜</h4>
         <ul>
             {related.map((item) => (
@@ -417,7 +293,7 @@ export function ArticleView({ post, onOpenPost }) {
             </li>
           ))}
         </ul>
-      </aside>
+      </aside> : null}
 
       <article className={articleClassName} lang="zh-Hans" data-post-slug={post.slug}>
         <header className="article-hero">
@@ -441,7 +317,7 @@ export function ArticleView({ post, onOpenPost }) {
           </ul>
         </header>
 
-        <nav className="article-nav" aria-label="上一篇和下一篇文章">
+        {!verificationOnly ? <nav className="article-nav" aria-label="上一篇和下一篇文章">
           <div className="article-nav__item">
             {previousArticle ? (
               <button type="button" data-testid="article-prev" onClick={() => onOpenPost(previousArticle.slug)}>
@@ -462,10 +338,45 @@ export function ArticleView({ post, onOpenPost }) {
               <p className="article-nav__empty" data-testid="article-next-empty">已经是最旧文章</p>
             )}
           </div>
-        </nav>
+        </nav> : null}
+
+        {import.meta.env.DEV && articleMediaErrors.length ? (
+          <aside className="article-media-errors" aria-label="Article media errors" data-testid="article-media-errors">
+            <p>Some article media could not be rendered.</p>
+            <ul>
+              {articleMediaErrors.map((error, errorIndex) => (
+                <li key={`${error.code}-${error.line}-${errorIndex}`}>
+                  {error.source}:{error.line} {error.code}: {error.message}
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
 
         {blocks.map((block, blockIndex) => {
           const key = `block-${blockIndex}`;
+
+          if (block.type === "image") {
+            return (
+              <ArticleMediaFigure
+                key={key}
+                image={{ ...block, articleSource }}
+                mediaOrder={articleMediaPositions[blockIndex].mediaOrder}
+              />
+            );
+          }
+
+          if (block.type === "gallery") {
+            return (
+              <ArticleMediaGallery
+                key={key}
+                block={block}
+                galleryOrder={articleMediaPositions[blockIndex].galleryOrder}
+                mediaStartOrder={articleMediaPositions[blockIndex].mediaStartOrder}
+                articleSource={articleSource}
+              />
+            );
+          }
 
           if (block.type === "h2") {
             return <h2 key={key} id={block.id}>{block.text}</h2>;
@@ -535,7 +446,7 @@ export function ArticleView({ post, onOpenPost }) {
           return <p key={key}>{renderInline(block.text, key)}</p>;
         })}
 
-        <section className="related-panel" aria-label="相关条目">
+        {!verificationOnly ? <section className="related-panel" aria-label="相关条目">
           <h2>相关条目</h2>
           {related.map((item) => (
             <button key={item.id} data-testid={`article-related-panel-${item.id}`} type="button" onClick={() => onOpenPost(item.slug)}>
@@ -543,7 +454,7 @@ export function ArticleView({ post, onOpenPost }) {
               {item.title}
             </button>
           ))}
-        </section>
+        </section> : null}
 
         {!isSwjtuReport ? commentsSection : null}
 
@@ -576,5 +487,6 @@ export function ArticleView({ post, onOpenPost }) {
           </ol>
         </aside>
       </section>
+    </ArticleMediaLightbox>
   );
 }
