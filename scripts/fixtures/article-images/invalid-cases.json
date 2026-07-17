@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    { "id": "empty-alt", "category": "empty-alt", "file": "markdown/invalid/empty-alt.md" },
+    { "id": "inline-media-prose", "category": "inline-media-plus-prose", "file": "markdown/invalid/inline-media-prose.md" },
+    { "id": "nested-directive", "category": "nested-directive", "file": "markdown/invalid/nested-directive.md" },
+    { "id": "unclosed-directive", "category": "unclosed-directive", "file": "markdown/invalid/unclosed-directive.md" },
+    { "id": "unknown-mode", "category": "unknown-mode", "file": "markdown/invalid/unknown-mode.md" },
+    { "id": "unknown-option", "category": "unknown-option", "file": "markdown/invalid/unknown-option.md" },
+    { "id": "image-two-items", "category": "image-count", "file": "markdown/invalid/image-two-items.md" },
+    { "id": "focal-on-wide", "category": "focal-misuse", "file": "markdown/invalid/focal-on-wide.md" },
+    { "id": "duplicate-focal", "category": "duplicate-focal", "file": "markdown/invalid/duplicate-focal.md" },
+    { "id": "focal-out-of-range", "category": "focal-out-of-range", "file": "markdown/invalid/focal-out-of-range.md" },
+    { "id": "gallery-one", "category": "gallery-count-1", "file": "markdown/invalid/gallery-one.md" },
+    { "id": "gallery-seven", "category": "gallery-count-7", "file": "markdown/invalid/gallery-seven.md" },
+    { "id": "gallery-prose", "category": "gallery-prose", "file": "markdown/invalid/gallery-prose.md" },
+    { "id": "scheme-data", "category": "unsafe-scheme-data", "file": "markdown/invalid/scheme-data.md" },
+    { "id": "scheme-blob", "category": "unsafe-scheme-blob", "file": "markdown/invalid/scheme-blob.md" },
+    { "id": "scheme-file", "category": "unsafe-scheme-file", "file": "markdown/invalid/scheme-file.md" },
+    { "id": "scheme-javascript", "category": "unsafe-scheme-javascript", "file": "markdown/invalid/scheme-javascript.md" },
+    { "id": "relative-url", "category": "relative-url", "file": "markdown/invalid/relative-url.md" },
+    { "id": "protocol-relative", "category": "protocol-relative-url", "file": "markdown/invalid/protocol-relative.md" },
+    { "id": "traversal", "category": "path-traversal", "file": "markdown/invalid/traversal.md" },
+    { "id": "encoded-traversal", "category": "encoded-traversal", "file": "markdown/invalid/encoded-traversal.md" },
+    { "id": "encoded-forward-separator", "category": "encoded-separator", "file": "markdown/invalid/encoded-forward-separator.md" },
+    { "id": "encoded-back-separator", "category": "encoded-separator", "file": "markdown/invalid/encoded-back-separator.md" },
+    { "id": "malformed-encoding", "category": "malformed-percent-encoding", "file": "markdown/invalid/malformed-encoding.md" },
+    { "id": "url-control-character", "category": "control-character", "descriptor": "markdown/invalid/url-control-character.json" },
+    { "id": "local-query", "category": "local-query", "file": "markdown/invalid/local-query.md" },
+    { "id": "local-fragment", "category": "local-fragment", "file": "markdown/invalid/local-fragment.md" }
+  ]
+}

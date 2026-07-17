@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "marker": "NOCTURNE_ARTICLE_MEDIA_FIXTURE_7D3A91",
+  "title": "Verification Article Media Ledger",
+  "remoteUrl": "https://article-media.invalid/intercepted/remote-landscape.jpg",
+  "validMarkdown": "markdown/valid.md",
+  "invalidRegistry": "invalid-cases.json",
+  "runtimeRoot": ".sisyphus/evidence/article-media/fixture-runtime/",
+  "assets": [
+    { "file": "assets/landscape-large.jpg", "format": "jpeg", "width": 1600, "height": 900, "categories": ["landscape", "large-jpeg"] },
+    { "file": "assets/portrait.webp", "format": "webp", "width": 720, "height": 1080, "categories": ["portrait"] },
+    { "file": "assets/alpha.png", "format": "png", "width": 800, "height": 600, "hasAlpha": true, "categories": ["alpha"] },
+    { "file": "assets/exif-rotated.jpg", "format": "jpeg", "width": 640, "height": 960, "orientation": 6, "orientedWidth": 960, "orientedHeight": 640, "categories": ["exif-rotated"] },
+    { "file": "assets/oversized-2400.jpg", "format": "jpeg", "width": 2400, "height": 1350, "categories": ["above-1920"] },
+    { "file": "assets/small-320.jpg", "format": "jpeg", "width": 320, "height": 240, "categories": ["below-480"] },
+    { "file": "assets/nested/alpha/shared-name.jpg", "format": "jpeg", "width": 900, "height": 600, "categories": ["nested-same-basename"] },
+    { "file": "assets/nested/beta/shared-name.jpg", "format": "jpeg", "width": 600, "height": 900, "categories": ["nested-same-basename"] }
+  ],
+  "sourceMap": {
+    "/images/uploads/fixture/landscape-large.jpg": "assets/landscape-large.jpg",
+    "/images/uploads/fixture/portrait.webp": "assets/portrait.webp",
+    "/images/uploads/fixture/alpha.png": "assets/alpha.png",
+    "/images/uploads/fixture/exif-rotated.jpg": "assets/exif-rotated.jpg",
+    "/images/uploads/fixture/oversized-2400.jpg": "assets/oversized-2400.jpg",
+    "/images/uploads/fixture/small-320.jpg": "assets/small-320.jpg",
+    "/images/uploads/fixture/nested/alpha/shared-name.jpg": "assets/nested/alpha/shared-name.jpg",
+    "/images/uploads/fixture/nested/beta/shared-name.jpg": "assets/nested/beta/shared-name.jpg"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "encoding": "json-escaped-source",
+  "source": "![Control character URL fixture](https://article-media.invalid/control\u0007character.jpg)\n",
+  "controlCodePoint": 7
+}

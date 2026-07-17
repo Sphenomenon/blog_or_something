@@ -1,0 +1,1 @@
+![Relative fixture](../fixture.jpg)
