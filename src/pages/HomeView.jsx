@@ -281,7 +281,7 @@ function SidePanel({ onSectionChange }) {
   }, []);
 
   return (
-    <aside className="side-panel reveal">
+    <aside className="side-panel">
       <section>
         <h3>{site.home_sidebar_categories_label}</h3>
         <ul className="side-panel-list">
@@ -333,6 +333,12 @@ export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFil
               </motion.li>
             ))}
           </motion.ol>
+          {filteredPosts.length === 0 ? (
+            <div className="archive-empty-state" role="status">
+              <p>没有匹配当前检索与筛选条件的档案。</p>
+              <p>调整关键词、状态或标签后，索引会在这里重新列出条目。</p>
+            </div>
+          ) : null}
         </div>
 
         <SidePanel onSectionChange={onSectionChange} />

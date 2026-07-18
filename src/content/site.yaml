@@ -3,23 +3,23 @@ site_description: 夜间写作索引
 brand_name: 失眠档案馆
 brand_kicker: NOCTURNE ARCHIVE SYSTEM
 header_subtitle: 夜间写作 / 归档菜单
-search_label: 搜索内容
+search_label: 检索档案
 search_placeholder: 检索编号 / 标题 / 标签
 nav_archive_label: 归档
 nav_about_label: 关于
 home_hero_marker: NODE-05
 home_hero_code: INSTITUTE.LOG / QUIETLY OPERATIONAL
-home_hero_title: NOCTURNE MENU / 夜间档案
+home_hero_title: NOCTURNE ARCHIVE / 夜间档案
 home_hero_body: 随笔、技术、读物、梦与记录。
 home_sidebar_categories_label: 栏目目录
 home_sidebar_terminal_label: 研究终端
 home_sidebar_status: 很高兴遇见你
-home_sidebar_sync: "Latest Sync: 2026-05-22 23:14 CST"
-home_sidebar_integrity: "Index Integrity: 97.4%"
+home_sidebar_sync: "Archive Status: STATIC / SOURCE-CONTROLLED"
+home_sidebar_integrity: "Index Mode: LOCAL CONTENT"
 home_grid_title: 档案索引
 archive_code_header: CABINET / CHRONOLOGICAL
 archive_page_title: 归档页
 archive_lead_text: 年份分柜 / 最新优先 / 空柜隐藏。
-error_404_title: 未找到对应页面
-error_404_body: 你访问的路径不存在或文章不可用。
-error_404_button: 返回首页
+error_404_title: 未找到对应档案
+error_404_body: 这条路径尚未入库，或对应档案当前不可用。
+error_404_button: 返回档案索引

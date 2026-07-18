@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getArchivePostsByYear, getArchiveYears } from "../data/posts.js";
 import { site } from "../data/yaml-loader.js";
 
@@ -20,16 +20,16 @@ export function ArchiveView({ onOpenPost }) {
   }, [archiveYears, selectedYear]);
 
   return (
-    <section className="page-panel page-panel--archive reveal" aria-labelledby="archive-title">
+    <section className="page-panel page-panel--archive" aria-labelledby="archive-title">
       <p className="hero-code">{site.archive_code_header}</p>
       <div className="page-panel-header">
         <div>
           <h1 id="archive-title">{site.archive_page_title}</h1>
           <p className="page-panel-lead">{site.archive_lead_text}</p>
         </div>
-        <p className="page-panel-meta" data-testid="archive-page-meta">{archivePosts.length} records</p>
+        <p className="page-panel-meta" data-testid="archive-page-meta">{archivePosts.length} 条记录</p>
       </div>
-      <nav className="archive-pagination" aria-label="归档年份分页">
+      {archiveYears.length > 0 ? <nav className="archive-pagination" aria-label="归档年份分页">
         <button
           data-testid="archive-year-prev"
           type="button"
@@ -54,12 +54,17 @@ export function ArchiveView({ onOpenPost }) {
         >
           下一年
         </button>
-      </nav>
+      </nav> : null}
 
-      <section className="archive-group" aria-labelledby="archive-year-heading">
+      {archiveYears.length === 0 ? (
+        <div className="archive-empty-state" role="status">
+          <p>档案馆当前还没有可归档的文章。</p>
+          <p>首篇文章入库后，年份分柜会自动建立。</p>
+        </div>
+      ) : <section className="archive-group" aria-labelledby="archive-year-heading">
         <h2 id="archive-year-heading" data-testid="archive-year-heading">{activeYear || "—"}</h2>
         <p className="archive-group__summary" data-testid="archive-year-summary">
-          {archivePosts.length} records in {activeYear || "—"}
+          {activeYear || "—"} / {archivePosts.length} 条记录
         </p>
         {archivePosts.map((post) => (
           <button key={post.id} data-testid={`archive-view-${post.id}`} type="button" onClick={() => onOpenPost(post.slug)}>
@@ -68,7 +73,7 @@ export function ArchiveView({ onOpenPost }) {
             <em>{post.status}</em>
           </button>
         ))}
-      </section>
+      </section>}
     </section>
   );
 }
