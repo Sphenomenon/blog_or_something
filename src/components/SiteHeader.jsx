@@ -6,7 +6,7 @@ const secondaryViews = [
   { id: "food-map", label: "美食地图" }
 ];
 
-export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onViewChange, query, onQueryChange }) {
+export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onViewChange, query, onQueryChange, onSearchSubmit }) {
   const section = sections.find(s => s.slug === activeSectionSlug);
   const subtitle = section?.subtitle || site.header_subtitle;
 
@@ -46,7 +46,14 @@ export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onV
         ))}
       </nav>
 
-      <form className="search-box" role="search" onSubmit={(event) => event.preventDefault()}>
+      <form
+        className="search-box"
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSearchSubmit();
+        }}
+      >
         <label htmlFor="q" className="sr-only">
           {site.search_label}
         </label>

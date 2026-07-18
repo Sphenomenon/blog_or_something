@@ -33,6 +33,7 @@ export default function App() {
   const [listTransitionState, setListTransitionState] = useState("idle");
   const routeTransitionTimerRef = useRef(null);
   const listTransitionTimerRef = useRef(null);
+  const searchScrollPendingRef = useRef(false);
   const filterSnapshotRef = useRef({ query: "", statusFilter: "All", tagFilter: "All" });
 
   const postBySlug = useMemo(() => {
@@ -130,6 +131,22 @@ export default function App() {
   }, [route.kind]);
 
   useEffect(() => {
+    if (route.kind !== "home" || !greetingDismissed || !searchScrollPendingRef.current) {
+      return undefined;
+    }
+
+    searchScrollPendingRef.current = false;
+    const frameId = window.requestAnimationFrame(() => {
+      document.getElementById("home-archive-index")?.scrollIntoView({
+        behavior: shouldReduceMotion ? "auto" : "smooth",
+        block: "start"
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [greetingDismissed, route.kind, shouldReduceMotion]);
+
+  useEffect(() => {
     const previous = filterSnapshotRef.current;
     const next = { query, statusFilter, tagFilter };
     filterSnapshotRef.current = next;
@@ -216,6 +233,15 @@ export default function App() {
     navigateTo(`/sections/${sectionSlug}`);
   }
 
+  function submitSearch() {
+    searchScrollPendingRef.current = true;
+    setGreetingDismissed(true);
+
+    if (route.kind !== "home") {
+      navigateTo("/");
+    }
+  }
+
   function handleViewChange(nextView) {
     if (nextView === "home") {
       navigateTo("/");
@@ -249,6 +275,7 @@ export default function App() {
           onViewChange={handleViewChange}
           query={query}
           onQueryChange={setQuery}
+          onSearchSubmit={submitSearch}
         />
       )}
       <main
@@ -279,7 +306,7 @@ export default function App() {
               setTagFilter={setTagFilter}
             />
           )}
-          {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} pathname={pathname} />}
+          {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} onOpenSection={openSection} pathname={pathname} />}
           {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
           {route.kind === "about" && <AboutView />}
           {route.kind === "food-map" && <FoodMapView />}
@@ -288,7 +315,7 @@ export default function App() {
               <VerificationArticleImagesView onNavigate={navigateTo} />
             </Suspense>
           )}
-          {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} onOpenArchive={() => navigateTo("/archive")} />}
+          {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} />}
           {isNotFound && (
             <div data-testid="not-found-view">
               <h1>{site.error_404_title}</h1>
