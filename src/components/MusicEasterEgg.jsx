@@ -11,7 +11,10 @@ function parseNetEaseSongId(embedUrl) {
   try {
     const url = new URL(embedUrl);
     const isNetEaseHost = url.hostname === "music.163.com" || url.hostname === "www.music.163.com";
-    const songId = url.searchParams.get("id");
+    const querySongId = url.searchParams.get("id");
+    const hashQuery = url.hash.includes("?") ? url.hash.slice(url.hash.indexOf("?") + 1) : "";
+    const hashSongId = new URLSearchParams(hashQuery).get("id");
+    const songId = /^\d+$/.test(querySongId ?? "") ? querySongId : hashSongId;
 
     if (!isNetEaseHost || !/^\d+$/.test(songId ?? "")) {
       return null;

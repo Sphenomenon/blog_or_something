@@ -14,10 +14,17 @@ const PROJECT_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DEFAULT_VIEWPORTS = [375, 768, 1024, 1440];
 const SECTION_SLUGS = ["tech", "essay", "diary", "reading", "travel", "links"];
 const VERCOUNT_SCRIPT_SRC = "https://events.vercount.one/js";
-const MUSIC_FALLBACK_HREF = "https://music.163.com/song?id=2707332868";
+const MUSIC_CONFIG = loadYamlSync("src/content/music.yaml");
+const MUSIC_FALLBACK_HREF = MUSIC_CONFIG.embed_url;
+const MUSIC_SONG_ID = parseNetEaseSongId(MUSIC_FALLBACK_HREF);
+
+if (!MUSIC_SONG_ID) {
+  throw new Error("src/content/music.yaml embed_url must contain a numeric NetEase song ID on an allowed host");
+}
+
 const MUSIC_IFRAME_EXPECTATIONS = {
   type: "2",
-  id: "2707332868",
+  id: MUSIC_SONG_ID,
   auto: "0",
   height: "66"
 };
@@ -32,6 +39,29 @@ function shouldIgnoreConsoleEntry(type, text) {
 
 function loadYamlSync(relativePath) {
   return yaml.load(readFileSync(path.join(PROJECT_ROOT, relativePath), "utf8"));
+}
+
+function parseNetEaseSongId(embedUrl) {
+  if (typeof embedUrl !== "string" || embedUrl.trim() === "") {
+    return null;
+  }
+
+  try {
+    const url = new URL(embedUrl);
+    const isNetEaseHost = url.hostname === "music.163.com" || url.hostname === "www.music.163.com";
+    const querySongId = url.searchParams.get("id");
+    const hashQuery = url.hash.includes("?") ? url.hash.slice(url.hash.indexOf("?") + 1) : "";
+    const hashSongId = new URLSearchParams(hashQuery).get("id");
+    const songId = /^\d+$/.test(querySongId ?? "") ? querySongId : hashSongId;
+
+    if (!isNetEaseHost || !/^\d+$/.test(songId ?? "")) {
+      return null;
+    }
+
+    return songId;
+  } catch {
+    return null;
+  }
 }
 
 const SECTION_TAGLINES = (() => {
