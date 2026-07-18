@@ -360,17 +360,32 @@ body::after {
   overflow-x: clip;
 }
 .route-stage {
+  --route-state-accent: var(--dusk-line);
+
   display: grid;
   gap: 0;
   min-width: 0;
   position: relative;
   isolation: isolate;
   overflow-x: clip;
+  border-top: 1px solid var(--route-state-accent);
   border-radius: var(--radius-md);
   background:
     radial-gradient(circle at 50% 0%, rgb(232 225 210 / 0.025), transparent 44%),
     linear-gradient(180deg, rgb(7 9 13 / 0.08), transparent 28%);
-  transition: opacity var(--duration-normal) var(--ease-archive), transform var(--duration-normal) var(--ease-archive);
+  transition: opacity var(--duration-normal) var(--ease-archive), transform var(--duration-normal) var(--ease-archive), border-color var(--duration-normal) var(--ease-archive);
+}
+
+.route-stage[data-route-kind="post"] {
+  --route-state-accent: var(--accent-rust);
+}
+
+.route-stage[data-route-kind="section"] {
+  --route-state-accent: var(--accent-oxide);
+}
+
+.route-stage[data-route-kind="archive"] {
+  --route-state-accent: var(--accent-gold);
 }
 
 .route-frame {
@@ -431,6 +446,9 @@ body::after {
   position: relative;
   isolation: isolate;
   display: grid;
+  grid-template-areas:
+    "brand sections secondary"
+    "brand search search";
   grid-template-columns: minmax(18rem, 1.1fr) minmax(14rem, auto) minmax(15rem, 0.72fr);
   align-items: stretch;
   gap: var(--space-4);
@@ -493,6 +511,7 @@ body::after {
 }
 
 .brand {
+  grid-area: brand;
   display: grid;
   align-content: center;
   border: var(--border-subtle);
@@ -576,11 +595,18 @@ body::after {
 }
 
 .site-nav--sections {
+  grid-area: sections;
   justify-content: flex-start;
 }
 
 .site-nav--secondary {
+  grid-area: secondary;
   justify-content: flex-end;
+}
+
+.search-box {
+  grid-area: search;
+  align-self: end;
 }
 
 .site-nav button {
@@ -1301,6 +1327,32 @@ body::after {
   margin: 0;
   padding: 0;
   transition: opacity var(--duration-normal) var(--ease-archive), transform var(--duration-normal) var(--ease-archive);
+}
+
+.archive-empty-state,
+.section-empty-state {
+  border: var(--border-dashed);
+  border-color: var(--dusk-menu-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  background:
+    var(--dusk-receipt-row-bg),
+    var(--dusk-glass);
+  box-shadow: inset 0 0 0 1px var(--dusk-menu-border-faint);
+}
+
+.archive-empty-state p,
+.section-empty-state p {
+  margin: 0;
+  color: var(--text-1);
+}
+
+.archive-empty-state p + p,
+.section-empty-state p + p {
+  margin-top: var(--space-3);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
 }
 
 .archive-card {
@@ -2153,6 +2205,14 @@ body::after {
   color: var(--text-2);
   font-size: 0.84rem;
   list-style: none;
+}
+
+.rail-empty-state {
+  margin: 0;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
 }
 
 .rail li + li {
@@ -3595,6 +3655,14 @@ body::after {
   text-transform: uppercase;
 }
 
+.section-hero-subtitle {
+  margin: 0 0 var(--space-3);
+  color: var(--text-0);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: var(--text-body-line-tight);
+}
+
 .section-metadata {
   margin: 0;
   display: grid;
@@ -3728,23 +3796,6 @@ body::after {
   border-color: var(--accent-gold);
   background: rgb(179 154 99 / 0.08);
   transform: translateY(-1px);
-}
-
-.section-empty-state {
-  border: var(--border-dashed);
-  border-radius: var(--radius-md);
-  padding: var(--space-6);
-  background: rgb(19 23 26 / 0.58);
-}
-
-.section-empty-state p {
-  margin: 0;
-  color: var(--text-1);
-}
-
-.section-empty-state p + p {
-  margin-top: var(--space-3);
-  color: var(--text-2);
 }
 
 .archive-group {
@@ -3930,6 +3981,13 @@ body::after {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: var(--text-tracking-ui);
+}
+
+.related-panel__empty {
+  margin: 0;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
 }
 
 .article-comments {
@@ -5423,8 +5481,17 @@ body::after {
 
 @media (width <= 1180px) {
   .site-header {
+    grid-template-areas:
+      "brand"
+      "sections"
+      "secondary"
+      "search";
     grid-template-columns: 1fr;
     align-items: start;
+  }
+
+  .search-box {
+    align-self: stretch;
   }
 
   .site-nav {
