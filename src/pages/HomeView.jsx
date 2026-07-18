@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
+import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { getTagCounts } from "../data/posts.js";
 import { sections } from "../data/sections.js";
 import { archiveEase, durationFast, reducedMotionTransition, revealFrame, staggerContainer } from "../lib/motion.js";
@@ -199,21 +200,22 @@ function HeroPanel() {
           ))}
         </motion.h1>
         <motion.p className="hero-body" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_body}</motion.p>
-        <motion.button
-          className="hero-go-down"
-          data-testid="home-go-down"
-          type="button"
-          aria-label="进入档案索引"
-          onClick={handleGoDown}
-          variants={revealFrame}
-          custom={shouldReduceMotion}
-          whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-          whileTap={shouldReduceMotion ? undefined : { y: 0 }}
-        >
-          <span className="hero-go-down__label">进入档案索引</span>
-          <span className="hero-go-down__glyph" aria-hidden="true">↓</span>
-        </motion.button>
       </motion.div>
+      <DecorativeAccent id="home-hero" />
+      <motion.button
+        className="hero-go-down"
+        data-testid="home-go-down"
+        type="button"
+        aria-label="进入档案索引"
+        onClick={handleGoDown}
+        variants={revealFrame}
+        custom={shouldReduceMotion}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        whileTap={shouldReduceMotion ? undefined : { y: 0 }}
+      >
+        <span className="hero-go-down__label">进入档案索引</span>
+        <span className="hero-go-down__glyph" aria-hidden="true">↓</span>
+      </motion.button>
     </motion.section>
   );
 }

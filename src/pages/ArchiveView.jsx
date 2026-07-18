@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { getArchivePostsByYear, getArchiveYears } from "../data/posts.js";
 import { site } from "../data/yaml-loader.js";
 
@@ -29,6 +30,7 @@ export function ArchiveView({ onOpenPost }) {
         </div>
         <p className="page-panel-meta" data-testid="archive-page-meta">{archivePosts.length} 条记录</p>
       </div>
+      <DecorativeAccent id="archive-header" />
       {archiveYears.length > 0 ? <nav className="archive-pagination" aria-label="归档年份分页">
         <button
           data-testid="archive-year-prev"
