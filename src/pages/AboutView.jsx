@@ -2,7 +2,7 @@ import { about } from "../data/yaml-loader.js";
 
 export function AboutView() {
   return (
-    <section className="page-panel page-panel--about about-panel reveal" aria-labelledby="about-title">
+    <section className="page-panel page-panel--about about-panel" aria-labelledby="about-title">
       <p className="hero-code">{about.code_header}</p>
       <div className="page-panel-header page-panel-header--stacked">
         <div>

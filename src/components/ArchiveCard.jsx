@@ -6,7 +6,7 @@ export function ArchiveCard({ post, onOpen }) {
 
   return (
     <motion.article
-      className="archive-card reveal"
+      className="archive-card"
       variants={cardMotion}
       initial="rest"
       animate="rest"
