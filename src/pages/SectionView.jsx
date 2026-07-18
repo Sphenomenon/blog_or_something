@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
+import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { SectionMark } from "../components/SectionMark.jsx";
 import { friendLinks } from "../data/links.js";
 import { getSectionRepresentativePosts } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
 import { revealFrame, staggerContainer } from "../lib/motion.js";
+
+const ACCENTED_SECTION_SLUGS = new Set(["tech", "essay", "diary", "reading", "travel", "links"]);
 
 function compareSectionPosts(left, right) {
   const dateDiff = right.date.localeCompare(left.date);
@@ -34,6 +37,7 @@ export function SectionView({ sectionSlug, onOpenPost }) {
     return null;
   }
 
+  const decorativeAccentId = ACCENTED_SECTION_SLUGS.has(section.slug) ? `section-${section.slug}` : null;
   const backgroundImage = `linear-gradient(165deg, rgb(18 21 24 / 0.2), rgb(12 14 16 / 0.82)), url("${section.background}")`;
 
   return (
@@ -56,6 +60,8 @@ export function SectionView({ sectionSlug, onOpenPost }) {
             <p className="page-panel-lead">{section.intro}</p>
           </div>
         </div>
+
+        {decorativeAccentId ? <DecorativeAccent id={decorativeAccentId} /> : null}
 
         <dl className="section-metadata" aria-label="栏目元数据">
           <div>
