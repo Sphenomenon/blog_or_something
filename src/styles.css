@@ -106,7 +106,6 @@
   --dusk-print-texture-opacity: 0.18;
   --dusk-strip-texture: url("/third-party/scp-ambrose-dusk/twbg3-long.png");
   --dusk-strip-texture-alt: url("/third-party/scp-ambrose-dusk/twbg4-long.png");
-  --dusk-strip-banner: url("/third-party/scp-ambrose-dusk/banner-evening-main.png");
   --dusk-lightbox-edge-glow: 0 0 0 1px rgb(179 154 99 / 0.16), 0 0 34px rgb(179 154 99 / 0.1), 0 20px 40px rgb(0 0 0 / 0.28);
   --dusk-register-offset-x: var(--space-2);
   --dusk-register-offset-y: var(--space-1);
@@ -210,21 +209,25 @@
 }
 
 .dusk-cropped-strip {
-  min-height: clamp(4.5rem, 13vw, 8rem);
+  position: relative;
+  width: 100%;
+  height: clamp(5.5rem, 8vw, 7.5rem);
+  min-width: 0;
   border: var(--border-subtle);
   border-color: var(--dusk-menu-border-faint);
   border-radius: var(--radius-sm);
-  background:
-    linear-gradient(90deg, rgb(7 9 13 / 0.82), rgb(7 9 13 / 0.28) 48%, rgb(7 9 13 / 0.86)),
-    var(--dusk-strip-texture),
-    var(--dusk-strip-banner);
-  background-size: auto, min(980px, 140vw) auto, cover;
-  background-position: center, center 38%, center;
-  background-repeat: no-repeat, repeat-y, no-repeat;
+  background: var(--decorative-accent-image);
+  background-size: cover;
+  background-position: var(--decorative-accent-position, center center);
+  background-repeat: no-repeat;
+  box-shadow: var(--shadow-ink);
   overflow: hidden;
+  pointer-events: none;
+  animation: none;
+  transition: none;
+  transform: none;
 }
 
-.dusk-cropped-strip::after,
 .dusk-lightbox-edge::after,
 .dusk-register-offset::before,
 .dusk-register-offset::after {
@@ -233,17 +236,32 @@
   pointer-events: none;
 }
 
-.dusk-cropped-strip::after {
-  inset: 0;
-  z-index: 0;
-  background:
-    linear-gradient(180deg, rgb(232 225 210 / 0.055), transparent 32%, rgb(7 9 13 / 0.44)),
-    var(--dusk-strip-texture-alt);
-  background-size: auto, min(760px, 120vw) auto;
-  background-position: center, center 12%;
-  background-repeat: no-repeat, repeat-y;
-  mix-blend-mode: soft-light;
-  opacity: 0.24;
+.decorative-accent {
+  display: block;
+  flex: none;
+  user-select: none;
+}
+
+.hero-panel > .decorative-accent {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+}
+
+.page-panel--archive > .decorative-accent {
+  margin-bottom: var(--space-5);
+}
+
+.section-hero > .decorative-accent {
+  grid-column: 1 / -1;
+}
+
+.page-panel--food-map .decorative-accent {
+  width: 100%;
+  margin-top: var(--space-5);
+}
+
+.page-panel--about .decorative-accent {
+  margin-block: var(--space-6);
 }
 
 .dusk-lightbox-edge {
@@ -5944,7 +5962,17 @@ body::after {
   }
 }
 
+@media (width <= 768px) {
+  .decorative-accent {
+    height: 5rem;
+  }
+}
+
 @media (width <= 430px) {
+  .decorative-accent {
+    height: 3.75rem;
+  }
+
   .app-shell {
     width: min(100% - 1rem, 100%);
   }
@@ -5957,6 +5985,10 @@ body::after {
   .article-comments,
   .related-panel {
     padding: var(--space-4);
+  }
+
+  .page-panel--about {
+    padding-bottom: calc((var(--space-9) * 3) + env(safe-area-inset-bottom));
   }
 
   .site-nav button,
@@ -6102,6 +6134,12 @@ body::after {
     animation: none !important;
     filter: none !important;
     clip-path: none !important;
+  }
+
+  .decorative-accent {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 
   .archive-card:hover,
