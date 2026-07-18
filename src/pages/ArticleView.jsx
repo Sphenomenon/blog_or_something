@@ -174,7 +174,7 @@ function schedulePilotHashScroll(targetId, onTick) {
   };
 }
 
-export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
+export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly = false }) {
   const articleSource = post.slug || post.id || "<article>";
   const { blocks, headings, errors: articleMediaErrors } = useMemo(
     () => parseArticleMarkdown(post.content || "", { source: articleSource }),
@@ -190,7 +190,7 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
   );
   const related = useMemo(() => [neighbors.previous, neighbors.next].filter(Boolean), [neighbors.next, neighbors.previous]);
   const isSwjtuReport = post.slug === "swjtu-2026-major-group-forecast";
-  const articleClassName = isSwjtuReport ? "prose reveal prose--dense-report prose--swjtu-report" : "prose reveal";
+  const articleClassName = isSwjtuReport ? "prose prose--dense-report prose--swjtu-report" : "prose";
   const layoutClassName = [
     "article-layout",
     isSwjtuReport ? "article-layout--swjtu-report" : "",
@@ -253,6 +253,73 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
     return schedulePilotHashScroll(targetId, () => setActiveSectionId(targetId));
   }, [isSwjtuReport, post.id, tocSections]);
 
+  useEffect(() => {
+    if (isSwjtuReport || tocSections.length === 0 || typeof window.IntersectionObserver !== "function") {
+      return undefined;
+    }
+
+    const observedHeadings = tocSections
+      .map((section) => document.getElementById(section.id))
+      .filter(Boolean);
+
+    let frameId = null;
+
+    const updateActiveSection = () => {
+      frameId = null;
+      const readingLine = Math.min(PILOT_SCROLL_OFFSET, window.innerHeight * 0.3);
+      const nextHeading = observedHeadings.reduce((closest, heading) => {
+        const distance = Math.abs(heading.getBoundingClientRect().top - readingLine);
+        return !closest || distance < closest.distance ? { heading, distance } : closest;
+      }, null);
+
+      if (nextHeading) {
+        setActiveSectionId(nextHeading.heading.id);
+      }
+    };
+
+    const scheduleActiveSectionUpdate = () => {
+      if (frameId === null) {
+        frameId = window.requestAnimationFrame(updateActiveSection);
+      }
+    };
+
+    const observer = new window.IntersectionObserver(scheduleActiveSectionUpdate, {
+      rootMargin: `-${PILOT_SCROLL_OFFSET}px 0px -45% 0px`,
+      threshold: [0, 0.1, 0.5, 1]
+    });
+
+    observedHeadings.forEach((heading) => observer.observe(heading));
+    window.addEventListener("scroll", scheduleActiveSectionUpdate, { passive: true });
+    window.addEventListener("resize", scheduleActiveSectionUpdate);
+    scheduleActiveSectionUpdate();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", scheduleActiveSectionUpdate);
+      window.removeEventListener("resize", scheduleActiveSectionUpdate);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, [isSwjtuReport, post.id, tocSections]);
+
+  const handleSectionLinkClick = (event) => {
+    if (
+      verificationOnly
+      || !onOpenSection
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    onOpenSection(post.section);
+  };
+
   const handleTocClick = (section) => {
     const target = document.getElementById(section.id);
 
@@ -284,15 +351,15 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
     <section className={layoutClassName} aria-label="文章页">
       {!verificationOnly ? <aside className="rail rail-left" aria-label="左侧索引">
         <h4>档案柜</h4>
-        <ul>
-            {related.map((item) => (
+        {related.length > 0 ? <ul>
+          {related.map((item) => (
             <li key={item.id}>
               <button data-testid={`article-related-${item.id}`} type="button" onClick={() => onOpenPost(item.slug)}>
                 {item.id}
               </button>
             </li>
           ))}
-        </ul>
+        </ul> : <p className="rail-empty-state">当前栏目暂无相邻档案。</p>}
       </aside> : null}
 
       <article className={articleClassName} lang="zh-Hans" data-post-slug={post.slug}>
@@ -301,7 +368,7 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
           <h1>{post.title}</h1>
           <p className="hero-meta">
             {post.category} · {post.date} · {post.reading} · {post.status} · 栏目：
-            <a href={`/sections/${post.section}`}>{canonicalSectionLabel}</a>
+            <a href={`/sections/${post.section}`} onClick={handleSectionLinkClick}>{canonicalSectionLabel}</a>
           </p>
           {isSwjtuReport ? (
             <div className="article-hero__pilot-meta" aria-label="试点报告信息">
@@ -335,7 +402,7 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
                 <span className="article-nav__title">{nextArticle.title}</span>
               </button>
             ) : (
-              <p className="article-nav__empty" data-testid="article-next-empty">已经是最旧文章</p>
+              <p className="article-nav__empty" data-testid="article-next-empty">已到最早一篇</p>
             )}
           </div>
         </nav> : null}
@@ -448,12 +515,12 @@ export function ArticleView({ post, onOpenPost, verificationOnly = false }) {
 
         {!verificationOnly ? <section className="related-panel" aria-label="相关条目">
           <h2>相关条目</h2>
-          {related.map((item) => (
+          {related.length > 0 ? related.map((item) => (
             <button key={item.id} data-testid={`article-related-panel-${item.id}`} type="button" onClick={() => onOpenPost(item.slug)}>
               <span>{item.id}</span>
               {item.title}
             </button>
-          ))}
+          )) : <p className="related-panel__empty">当前栏目暂无相关档案条目。</p>}
         </section> : null}
 
         {!isSwjtuReport ? commentsSection : null}
