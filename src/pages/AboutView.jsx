@@ -1,3 +1,4 @@
+import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { about } from "../data/yaml-loader.js";
 
 export function AboutView() {
@@ -19,7 +20,14 @@ export function AboutView() {
           </div>
         ))}
       </dl>
-      <p className="about-cc-note">临时视觉素材遵守 CC BY-SA 3.0 协议；此说明仅作当前视觉试用期的简要记录。</p>
+      <DecorativeAccent id="about-endpoint" />
+      <div className="about-cc-note">
+        <p>
+          视觉素材遵守
+          {" "}
+          <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> 协议。
+        </p>
+      </div>
     </section>
   );
 }
