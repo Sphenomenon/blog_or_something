@@ -13,15 +13,16 @@ function compareSectionPosts(left, right) {
   return left.slug.localeCompare(right.slug);
 }
 
-export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
+export function SectionView({ sectionSlug, onOpenPost }) {
   const section = getSectionBySlug(sectionSlug);
   const shouldReduceMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const sectionPosts = useMemo(() => {
+  const allSectionPosts = useMemo(() => {
     if (!section) return [];
-    return getSectionRepresentativePosts(section.slug, isExpanded ? Number.MAX_SAFE_INTEGER : 3).sort(compareSectionPosts);
-  }, [isExpanded, section]);
+    return getSectionRepresentativePosts(section.slug, Number.MAX_SAFE_INTEGER).sort(compareSectionPosts);
+  }, [section]);
+  const sectionPosts = isExpanded ? allSectionPosts : allSectionPosts.slice(0, 3);
 
   useEffect(() => {
     setIsExpanded(false);
@@ -37,7 +38,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
 
   return (
     <section
-      className={`page-panel page-panel--section page-panel--section-${section.slug} reveal`}
+      className={`page-panel page-panel--section page-panel--section-${section.slug}`}
       data-testid={`section-view-${section.slug}`}
       aria-labelledby={`section-title-${section.slug}`}
       style={{ backgroundImage }}
@@ -51,6 +52,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
           <div className="section-hero-text">
             <p className="section-hero-kicker">{section.shortLabel}</p>
             <h1 id={`section-title-${section.slug}`}>{section.label}</h1>
+            <p className="section-hero-subtitle">{section.subtitle}</p>
             <p className="page-panel-lead">{section.intro}</p>
           </div>
         </div>
@@ -66,7 +68,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
           </div>
           <div>
             <dt>{isLinksSection ? "LINKS" : "POSTS"}</dt>
-            <dd>{isLinksSection ? friendLinks.length : sectionPosts.length}</dd>
+            <dd>{isLinksSection ? friendLinks.length : allSectionPosts.length}</dd>
           </div>
           <div>
             <dt>BACKGROUND</dt>
@@ -84,7 +86,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
           {friendLinks.length === 0 ? (
             <div className="section-empty-state" data-testid="section-empty-state">
               <p>暂无友链。</p>
-              <p>添加新的友链后将显示在这里。</p>
+              <p>新的站点收录后，将显示在这里。</p>
             </div>
           ) : (
             <motion.div className="friend-links-grid" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
@@ -103,14 +105,18 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
       ) : (
         <section className="section-posts" aria-label="栏目文章列表">
           <div className="section-posts-header">
-            <h2 className="section-title">代表作</h2>
-            <p className="section-posts-note">LATEST 3 / LOW-COUNT OK · 最新三篇 / 少量照常。</p>
+            <h2 className="section-title">最近入柜</h2>
+            <p className="section-posts-note">
+              {isExpanded
+                ? `FULL CABINET / ${allSectionPosts.length} RECORDS · 全部条目`
+                : `LATEST ${sectionPosts.length} / ${allSectionPosts.length} RECORDS · 最近记录`}
+            </p>
           </div>
 
           {sectionPosts.length === 0 ? (
             <div className="section-empty-state" data-testid="section-empty-state">
-              <p>这个栏目暂时没有可展示的条目。</p>
-              <p>背景与简介已就位，等后续内容进入后会自动出现在这里。</p>
+              <p>这个栏目暂时没有已入库的文章档案。</p>
+              <p>后续条目归档后，会自动出现在这份栏目索引中。</p>
             </div>
           ) : (
             <motion.ol
@@ -131,7 +137,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
             </motion.ol>
           )}
 
-          <div className="section-all-posts-cta">
+          {allSectionPosts.length > 0 ? <div className="section-all-posts-cta">
             <button
               data-testid={`section-all-posts-${section.slug}`}
               aria-controls={`section-representatives-${section.slug}`}
@@ -141,7 +147,7 @@ export function SectionView({ sectionSlug, onOpenPost, onOpenArchive }) {
             >
               {isExpanded ? "收起" : "查看全部文章"}
             </button>
-          </div>
+          </div> : null}
         </section>
       )}
     </section>
