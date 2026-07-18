@@ -33,6 +33,7 @@
     "verify:food-map-amap": "node scripts/verify-food-map-amap.mjs",
     "verify:food-map-external": "node scripts/verify-food-map-external.mjs",
     "verify:food-map-browser": "node scripts/verify-food-map-browser.mjs",
+    "verify:decorative-accents": "npm run generate:decorative-accents && node scripts/verify-decorative-accents.mjs",
     "verify:food-map": "node scripts/verify-food-map.mjs"
   },
   "dependencies": {
