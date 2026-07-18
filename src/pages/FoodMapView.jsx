@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { SectionMark } from "../components/SectionMark.jsx";
 import { aggregateFoodMapExternalSources, loadFoodMapSourceConfig } from "../features/food-map/index.js";
 import { localFoodMapPlaces, publicFoodMapPlaces } from "../features/food-map/loader.js";
@@ -156,6 +157,7 @@ export function FoodMapView() {
           <span className="food-map-status-badge food-map-status-badge--loading">{totalCount} 个公开地点</span>
           <span className="food-map-source-status" aria-label="来源载入状态">{sourceStatusText}</span>
         </div>
+        <DecorativeAccent id="food-map-header" />
       </header>
 
       {runtimeWarnings.length > 0 && (
