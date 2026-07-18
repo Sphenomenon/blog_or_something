@@ -35,9 +35,7 @@
       "license": "CC BY-SA 3.0",
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
-      "usedOn": [
-        "home hero visual layer only; reduced-motion/static fallback planned"
-      ],
+      "usedOn": [],
       "temporary": true,
       "accessedAt": "2026-07-04"
     },
@@ -182,8 +180,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "home hero secondary strip",
-        "archive surface accent"
+        "archive page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -197,8 +194,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "article figure style sample",
-        "reading page accent"
+        "home hero"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -212,7 +208,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "food-map top decorative strip"
+        "food map page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -226,7 +222,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "essay section accent"
+        "essay section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -240,7 +236,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "links/friend-card accent"
+        "links section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -254,7 +250,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "diary section accent"
+        "diary section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -268,7 +264,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "tech section accent"
+        "tech section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -282,7 +278,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "travel section accent"
+        "travel section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -296,7 +292,7 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "reading section accent"
+        "reading section page header"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
@@ -352,10 +348,412 @@
       "modified": false,
       "modificationNotes": "Copied from the listed source URL into an isolated temporary third-party namespace; no intentional raster editing, conversion, or compression performed in this task. Future CSS cropping, scaling, tinting, or compression should be recorded before use.",
       "usedOn": [
-        "about/archive lower accent"
+        "about content endpoint"
       ],
       "temporary": true,
       "accessedAt": "2026-07-04"
+    }
+  ],
+  "derivatives": [
+    {
+      "accentId": "home-hero",
+      "sourceFilename": "banner-evening-main.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/home-hero--banner-evening-main.webp",
+      "usageLocation": "home hero",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c3.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "archive-header",
+      "sourceFilename": "banner-evening-drink.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/archive-header--banner-evening-drink.webp",
+      "usageLocation": "archive page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "food-map-header",
+      "sourceFilename": "banner-evening-dessert.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/food-map-header--banner-evening-dessert.webp",
+      "usageLocation": "food map page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/c2.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "about-endpoint",
+      "sourceFilename": "banner-heatdeath-ending.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/about-endpoint--banner-heatdeath-ending.webp",
+      "usageLocation": "about content endpoint",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/r4.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-tech",
+      "sourceFilename": "banner-midnight-ice.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-tech--banner-midnight-ice.webp",
+      "usageLocation": "tech section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m1.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-essay",
+      "sourceFilename": "banner-dusk-salad.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-essay--banner-dusk-salad.webp",
+      "usageLocation": "essay section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d1.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-diary",
+      "sourceFilename": "banner-dusk-tea.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-diary--banner-dusk-tea.webp",
+      "usageLocation": "diary section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d3.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-reading",
+      "sourceFilename": "banner-midnight-flower.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-reading--banner-midnight-flower.webp",
+      "usageLocation": "reading section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m3.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-travel",
+      "sourceFilename": "banner-midnight-moon.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-travel--banner-midnight-moon.webp",
+      "usageLocation": "travel section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/m2.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
+    },
+    {
+      "accentId": "section-links",
+      "sourceFilename": "banner-dusk-cone.png",
+      "outputPath": "/images/optimized/third-party/scp-ambrose-dusk/section-links--banner-dusk-cone.webp",
+      "usageLocation": "links section page header",
+      "conversion": {
+        "format": "WebP",
+        "quality": 80,
+        "effort": 6,
+        "width": 1920,
+        "withoutEnlargement": true,
+        "autoOrientation": true
+      },
+      "sourceDimensions": {
+        "width": 2000,
+        "height": 500
+      },
+      "outputDimensions": {
+        "width": 1920,
+        "height": 480
+      },
+      "presentation": {
+        "cssCrop": true,
+        "cssCover": true,
+        "focalPosition": "center center",
+        "originalRasterModified": false
+      },
+      "sourceWorkTitle": "安布罗斯餐厅 “晨昏线以暗” 快闪店",
+      "sourceWorkAuthors": [
+        "doctor Stanley",
+        "Flea_ZER0"
+      ],
+      "sourceWorkUrl": "https://scp-wiki-cn.wikidot.com/ambrose-as-dusk-falls",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalRasterAuthorCaveat": "Individual raster author not independently verified in this task; source page authors: doctor Stanley, Flea_ZER0",
+      "directSourceUrl": "https://scpsandboxcn.wdfiles.com/local--files/echoaphaniptera3/d2.png",
+      "attributionNotice": "Temporary visual assets; modified/compressed/adapted where noted. Attribution is practical TASL recordkeeping and is not a legal-certainty claim.",
+      "temporary": true
     }
   ]
 }
