@@ -27,7 +27,7 @@ function parseNetEaseSongId(embedUrl) {
 }
 
 function buildNetEasePlayerUrl(songId) {
-  const playerUrl = new URL("https://music.163.com/m/outchain/player");
+  const playerUrl = new URL("https://music.163.com/outchain/player");
 
   playerUrl.searchParams.set("type", "2");
   playerUrl.searchParams.set("id", songId);

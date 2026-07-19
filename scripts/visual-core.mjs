@@ -792,7 +792,7 @@ function assertMusicIframeContract(state, expectedParams) {
   const iframe = state.iframes[0];
   assertCondition(Boolean(iframe?.src), "Music iframe is missing its src", state);
   const iframeUrl = new URL(iframe.src);
-  assertCondition(iframeUrl.pathname === "/m/outchain/player", "Music iframe should use NetEase mobile outchain endpoint for desktop playback compatibility", { state, src: iframe.src });
+  assertCondition(iframeUrl.pathname === "/outchain/player", "Music iframe should use the direct HTTPS NetEase outchain endpoint", { state, src: iframe.src });
   for (const [name, expectedValue] of Object.entries(expectedParams)) {
     assertCondition(iframeUrl.searchParams.get(name) === expectedValue, `Music iframe ${name} param mismatch`, { state, src: iframe.src, expectedParams });
   }
@@ -802,6 +802,88 @@ function assertMusicIframeContract(state, expectedParams) {
   assertCondition(allowPolicy.includes("encrypted-media"), "Music iframe should delegate encrypted-media permission for desktop playback compatibility", state);
   assertCondition(iframe.loading === "eager", "Music iframe should load eagerly so it is ready after expanding", state);
   assertCondition(iframe.referrerPolicy === "strict-origin-when-cross-origin", "Music iframe should use a compatible cross-origin referrer policy", state);
+}
+
+async function verifyMusicIframeLoadViability(browser, iframeSrc) {
+  const context = await browser.newContext({ serviceWorkers: "block" });
+  const page = await context.newPage();
+  const consoleEntries = [];
+  const pageErrors = [];
+  const failedRequests = [];
+  const iframeResponses = [];
+  const frameNavigations = [];
+
+  page.on("console", (message) => {
+    if (message.type() === "error" || message.type() === "warning") {
+      consoleEntries.push({ type: message.type(), text: message.text() });
+    }
+  });
+  page.on("pageerror", (error) => pageErrors.push(error.stack || error.message));
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "document" && request.frame() !== page.mainFrame()) {
+      failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? null });
+    }
+  });
+  page.on("response", (response) => {
+    if (response.request().resourceType() === "document" && response.frame() !== page.mainFrame()) {
+      iframeResponses.push({ url: response.url(), status: response.status() });
+    }
+  });
+  page.on("framenavigated", (frame) => {
+    if (frame !== page.mainFrame()) {
+      frameNavigations.push(frame.url());
+    }
+  });
+
+  await page.route("https://verification.invalid/", (route) => route.fulfill({
+    status: 200,
+    contentType: "text/html",
+    body: "<!doctype html><html><body></body></html>"
+  }));
+
+  try {
+    await page.goto("https://verification.invalid/", { waitUntil: "domcontentloaded", timeout: 15000 });
+    const loadState = await page.evaluate((src) => new Promise((resolve) => {
+      const iframe = document.createElement("iframe");
+      const timeoutId = window.setTimeout(() => resolve("timeout"), 15000);
+      iframe.addEventListener("load", () => {
+        window.clearTimeout(timeoutId);
+        resolve("load");
+      }, { once: true });
+      iframe.addEventListener("error", () => {
+        window.clearTimeout(timeoutId);
+        resolve("error");
+      }, { once: true });
+      iframe.allow = "autoplay; encrypted-media";
+      iframe.src = src;
+      document.body.appendChild(iframe);
+    }), iframeSrc);
+    const mixedContentEntries = [...consoleEntries, ...pageErrors.map((text) => ({ type: "pageerror", text }))]
+      .filter((entry) => /mixed content|insecure frame|blocked.*content/i.test(entry.text));
+    const successfulResponse = iframeResponses.find((response) => {
+      const responseUrl = new URL(response.url);
+      return responseUrl.protocol === "https:" && responseUrl.pathname === "/outchain/player" && response.status >= 200 && response.status < 400;
+    }) ?? null;
+    const state = {
+      loadState,
+      iframeSrc,
+      iframeResponses,
+      frameNavigations,
+      failedRequests,
+      consoleEntries,
+      pageErrors,
+      mixedContentEntries,
+      successfulResponse
+    };
+
+    assertCondition(loadState === "load", "Music iframe did not emit a load event from an HTTPS parent", state);
+    assertCondition(Boolean(successfulResponse), "Music iframe did not receive a successful direct HTTPS document response", state);
+    assertCondition(failedRequests.length === 0, "Music iframe request failed", state);
+    assertCondition(mixedContentEntries.length === 0, "Music iframe triggered mixed-content blocking", state);
+    return state;
+  } finally {
+    await context.close();
+  }
 }
 
 async function collectMarkdownState(page) {
@@ -1225,13 +1307,17 @@ export async function runVisualVerification() {
 
       const subtitle = await collectHeaderSubtitle(page);
       const activeSectionSlug = await collectActiveSectionSlug(page);
-      taglineChecks.push({ path, expectedKey, subtitle, activeSectionSlug });
+      const sectionHeroSubtitleCount = await page.locator(".section-hero-subtitle").count();
+      taglineChecks.push({ path, expectedKey, subtitle, activeSectionSlug, sectionHeroSubtitleCount });
 
       assertCondition(
         subtitle === SECTION_TAGLINES[expectedKey],
         `Unexpected subtitle for ${path}`,
         { path, expectedKey, subtitle, activeSectionSlug, expected: SECTION_TAGLINES[expectedKey] }
       );
+      if (path.startsWith("/sections/")) {
+        assertCondition(sectionHeroSubtitleCount === 0, `Section subtitle should remain header-only for ${path}`, { path, subtitle, sectionHeroSubtitleCount });
+      }
     }
 
     const sectionEntrancePaths = ["/sections/tech", "/sections/essay", "/sections/diary", "/sections/reading", "/sections/travel", "/sections/links"];
@@ -1536,6 +1622,8 @@ export async function runVisualVerification() {
     assertCondition(musicHomeCollapsedState.panelVisible === false, "Music easter egg panel should not be visible before expansion", musicHomeCollapsedState);
     assertMusicIframeContract(musicHomeCollapsedState, MUSIC_IFRAME_EXPECTATIONS);
     const homeIframeSrc = musicHomeCollapsedState.iframes[0]?.src;
+    const musicIframeViability = await verifyMusicIframeLoadViability(browser, homeIframeSrc);
+    musicChecks.push({ step: "iframe-load-viability", ...musicIframeViability });
 
     await page.getByTestId("music-easter-egg-toggle").click();
     await page.getByTestId("music-easter-egg-panel").waitFor({ state: "visible", timeout: 10000 });
@@ -1832,7 +1920,7 @@ export async function runVisualVerification() {
         `- Section background checks: ${sectionBackgroundChecks.length} section routes expose computed background-image URLs`,
         `- Section CTA toggle: tech expands inline, flips to 收起, and resets collapsed state on section change`,
         `- Visit counter checks: homepage counter DOM/script contract passed and counter DOM stayed absent on archive/about/post/tech full-navigation routes`,
-        `- Music checks: homepage full player and article mini player each keep one non-autoplay NetEase iframe, preserve the iframe src across SPA navigation, and expose the expected fallback link`,
+        `- Music checks: homepage full player and article mini player keep one non-autoplay NetEase iframe, preserve the iframe src across SPA navigation, load the direct HTTPS endpoint without mixed-content blocking, and expose the expected fallback link`,
         `- Route transition state: visible then cleaned within 700ms on section/archive navigation`,
         `- Viewport sweep: ${overflowChecks.length} checks passed across ${DEFAULT_VIEWPORTS.join(", ")}px`,
         `- Focus check: ${focusAndMotion.navFocus?.text ?? "unknown"} (${focusAndMotion.navFocus?.testId ?? "no-testid"}) matched :focus-visible with outline ${focusAndMotion.navFocus?.outlineStyle ?? "unknown"}`,
