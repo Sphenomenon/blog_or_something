@@ -56,12 +56,9 @@ export function SectionView({ sectionSlug, onOpenPost }) {
           <div className="section-hero-text">
             <p className="section-hero-kicker">{section.shortLabel}</p>
             <h1 id={`section-title-${section.slug}`}>{section.label}</h1>
-            <p className="section-hero-subtitle">{section.subtitle}</p>
             <p className="page-panel-lead">{section.intro}</p>
           </div>
         </div>
-
-        {decorativeAccentId ? <DecorativeAccent id={decorativeAccentId} /> : null}
 
         <dl className="section-metadata" aria-label="栏目元数据">
           <div>
@@ -82,6 +79,8 @@ export function SectionView({ sectionSlug, onOpenPost }) {
           </div>
         </dl>
       </div>
+
+      {decorativeAccentId ? <DecorativeAccent id={decorativeAccentId} /> : null}
 
       {isLinksSection ? (
         <section className="section-posts" aria-label="友链列表">

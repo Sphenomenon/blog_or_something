@@ -251,8 +251,8 @@
   margin-bottom: var(--space-5);
 }
 
-.section-hero > .decorative-accent {
-  grid-column: 1 / -1;
+.section-hero + .decorative-accent {
+  margin-bottom: var(--space-8);
 }
 
 .page-panel--food-map .decorative-accent {
@@ -3671,14 +3671,6 @@ body::after {
   font-size: 0.74rem;
   letter-spacing: var(--text-tracking-ui);
   text-transform: uppercase;
-}
-
-.section-hero-subtitle {
-  margin: 0 0 var(--space-3);
-  color: var(--text-0);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  line-height: var(--text-body-line-tight);
 }
 
 .section-metadata {

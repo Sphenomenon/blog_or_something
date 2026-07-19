@@ -75,7 +75,7 @@ function containerSelectorFor(record) {
   if (record.surface === "/archive") return ".page-panel--archive";
   if (record.surface === "/food-map") return ".page-panel--food-map .page-panel-header--stacked";
   if (record.surface === "/about") return ".page-panel--about";
-  if (record.surface.startsWith("/sections/")) return ".section-hero";
+  if (record.surface.startsWith("/sections/")) return ".page-panel--section";
   throw new Error(`Unsupported decorative accent surface: ${record.surface}`);
 }
 
@@ -412,6 +412,9 @@ async function collectContract(page, record, containerSelector) {
       accentIds: accents.map((node) => node.getAttribute("data-accent-id")),
       matchingCount: document.querySelectorAll(`[data-accent-id="${CSS.escape(expectedId)}"]`).length,
       accentParentMatchesContainer: Boolean(accent && container && accent.parentElement === container),
+      accentPreviousSiblingClassName: accent?.previousElementSibling?.className ?? null,
+      accentNextSiblingClassName: accent?.nextElementSibling?.className ?? null,
+      sectionHeroDirectChildClassNames: Array.from(document.querySelector(".section-hero")?.children ?? []).map((node) => node.className),
       accentRect: accent ? rectValue(accent) : null,
       containerRect: container ? rectValue(container) : null,
       backgroundUrls,
@@ -495,6 +498,11 @@ function assertPageContract(contract, record, viewport) {
   assert.equal(contract.matchingCount, 1, `${record.surface}: matching accent count`);
   assert.deepEqual(contract.accentIds, [record.id], `${record.surface}: another accent leaked onto route`);
   assert.equal(contract.accentParentMatchesContainer, true, `${record.surface}: accent is not a direct child of its required container`);
+  if (record.surface.startsWith("/sections/")) {
+    assert.deepEqual(contract.sectionHeroDirectChildClassNames, ["section-hero-copy", "section-metadata"], `${record.surface}: section hero must keep its two-column direct-child order`);
+    assert.equal(contract.accentPreviousSiblingClassName, "section-hero", `${record.surface}: section accent must immediately follow the complete hero`);
+    assert.equal(contract.accentNextSiblingClassName, "section-posts", `${record.surface}: section accent must remain immediately before the posts block`);
+  }
   assert.deepEqual(contract.backgroundUrls.map((url) => new URL(url).pathname), [expectedUrl], `${record.surface}: computed accent URL mismatch`);
   assert.ok(contract.accentRect.width > 0 && contract.accentRect.height > 0, `${record.surface}: accent has no rendered box`);
   assert.equal(contract.pointerEvents, "none", `${record.surface}: accent pointer-events must be none`);
