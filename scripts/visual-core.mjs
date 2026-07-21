@@ -770,7 +770,7 @@ async function waitForMusicRootVisible(page, selector) {
 async function collectVisitCounterState(page) {
   return page.evaluate((scriptSrc) => {
     const counter = document.querySelector('[data-testid="home-visit-counter"]');
-    const value = counter?.querySelector('#vercount_value_site_pv') ?? null;
+    const value = counter?.querySelector('#vercount_value_page_pv') ?? null;
     const scripts = Array.from(document.querySelectorAll('script[src]')).filter((script) => script.getAttribute('src') === scriptSrc);
     const style = counter ? window.getComputedStyle(counter) : null;
 
@@ -1598,8 +1598,8 @@ export async function runVisualVerification() {
     visitCounterChecks.push({ path: "/", ...homeVisitCounterState });
     assertCondition(homeVisitCounterState.hasCounter === true, "Homepage visit counter should exist on /", homeVisitCounterState);
     assertCondition(homeVisitCounterState.scriptCount === 1, "Vercount script should be present exactly once", homeVisitCounterState);
-    assertCondition(homeVisitCounterState.label === "本站总访问次数", "Homepage visit counter label mismatch", homeVisitCounterState);
-    assertCondition(homeVisitCounterState.valueId === "vercount_value_site_pv", "Homepage visit counter value id mismatch", homeVisitCounterState);
+    assertCondition(homeVisitCounterState.label === "首页访问次数", "Homepage visit counter label mismatch", homeVisitCounterState);
+    assertCondition(homeVisitCounterState.valueId === "vercount_value_page_pv", "Homepage visit counter value id mismatch", homeVisitCounterState);
 
     for (const routePath of ["/archive", "/about", "/posts/petrified-corridor", "/sections/tech"]) {
       await goToPath(page, routePath);
