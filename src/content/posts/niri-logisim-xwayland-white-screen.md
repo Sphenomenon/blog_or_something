@@ -1,7 +1,7 @@
 ---
 id: AR-2026-719
 slug: niri-logisim-xwayland-white-screen
-title: niri 下 Logisim-evolution 白屏：一次 AWT 与 Xwayland 排障记录
+title: niri 下 Logisim-evolution 白屏问题
 excerpt: 记录 Logisim-evolution 在 niri 与 xwayland-satellite 环境中出现空白窗口的排查过程，以及 non-reparenting 兼容方案。
 date: 2026-07-19
 section: tech
