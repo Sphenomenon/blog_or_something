@@ -1,6 +1,7 @@
 node_modules/
 dist/
-.sisyphus/evidence/
+.sisyphus/
+.playwright-mcp/
 
 # OS
 .DS_Store
