@@ -1,6 +1,6 @@
 ---
 id: AR-2026-620
-slug: ic-zi-xue-zhi-nan
+slug: ic-guide
 title: IC 自学指南
 excerpt: 微电子与 IC 方向的自学资源导航，整理课程、书籍、工具与方向参考。
 date: 2026-06-20

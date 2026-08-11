@@ -1,6 +1,6 @@
 ---
 id: AR-2026-123
-slug: ta-suo-bu-xi-wang-de-yi-qie
+slug: unwanted
 title: 他所不希望的一切
 excerpt: 你所熟悉的那些人，你所忘记的那些人，那些你自认为无言面对的人——这些人相信你，祝福你，希望你能鼓起勇气。
 date: 2026-05-23

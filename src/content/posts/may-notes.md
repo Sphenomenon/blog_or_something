@@ -1,6 +1,6 @@
 ---
 id: AR-2026-124
-slug: wu-yue-sui-bi
+slug: may-notes
 title: 五月随笔
 excerpt: 2026/5
 date: 2026-06-06

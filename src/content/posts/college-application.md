@@ -1,6 +1,6 @@
 ---
 id: AR-2026-120
-slug: zhi-yuan-tian-bao-shi
+slug: college-application
 title: 志愿填报师不配叫老师
 excerpt: 高考志愿填报师不过是情报贩子加焦虑贩子，美化他们为"老师"未免太幽默了。以及我那些关于志愿、家庭与归属感的私人记忆。
 date: 2026-05-22

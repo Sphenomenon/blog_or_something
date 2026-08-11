@@ -1,4 +1,10 @@
 # Admin routes - serve directly, don't redirect to SPA
 /admin/* /admin/index.html 200
+# Legacy pinyin slugs → short English slugs
+/posts/ic-zi-xue-zhi-nan /posts/ic-guide 301
+/posts/lv-xing-zhong-de-di-fang /posts/footprints 301
+/posts/ta-suo-bu-xi-wang-de-yi-qie /posts/unwanted 301
+/posts/wu-yue-sui-bi /posts/may-notes 301
+/posts/zhi-yuan-tian-bao-shi /posts/college-application 301
 # Cloudflare Pages natively serves existing static files and falls back to
 # the root SPA for unmatched routes when no top-level 404.html is present.
