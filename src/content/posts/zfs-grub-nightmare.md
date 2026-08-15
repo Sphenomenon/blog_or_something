@@ -1,7 +1,7 @@
 ---
 id: AR-2026-121
 slug: zfs-grub-nightmare
-title: Ubuntu22.04LTS内核文件丢失的systemd-boot 邪修方案
+title: Ubuntu 22.04 LTS 内核文件丢失的 systemd-boot 邪修方案
 excerpt: Ubuntu20.04LTS
 date: 2025-09-30
 section: tech
@@ -30,8 +30,6 @@ error: you need to load the kernel first
 
 第一反应是拿 live USB 进去修。挂载 zpool，解密，chroot，重装 GRUB——标准流程，对吧？
 
-然后我发现了一个问题。
-
 > 最初重装系统时给系统盘设了 LUKS 加密，而我**并没有备份密钥文件**。
 
 
@@ -45,19 +43,19 @@ error: you need to load the kernel first
 
 叒叕是同样的报错。
 
-好在这次学聪明了，没设密钥。我很顺利地把 pool 挂载到 live 盘里，翻日志，查资料，最终定位到了根因：
+好在这次没设密钥。我顺利地在 live USB 中挂载了 pool，翻日志、查资料，最后把问题定位到 GRUB：
 
 **GRUB 不兼容 ZFS 的新特性。**
 
-具体来说，GRUB 对 ZFS 的支持一直停留在比较早期的水平。如果你用了开启了 snapshot 功能的 bpool，GRUB 在解析引导路径时就会找不到设备。
+GRUB 对 ZFS 的支持一直停留在较早的水平。如果 bpool 开启了 snapshot 功能，GRUB 解析引导路径时会找不到设备。
 
 ---
 
 ## 邪修方案
 
-按理说，正确的做法是换一个支持 ZFS 的引导器，或者调整 pool 的 feature flags。但我当时没看到那篇文章。
+稳妥的做法是换用支持 ZFS 的引导器，或者调整 pool 的 feature flags。但我当时没看到那篇文章。
 
-所以我干了件更野的事。
+我最后用了更野的办法。
 
 直接破坏 GRUB 配置，让引导流程 fallback 到 systemd-boot，绕过 GRUB 的算法问题。
 
@@ -65,7 +63,7 @@ error: you need to load the kernel first
 
 但这又带来了新问题：systemd-boot 只能访问 EFI 分区。如果你不同步 zpool 里的内核文件，新旧内核割裂太久，旧内核文件会被系统判定为损坏。那就回到最初的报错了。
 
-于是 RTFW 无数次之后，决定写一个脚本，用 inotifywait 监控内核文件的改动，自动同步到 EFI 分区：
+翻了无数遍文档后，我写了一个脚本，用 `inotifywait` 监控内核文件改动，并自动同步到 EFI 分区：
 
 ```bash
 #!/bin/bash
@@ -91,4 +89,4 @@ done
 
 **就和 22.04 过一辈子吧。**
 
-P.S.笔者在 25 年 10 月逃到了 Fedora 床上。
+P.S. 笔者在 2025 年 10 月逃到了 Fedora 床上。
