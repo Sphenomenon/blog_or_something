@@ -14,9 +14,9 @@ sections: [环境, 转储, GBM, 固化, 验证, 回滚]
 
 钉钉 8.1.0 的 deb 包转成 RPM 安装到 Fedora 44 后，主窗口正常出现；加载文档或智能表格数秒后段错误退出。
 
-最后查到的是一组运行库冲突：钉钉预加载 Debian 版 GBM，Fedora 的 Mesa 驱动随后进入同一进程，两边对 DRI 扩展表的理解对不上。换系统 GBM 时还牵出旧版 `libstdc++` 和 `envlib.so` 的问题。
+问题出在一组运行库冲突上：钉钉先加载 Debian 版 GBM，Fedora 的 Mesa 驱动随后进入同一进程，两边对 DRI 扩展表的理解对不上。换掉 GBM 后，旧版 `libstdc++` 和 `envlib.so` 又先后冒了出来。
 
-修复放在 `$HOME/.local`，共两个文件。钉钉安装目录保持原样。
+修复只在 `$HOME/.local` 放两个文件，钉钉安装目录不用改。
 
 ## 环境
 
@@ -34,7 +34,7 @@ libstdc++    16.1.1-1.fc44
 
 ## 转储
 
-崩溃前的日志没给出多少信息：
+崩溃日志只留下这些：
 
 ```text
 qt.glx: qglx_findConfig: Failed to finding matching FBConfig ...
@@ -42,7 +42,7 @@ Dump path: ~/.config/DingTalk/dump/.../*.dmp
 Segmentation fault (core dumped)
 ```
 
-起初怀疑 Wayland 和硬件加速，测试过强制软件渲染：
+一开始怀疑 Wayland 和硬件加速，便测试了强制软件渲染：
 
 ```bash
 QT_QUICK_BACKEND=software
@@ -53,16 +53,16 @@ MESA_LOADER_DRIVER_OVERRIDE=swrast
 
 现象没变。
 
-系统桌面文件调用钉钉 `files` 目录里的 `Elevator.sh`。里面有这样一段：
+系统桌面入口实际调用的是钉钉 `files` 目录里的 `Elevator.sh`，其中有一段：
 
 ```bash
 LD_PRELOAD="./envlib.so ./libgbm.so ./plugins/dtwebview/libcef.so" \
     ./com.alibabainc.dingtalk
 ```
 
-`LD_PRELOAD` 会把这三个库提前放进全局符号空间。这里的 `libgbm.so` 来自 deb 包，后面加载的 DRI 驱动来自 Fedora Mesa。
+`LD_PRELOAD` 把三个库提前塞进全局符号空间。`libgbm.so` 来自 deb 包，后面加载的 DRI 驱动则来自 Fedora Mesa。
 
-转储文件给出的调用现场很明确：
+转储里的调用现场很明确：
 
 - 指令指针是 `RIP=0`；
 - 栈顶返回地址落在钉钉自带的 `libgbm.so.1.0.0`；
@@ -70,7 +70,7 @@ LD_PRELOAD="./envlib.so ./libgbm.so ./plugins/dtwebview/libcef.so" \
 - `%rax` 指向 Fedora `libdril_dri.so` 的 `__DRI_DRI2` v5 扩展表；
 - 表内偏移 `0x50` 的函数指针为 `NULL`。
 
-间接调用跳向地址 `0`。基础 Qt 界面未进入该路径，窗口得以显示；CEF 的 WebView 建立图形上下文时才触发崩溃。
+间接调用最终跳到地址 `0`。基础 Qt 界面没走这条路径，所以窗口能显示；CEF 的 WebView 一建立图形上下文，进程就崩了。
 
 deb 转 RPM 只是重新封装文件，程序和这些动态库的 ABI 没有随之转换。
 
@@ -86,9 +86,9 @@ version `GLIBCXX_3.4.26' not found
 
 钉钉自带 `libstdc++.so.6` 的最高符号版本是 `GLIBCXX_3.4.25`，Fedora 这份是 `GLIBCXX_3.4.35`。`libgallium-26.0.6.so` 确实引用 `GLIBCXX_3.4.26`。
 
-于是 GBM 和 C++ 运行时一起改用 Fedora 版本。
+GBM 和 C++ 运行时只好一起换成 Fedora 版本。
 
-接着遇到一次 NSS 崩溃，位置在 `libfreeblpriv3.so` 的随机数健康检查：
+再启动，NSS 又崩在 `libfreeblpriv3.so` 的随机数健康检查里：
 
 ```text
 PRNGTEST_RunHealthTests
@@ -105,9 +105,9 @@ $ nm -D envlib.so | grep -E ' (getrandom|getentropy)$'
 0000000000004678 T getrandom
 ```
 
-这两个实现的符号优先级高于 glibc，NSS 调用的正是它们。移除 `envlib` 后，NSS 崩溃消失。未继续反汇编 `envlib`；启动过程已不再依赖它。CEF 在插件目录中可见即可正常加载。
+这两个实现的符号优先级高于 glibc，NSS 实际调用的就是它们。移除 `envlib` 后，NSS 不再崩溃。我没有继续反汇编 `envlib`，因为启动过程已经不依赖它；CEF 留在插件目录里就能正常加载。
 
-几次启动结果放在一起看更清楚：
+四组启动结果：
 
 | 启动方式 | 结果 |
 |---|---|
@@ -118,7 +118,7 @@ $ nm -D envlib.so | grep -E ' (getrandom|getentropy)$'
 
 ## 固化
 
-文件位置如下：
+最终只新增两个用户级文件：
 
 ```text
 ~/.local/bin/dingtalk-fedora
@@ -217,13 +217,13 @@ xdg-mime query default x-scheme-handler/dingtalk
 xdg-mime query default x-scheme-handler/dingtalk_std_ind
 ```
 
-上面两条查询均返回：
+两条查询都应返回：
 
 ```text
 com.alibabainc.dingtalk.desktop
 ```
 
-主进程的库映射也能直接确认：
+还可以直接查看主进程加载了哪些库：
 
 ```bash
 grep -E '/(libstdc\+\+|libgbm|libgallium|libnss3|libfreeblpriv3)\.so' \
