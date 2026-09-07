@@ -170,6 +170,7 @@ export function filterFoodMapPlaces(spots = [], filters = FOOD_MAP_DEFAULT_FILTE
 }
 
 export function FoodMapFilters({ filters, options, totalCount, resultCount, onChange, onReset }) {
+  const [expanded, setExpanded] = useState(false);
   const sourceOptions = [
     { value: FOOD_MAP_SOURCE_FILTERS.all, label: "全部来源" },
     { value: FOOD_MAP_SOURCE_FILTERS.local, label: "本地收藏" },
@@ -181,19 +182,8 @@ export function FoodMapFilters({ filters, options, totalCount, resultCount, onCh
   }
 
   return (
-    <section className="food-map-filters" aria-label="美食地图筛选">
+    <section className="food-map-filters" aria-label="美食地图筛选" data-filter-expanded={expanded}>
       <div className="food-map-filter-row">
-        <div className="food-map-filter-group">
-          <label htmlFor="food-map-query">关键词</label>
-          <input
-            id="food-map-query"
-            className="food-map-search-input"
-            type="search"
-            value={filters.query}
-            placeholder="店名、地址、标签、推荐菜"
-            onChange={(event) => updateFilter("query", event.target.value)}
-          />
-        </div>
         <div className="food-map-filter-group">
           <label htmlFor="food-map-city">城市</label>
           <select id="food-map-city" className="food-map-select" value={filters.city} onChange={(event) => updateFilter("city", event.target.value)}>
@@ -208,9 +198,25 @@ export function FoodMapFilters({ filters, options, totalCount, resultCount, onCh
             {options.categories.map((category) => <option key={category} value={category}>{category}</option>)}
           </select>
         </div>
+        <div className="food-map-filter-group food-map-filter-query" id="food-map-search-controls">
+          <label htmlFor="food-map-query">关键词</label>
+          <input
+            id="food-map-query"
+            className="food-map-search-input"
+            type="search"
+            value={filters.query}
+            placeholder="店名、地址、标签、推荐菜"
+            onChange={(event) => updateFilter("query", event.target.value)}
+          />
+        </div>
       </div>
-
-      <div className="food-map-summary">
+      <div className="food-map-filter-count">
+        <span className="food-map-count" role="status" aria-live="polite"><strong>{resultCount}</strong> / {totalCount} 家店铺</span>
+        <button className="food-map-filter-toggle" type="button" aria-expanded={expanded} aria-controls="food-map-search-controls food-map-source-controls" onClick={() => setExpanded((current) => !current)}>
+          {expanded ? "收起筛选" : filters.query || filters.source !== "all" ? "搜索与来源 · 已筛选" : "搜索与来源"}
+        </button>
+      </div>
+      <div className="food-map-summary" id="food-map-source-controls">
         <div className="food-map-source-list" aria-label="来源筛选">
           {sourceOptions.map((option) => (
             <button
@@ -224,10 +230,7 @@ export function FoodMapFilters({ filters, options, totalCount, resultCount, onCh
             </button>
           ))}
         </div>
-        <div className="food-map-status-row">
-          <span className="food-map-count">{resultCount} / {totalCount} 个地点</span>
-          <button className="food-map-reset-button" type="button" onClick={onReset}>重置筛选</button>
-        </div>
+        <button className="food-map-reset-button" type="button" onClick={onReset}>重置筛选</button>
       </div>
     </section>
   );
@@ -267,37 +270,50 @@ function Tags({ tags, className }) {
 }
 
 export function FoodMapSpotCard({ spot, selected, onSelect }) {
-  const link = getFoodMapPlaceUrl(spot);
-  const meta = [spot.city, spot.district, spot.category, formatRating(spot.rating)].filter(Boolean).join(" · ");
+  const meta = [spot.city, spot.category, formatInfoWindowPrice(spot.price)].filter(Boolean);
 
   return (
     <button
       className={`food-map-spot-card${selected ? " food-map-spot-card--selected" : ""}`}
       type="button"
       aria-pressed={selected}
+      aria-controls="food-map-details"
       onClick={() => onSelect(spot.id)}
     >
       <span className="food-map-card-header">
         <span className="food-map-card-title">{spot.name}</span>
         <span className="food-map-card-meta">
-          <SourceBadge source={spot.source} />
-          {meta && <span>{meta}</span>}
+          {meta.map((value, index) => <span key={`${value}-${index}`}>{value}</span>)}
+          {spot.source?.type === "external" && <SourceBadge source={spot.source} />}
+          {hasValue(spot.rating) && <span className="food-map-card-rating">{formatInfoWindowRating(spot.rating)}</span>}
         </span>
       </span>
-      {spot.description && <span className="food-map-card-description">{spot.description}</span>}
       {spot.address && <span className="food-map-card-address">{spot.address}</span>}
-      {Array.isArray(spot.recommend) && spot.recommend.length > 0 && (
-        <span className="food-map-card-note">推荐：{spot.recommend.join("、")}</span>
-      )}
-      <Tags tags={spot.tags} className="food-map-card-tags" />
-      {link && <span className="food-map-card-link">{link.external ? "外部记录" : "关联文章"}</span>}
     </button>
   );
 }
 
 export function FoodMapSpotList({ spots, selectedId, onSelect }) {
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    const list = listRef.current;
+    const selected = list?.querySelector('[aria-pressed="true"]')?.closest("li");
+    if (!list || !selected) return;
+    const container = list.getBoundingClientRect();
+    const card = selected.getBoundingClientRect();
+    // Scroll only the card strip/list, never pull the whole page off the map.
+    if (list.scrollWidth > list.clientWidth + 1) {
+      if (card.left < container.left) list.scrollLeft += card.left - container.left;
+      else if (card.right > container.right) list.scrollLeft += card.right - container.right;
+    } else {
+      if (card.top < container.top) list.scrollTop += card.top - container.top;
+      else if (card.bottom > container.bottom) list.scrollTop += card.bottom - container.bottom;
+    }
+  }, [selectedId]);
+
   return (
-    <ol className="food-map-list" aria-label="美食地点列表">
+    <ol ref={listRef} className="food-map-list" aria-label="美食地点列表">
       {spots.map((spot) => (
         <li key={spot.id}>
           <FoodMapSpotCard spot={spot} selected={spot.id === selectedId} onSelect={onSelect} />
@@ -327,7 +343,7 @@ export function FoodMapDetail({ spot }) {
     return (
       <section className="food-map-detail food-map-detail--empty" aria-live="polite">
         <h2>选择一个地点查看详情</h2>
-        <p>左侧卡片和下方 fallback marker 都可以同步选中同一个公开地点。</p>
+        <p>选择店铺卡片或地图上的地点，即可在这里查看公开记录。</p>
       </section>
     );
   }
@@ -340,7 +356,7 @@ export function FoodMapDetail({ spot }) {
       <header className="food-map-detail-header">
         <p className="food-map-detail-meta"><SourceBadge source={spot.source} /></p>
         <h2 className="food-map-detail-title">{spot.name}</h2>
-        <p className="food-map-detail-meta">{[spot.city, spot.district, spot.category, formatRating(spot.rating)].filter(Boolean).join(" · ")}</p>
+        <p className="food-map-detail-meta">{[spot.city, spot.district, spot.category, formatInfoWindowPrice(spot.price), formatRating(spot.rating)].filter(Boolean).join(" · ")}</p>
       </header>
       {spot.description && <p className="food-map-detail-description">{spot.description}</p>}
       {spot.address && <p className="food-map-detail-address">地址：{spot.address}</p>}
@@ -394,8 +410,8 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
   const adapterRef = useRef(null);
   const infoWindowRef = useRef(null);
   const markerRefs = useRef(new Map());
-  const lastPopupSelectionRef = useRef({ selectedId: null, selectionRequestId: null });
-  const [popupFocusedId, setPopupFocusedId] = useState(selectedId || "");
+  const lastPopupSelectionRef = useRef({ selectedId, selectionRequestId });
+  const [popupFocusedId, setPopupFocusedId] = useState("");
   const [adapterState, setAdapterState] = useState(FOOD_MAP_AMAP_LOADER_STATES.idle);
   const [adapterError, setAdapterError] = useState(null);
 
@@ -403,6 +419,13 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
   const statusText = getAmapPanelStatusText(adapterState, coordinateSpots.length, adapterError);
   const isReady = adapterState === FOOD_MAP_AMAP_LOADER_STATES.ready && coordinateSpots.length > 0;
   const showFallback = !isReady;
+
+  useEffect(() => {
+    if (typeof ResizeObserver !== "function" || !mapElementRef.current) return undefined;
+    const observer = new ResizeObserver(() => adapterRef.current?.resize());
+    observer.observe(mapElementRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -447,6 +470,7 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
 
       const nextMarkers = new Map();
       const nextInfoWindow = adapter.createInfoWindow("", {
+        autoMove: true,
         onClose: () => {
           if (!cancelled) {
             setPopupFocusedId("");
@@ -489,7 +513,6 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
     const marker = markerRefs.current.get(selectedId);
     const selectedSpot = coordinateSpots.find((spot) => spot.id === selectedId);
     const lastPopupSelection = lastPopupSelectionRef.current;
-    const selectedChanged = selectedId !== lastPopupSelection.selectedId;
     const selectionRequested = selectionRequestId !== lastPopupSelection.selectionRequestId;
     if (marker) {
       adapter.selectMarker(marker);
@@ -503,7 +526,9 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
       return;
     }
 
-    if (popupFocusedId !== selectedId && !selectedChanged && !selectionRequested) {
+    if (popupFocusedId !== selectedId && !selectionRequested) {
+      lastPopupSelectionRef.current = { selectedId, selectionRequestId };
+      adapter.closeInfoWindow(infoWindowRef.current);
       return;
     }
 
@@ -516,33 +541,43 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
     }
   }, [adapterState, coordinateSpots, popupFocusedId, selectedId, selectionRequestId]);
 
+  const markerList = (
+    <div className="food-map-map-fallback" data-amap-backup={isReady ? "true" : "false"}>
+      <div className="food-map-marker-list" aria-label="地点 marker 列表">
+        {coordinateSpots.map((spot, index) => (
+          <button
+            key={spot.id}
+            className={`food-map-marker ${getFoodMapRatingClassName(spot.rating)}${spot.id === selectedId ? " food-map-marker--selected" : ""}`}
+            type="button"
+            aria-pressed={spot.id === selectedId}
+            onClick={() => onSelect(spot.id)}
+          >
+            <span className="food-map-marker-index">{index + 1}</span>
+            <span>
+              <span className="food-map-marker-title">{spot.name}</span>
+              <span className="food-map-marker-address">{spot.address || `${spot.lng}, ${spot.lat}`}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <section className="food-map-map-shell food-map-map-shell--amap" aria-label="美食地图" data-amap-state={adapterState}>
-      <h2>地图坐标</h2>
+      <h2 className="sr-only">地图坐标</h2>
       {statusText && <div className="food-map-map-status" role="status">{statusText}</div>}
-      <div className="food-map-amap-frame" aria-hidden={showFallback} data-amap-active={isReady ? "true" : "false"}>
-        <div ref={mapElementRef} className="food-map-amap-canvas" aria-label="高德地图" />
-      </div>
-      {(showFallback || isReady) && (
-        <div className="food-map-map-fallback" data-amap-backup={isReady ? "true" : "false"}>
-          <div className="food-map-marker-list" aria-label="地点 marker 列表">
-            {coordinateSpots.map((spot, index) => (
-              <button
-                key={spot.id}
-                className={`food-map-marker ${getFoodMapRatingClassName(spot.rating)}${spot.id === selectedId ? " food-map-marker--selected" : ""}`}
-                type="button"
-                aria-pressed={spot.id === selectedId}
-                onClick={() => onSelect(spot.id)}
-              >
-                <span className="food-map-marker-index">{index + 1}</span>
-                <span>
-                  <span className="food-map-marker-title">{spot.name}</span>
-                  <span className="food-map-marker-address">{spot.address || `${spot.lng}, ${spot.lat}`}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+      <div className="food-map-map-surface">
+        <div className="food-map-amap-frame" aria-hidden={showFallback} inert={showFallback ? "" : undefined} data-amap-active={isReady ? "true" : "false"}>
+          <div ref={mapElementRef} className="food-map-amap-canvas" aria-label="高德地图" />
         </div>
+        {showFallback && markerList}
+      </div>
+      {isReady && (
+        <details className="food-map-map-alternatives">
+          <summary>按列表选择地图地点</summary>
+          {markerList}
+        </details>
       )}
     </section>
   );

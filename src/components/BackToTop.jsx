@@ -11,13 +11,20 @@ function getScrollState() {
   const scrollingElement = document.scrollingElement || document.documentElement || document.body;
   const scrollTop = Math.max(0, scrollingElement?.scrollTop ?? window.scrollY ?? 0);
   const scrollableDistance = Math.max(0, (scrollingElement?.scrollHeight ?? 0) - (scrollingElement?.clientHeight ?? 0));
-  const progress = scrollableDistance > 0 ? Math.min(1, Math.max(0, scrollTop / scrollableDistance)) : 0;
+  const articleStart = document.querySelector("article.prose > .article-hero");
+  const articleEnd = document.querySelector("[data-article-reading-end]");
+  const isArticle = Boolean(articleStart && articleEnd);
+  // Count only the body: comments and adjacent articles must not extend reading progress.
+  const start = isArticle ? Math.max(0, articleStart.getBoundingClientRect().bottom + scrollTop - window.innerHeight) : 0;
+  const end = isArticle ? Math.max(start, articleEnd.getBoundingClientRect().top + scrollTop - window.innerHeight) : scrollableDistance;
+  const progress = end > start ? Math.min(1, Math.max(0, (scrollTop - start) / (end - start))) : isArticle ? 1 : 0;
   const canScroll = scrollableDistance > MIN_SCROLLABLE_DISTANCE;
 
   return {
     canScroll,
     isVisible: canScroll && scrollTop > VISIBILITY_THRESHOLD,
     progress,
+    isArticle,
     scrollTop,
     scrollableDistance,
   };
@@ -54,6 +61,8 @@ export function BackToTop({ routeKey }) {
 
     window.addEventListener("scroll", requestScrollStateUpdate, { passive: true });
     window.addEventListener("resize", requestScrollStateUpdate);
+    const resizeObserver = typeof window.ResizeObserver === "function" ? new window.ResizeObserver(requestScrollStateUpdate) : null;
+    resizeObserver?.observe(document.body);
 
     return () => {
       window.clearTimeout(routeUpdateTimer);
@@ -62,6 +71,7 @@ export function BackToTop({ routeKey }) {
       }
       window.removeEventListener("scroll", requestScrollStateUpdate);
       window.removeEventListener("resize", requestScrollStateUpdate);
+      resizeObserver?.disconnect();
     };
   }, [routeKey]);
 
@@ -104,7 +114,7 @@ export function BackToTop({ routeKey }) {
         className="back-to-top__progress"
         viewBox="0 0 56 56"
         role="progressbar"
-        aria-label="阅读进度"
+        aria-label={scrollState.isArticle ? "正文阅读进度" : "页面浏览进度"}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(scrollState.progress * 100)}
@@ -121,7 +131,7 @@ export function BackToTop({ routeKey }) {
         />
       </svg>
       <span className="back-to-top__arrow" aria-hidden="true">↑</span>
-      <span className="back-to-top__label">TOP</span>
+      <span className="back-to-top__label">{scrollState.isArticle ? `${Math.round(scrollState.progress * 100)}%` : "TOP"}</span>
     </button>
   );
 }

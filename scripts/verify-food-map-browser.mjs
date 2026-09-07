@@ -10,6 +10,7 @@ const popupEvidencePath = resolve(".sisyphus/evidence/task-5-browser-popup.json"
 const aggregationEvidencePath = resolve(".sisyphus/evidence/task-5-browser-aggregation.json");
 const filterSelectionEvidencePath = resolve(".sisyphus/evidence/task-11-filter-selection.json");
 const edgeCaseEvidencePath = resolve(".sisyphus/evidence/task-11-browser-edge-cases.json");
+const layoutEvidenceRoot = resolve(".sisyphus/evidence/food-map-layout");
 const blockedThirdPartyHosts = new Set(["identity.netlify.com", "events.vercount.one", "music.163.com"]);
 const friendFeedUrl = "https://friend-food-map.test/food-map/index.json";
 const brokenFeedUrl = "https://broken-friend-source.test/food-map/index.json";
@@ -60,6 +61,22 @@ const friendFeed = {
       tags: ["friend", "hotpot"]
     }
   ]
+};
+
+const layoutFeed = {
+  schemaVersion: 1,
+  spots: Array.from({ length: 30 }, (_, index) => ({
+    id: `layout-${index}`,
+    name: `测试店铺 ${String(index + 1).padStart(2, "0")}`,
+    city: index % 2 ? "成都" : "重庆",
+    category: index % 2 ? "面馆" : "咖啡",
+    address: "用于离线布局验证的长地址，测试多行文本在窄屏卡片内的换行和省略显示",
+    lng: 104 + index / 100,
+    lat: 30 + index / 100,
+    rating: 4.2,
+    price: 35,
+    privateNote: "FOOD_LAYOUT_PRIVATE_MUST_NOT_RENDER"
+  }))
 };
 
 function createAmapMockScript() {
@@ -217,7 +234,7 @@ async function startServer(options = {}) {
 
 async function createBrowserPage(browser, scenario, options = {}) {
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 1100 },
+    viewport: options.viewport ?? { width: 1440, height: 1100 },
     reducedMotion: "reduce",
     permissions: options.withoutClipboard ? [] : ["clipboard-read", "clipboard-write"]
   });
@@ -245,11 +262,11 @@ async function createBrowserPage(browser, scenario, options = {}) {
     }
 
     if (url.pathname === "/food-map/sources.json") {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(["aggregation", "filter-selection"].includes(scenario) ? friendSources : []) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(scenario === "layout" ? [friendSources[0]] : ["aggregation", "filter-selection"].includes(scenario) ? friendSources : []) });
     }
 
     if (request.url() === friendFeedUrl) {
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(friendFeed) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(scenario === "layout" ? layoutFeed : friendFeed) });
     }
 
     if (request.url() === brokenFeedUrl) {
@@ -309,6 +326,7 @@ async function runPopupScenario(browser, baseUrl) {
     const readyState = await collectState(page);
     assert.equal(readyState.amapState, "ready", "mocked AMap should still reach ready state");
     assert.ok(readyState.markerTitles.length > 0, "mocked AMap should still render markers");
+    assert.equal(readyState.popupVisible, false, "Initial overview must not be obscured by an automatic popup");
     assertShareControlsAbsent(readyState, "ready food map");
     assertRemovedReaderCopyAbsent(readyState, "ready food map");
 
@@ -498,6 +516,95 @@ async function runAggregationScenario(browser, baseUrl) {
   }
 }
 
+async function runLayoutScenarios(browser, baseUrl) {
+  const results = [];
+  await mkdir(layoutEvidenceRoot, { recursive: true });
+  for (const width of [375, 390, 768, 1024, 1440]) {
+    const { context, page, errors, consoleEntries } = await createBrowserPage(browser, "layout", { viewport: { width, height: 900 } });
+    try {
+      await waitForFoodMapReady(page, baseUrl);
+      await page.waitForFunction(() => document.querySelectorAll(".food-map-spot-card").length >= 30);
+      const count = await page.locator(".food-map-spot-card").count();
+      const layout = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect().toJSON();
+        const list = document.querySelector(".food-map-list");
+        return {
+          workspace: rect(".food-map-layout"), map: rect(".food-map-map-shell--amap"),
+          canvas: rect(".food-map-amap-canvas"), list: rect(".food-map-main"),
+          detail: rect(".food-map-detail-section"), footer: rect(".food-map-footer"),
+          scrollWidth: document.documentElement.scrollWidth,
+          listScrollHeight: list.scrollHeight, listHeight: list.clientHeight,
+          listScrollWidth: list.scrollWidth, listWidth: list.clientWidth
+        };
+      });
+      assert.ok(layout.scrollWidth <= width + 1, `${width}: no page-level horizontal overflow`);
+      assert.ok(layout.detail.top >= layout.workspace.bottom, `${width}: detail must follow the map workspace`);
+      assert.ok(layout.footer.top >= layout.detail.bottom, `${width}: decoration stays after useful content`);
+      assert.ok(layout.canvas.height >= 290, `${width}: usable map height`);
+      const pin = await page.locator(".food-map-amap-marker").first().boundingBox();
+      assert.ok(pin.width >= 44 && pin.width <= 46 && pin.height >= 44 && pin.height <= 46, "Map uses compact pins with a 44px hit target");
+      if (width > 780) {
+        await page.locator("#food-map-city").focus();
+        await page.keyboard.press("Tab");
+        assert.equal(await page.evaluate(() => document.activeElement.id), "food-map-category", "Filter keyboard order follows the visible layout");
+        await page.keyboard.press("Tab");
+        assert.equal(await page.evaluate(() => document.activeElement.id), "food-map-query");
+        assert.ok(Math.abs(layout.list.width - 320) <= 1, `${width}: narrow 320px list`);
+        assert.ok(layout.map.width > layout.list.width * 1.5, `${width}: map owns most workspace width`);
+        assert.ok(Math.abs(layout.map.top - layout.list.top) <= 1, `${width}: list and map align`);
+        assert.ok(Math.abs(layout.map.height - layout.list.height) <= 1, `${width}: list and map share height`);
+        assert.ok(layout.listScrollHeight > layout.listHeight, `${width}: independent vertical list scroll`);
+      } else {
+        assert.ok(layout.map.bottom <= layout.list.top + 1, `${width}: map precedes the cards`);
+        assert.ok(layout.listScrollWidth > layout.listWidth * 2, `${width}: cards form a horizontal strip`);
+        assert.equal(await page.locator("#food-map-query").isVisible(), false, "Mobile search starts collapsed");
+        await page.locator(".food-map-filter-toggle").click();
+        assert.equal(await page.locator("#food-map-query").isVisible(), true);
+        await page.locator(".food-map-filter-toggle").click();
+      }
+      assert.doesNotMatch(await page.locator("body").innerText(), /FOOD_LAYOUT_PRIVATE_MUST_NOT_RENDER/);
+      await page.screenshot({ path: `${layoutEvidenceRoot}/mock-map-${width}.png` });
+
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      const beforeScroll = await page.evaluate(() => scrollY);
+      await page.locator('.amap-mock-marker-hit[data-amap-marker-title="测试店铺 30"]').evaluate((element) => element.click());
+      await page.waitForFunction(() => document.querySelector(".food-map-detail-title")?.textContent === "测试店铺 30");
+      const selection = await page.evaluate(() => {
+        const list = document.querySelector(".food-map-list");
+        const selected = document.querySelector(".food-map-spot-card--selected");
+        return { scrollY, scrollTop: list.scrollTop, scrollLeft: list.scrollLeft,
+          list: list.getBoundingClientRect().toJSON(), selected: selected.getBoundingClientRect().toJSON() };
+      });
+      assert.equal(selection.scrollY, beforeScroll, "Marker selection does not scroll the whole document");
+      if (width > 780) {
+        assert.ok(selection.scrollTop > 0, "Marker selection reveals an offscreen card in the vertical list");
+        assert.ok(selection.selected.bottom <= selection.list.bottom + 2);
+      } else {
+        assert.ok(selection.scrollLeft > 0, "Marker selection reveals an offscreen card in the mobile strip");
+        assert.ok(selection.selected.right <= selection.list.right + 2);
+        await page.locator(".food-map-filter-toggle").click();
+      }
+      await page.locator("#food-map-query").fill("no-layout-match");
+      await page.locator(".food-map-no-results").waitFor({ state: "visible" });
+      assert.equal(await page.locator(".food-map-info-window").count(), 0);
+      await page.getByRole("button", { name: "清空筛选", exact: true }).click();
+      await page.waitForFunction((expected) => document.querySelectorAll(".food-map-spot-card").length === expected, count);
+      await page.waitForFunction(() => document.querySelector('.food-map-map-shell--amap')?.dataset.amapState === "ready");
+      const resizeCalls = await page.evaluate(() => window.__foodMapAmapCalls.filter((call) => call.type === "map:resize").length);
+      const creates = await page.evaluate(() => window.__foodMapAmapCalls.filter((call) => call.type === "map:create").length);
+      await page.setViewportSize({ width: width <= 780 ? 1024 : 390, height: 844 });
+      await page.waitForFunction((previous) => window.__foodMapAmapCalls.filter((call) => call.type === "map:resize").length > previous, resizeCalls);
+      assert.equal(await page.evaluate(() => window.__foodMapAmapCalls.filter((call) => call.type === "map:create").length), creates, "Resizing preserves the map instance");
+      assertNoBrowserErrors(errors, consoleEntries);
+      results.push({ width, layout, selection, passed: true });
+    } finally {
+      await context.close();
+    }
+  }
+  await writeEvidence(`${layoutEvidenceRoot}/summary.json`, { status: "PASS", viewports: results });
+  return results;
+}
+
 let server;
 let browser;
 try {
@@ -506,10 +613,11 @@ try {
   const popupEvidence = await runPopupScenario(browser, server.baseUrl);
   const aggregationEvidence = await runAggregationScenario(browser, server.baseUrl);
   const filterSelectionEvidence = await runFilterSelectionScenario(browser, server.baseUrl);
+  const layoutEvidence = await runLayoutScenarios(browser, server.baseUrl);
   await server.close();
   server = await startServer();
   const edgeCaseEvidence = await runFallbackAndClipboardScenario(browser, server.baseUrl);
-  console.log(`PASS food-map browser verification (popup=${popupEvidence.status} aggregation=${aggregationEvidence.status} filter=${filterSelectionEvidence.status} fallback=${edgeCaseEvidence.status})`);
+  console.log(`PASS food-map browser verification (popup=${popupEvidence.status} aggregation=${aggregationEvidence.status} filter=${filterSelectionEvidence.status} fallback=${edgeCaseEvidence.status} layouts=${layoutEvidence.length})`);
 } finally {
   await browser?.close();
   await server?.close();

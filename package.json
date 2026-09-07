@@ -18,6 +18,8 @@
     "build": "npm run optimize-images && npm run generate:food-map-json && vite build",
     "preview": "vite preview",
     "verify:visual": "node scripts/verify-visual.mjs",
+    "verify:reading": "npm run prepare:article-media && node scripts/verify-reading-experience.mjs",
+    "verify:site-polish": "npm run prepare:article-media && node scripts/verify-site-polish.mjs",
     "verify:article-media-parser": "node scripts/verify-article-media-parser.mjs",
     "verify:article-media-assets": "node scripts/verify-article-media-assets.mjs",
     "verify:article-media-render": "node scripts/verify-article-media-render.mjs",

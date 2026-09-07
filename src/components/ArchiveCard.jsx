@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { archiveEase, cardMotion, durationFast, reducedMotionTransition } from "../lib/motion.js";
+import { navigateFromLink } from "../lib/navigation.js";
 
 export function ArchiveCard({ post, onOpen }) {
   const shouldReduceMotion = useReducedMotion();
@@ -21,11 +22,11 @@ export function ArchiveCard({ post, onOpen }) {
       }
       custom={shouldReduceMotion}
     >
-      <motion.button
+      <motion.a
         className="card-hit"
         data-testid={`archive-card-${post.id}`}
-        onClick={() => onOpen(post.slug)}
-        type="button"
+        href={`/posts/${post.slug}`}
+        onClick={(event) => navigateFromLink(event, () => onOpen(post.slug))}
         whileTap={shouldReduceMotion ? undefined : { scale: 0.99, transition: { duration: durationFast, ease: archiveEase } }}
         transition={shouldReduceMotion ? reducedMotionTransition : undefined}
       >
@@ -37,26 +38,26 @@ export function ArchiveCard({ post, onOpen }) {
 
           <p className="excerpt">{post.excerpt}</p>
 
-          <dl className="meta-grid">
+          <dl className="card-meta">
             <div>
-              <dt>DATE</dt>
-              <dd>{post.date}</dd>
+              <dt className="sr-only">日期</dt>
+              <dd><time dateTime={post.date}>{post.date}</time></dd>
             </div>
             <div>
-              <dt>TYPE</dt>
+              <dt className="sr-only">分类</dt>
               <dd>{post.category}</dd>
             </div>
             <div>
-              <dt>STATE</dt>
+              <dt className="sr-only">状态</dt>
               <dd>{post.status}</dd>
             </div>
             <div>
-              <dt>READ</dt>
+              <dt className="sr-only">阅读时间</dt>
               <dd>{post.reading}</dd>
             </div>
           </dl>
         </div>
-      </motion.button>
+      </motion.a>
 
       <footer className="card-foot">
         <ul className="tag-list" aria-label="标签">

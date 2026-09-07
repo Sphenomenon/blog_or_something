@@ -100,9 +100,11 @@ export function MusicEasterEgg({ variant = "full", isHomeReady = true }) {
         className={isMini ? "music-mini-player__toggle music-easter-egg__toggle" : "music-easter-egg__toggle"}
         data-testid="music-easter-egg-toggle"
         aria-expanded={isExpanded}
+        aria-label={`${isExpanded ? "收起音乐" : "展开音乐"}：${music.title}`}
         aria-controls="music-easter-egg-panel"
         onClick={() => setIsExpanded((current) => !current)}
       >
+        <span className="music-easter-egg__icon" aria-hidden="true">♪</span>
         <span className="music-easter-egg__kicker">HIDDEN TRACK</span>
         <span className="music-easter-egg__title">{music.title}</span>
       </button>
@@ -113,6 +115,7 @@ export function MusicEasterEgg({ variant = "full", isHomeReady = true }) {
         data-testid="music-easter-egg-panel"
         data-expanded={isExpanded}
         aria-hidden={isExpanded ? "false" : "true"}
+        inert={isExpanded ? undefined : ""}
       >
         <div className="music-easter-egg__panel-copy">
           <p className="music-easter-egg__label">{music.provider}</p>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Giscus from "@giscus/react";
 import { parseArticleMarkdown } from "../article-media.js";
 import {
@@ -8,6 +8,8 @@ import {
 } from "../components/ArticleMedia.jsx";
 import { getArticleNeighbors } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
+import { navigateFromLink } from "../lib/navigation.js";
+import { ArticleCodeBlock, ArticleEndnote } from "../components/ArticleTools.jsx";
 
 const GISCUS_REPO = "Sphenomenon/blog_or_something";
 const GISCUS_REPO_ID = "R_kgDOSk91lw";
@@ -197,6 +199,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
     verificationOnly ? "article-layout--verification" : ""
   ].filter(Boolean).join(" ");
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
+  const mobileTocRef = useRef(null);
   const hashSectionId = isSwjtuReport ? getDecodedHashTargetId() : "";
   const renderedActiveSectionId = tocSections.some((section) => section.id === hashSectionId)
     ? hashSectionId
@@ -321,10 +324,17 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
   };
 
   const handleTocClick = (section) => {
+    const wasMobileTocOpen = mobileTocRef.current?.open;
+    if (mobileTocRef.current) mobileTocRef.current.open = false;
     const target = document.getElementById(section.id);
 
     if (!target) {
       return;
+    }
+
+    if (wasMobileTocOpen) {
+      target.tabIndex = -1;
+      target.focus({ preventScroll: true });
     }
 
     setActiveSectionId(section.id);
@@ -345,6 +355,27 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
       block: "start"
     });
   };
+
+  function renderTocItems(prefix) {
+    return tocSections.map((section, index) => {
+      const isActive = renderedActiveSectionId === section.id;
+      return (
+        <li key={section.id} className={isActive ? "active" : ""}>
+          <button
+            type="button"
+            data-testid={`${prefix}-${index + 1}`}
+            onClick={() => handleTocClick(section)}
+            aria-current={isActive ? "true" : undefined}
+            data-active={isActive ? "true" : undefined}
+            data-section={section.id}
+          >
+            <span className="toc-index">{String(index + 1).padStart(2, "0")}</span>
+            <span className="toc-label">{section.label}</span>
+          </button>
+        </li>
+      );
+    });
+  }
 
   return (
     <ArticleMediaLightbox ownerKey={post.slug || post.id}>
@@ -384,28 +415,12 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
           </ul>
         </header>
 
-        {!verificationOnly ? <nav className="article-nav" aria-label="上一篇和下一篇文章">
-          <div className="article-nav__item">
-            {previousArticle ? (
-              <button type="button" data-testid="article-prev" onClick={() => onOpenPost(previousArticle.slug)}>
-                <span className="article-nav__eyebrow">上一篇</span>
-                <span className="article-nav__title">{previousArticle.title}</span>
-              </button>
-            ) : (
-              <p className="article-nav__empty" data-testid="article-prev-empty">已经是最新文章</p>
-            )}
-          </div>
-          <div className="article-nav__item article-nav__item--next">
-            {nextArticle ? (
-              <button type="button" data-testid="article-next" onClick={() => onOpenPost(nextArticle.slug)}>
-                <span className="article-nav__eyebrow">下一篇</span>
-                <span className="article-nav__title">{nextArticle.title}</span>
-              </button>
-            ) : (
-              <p className="article-nav__empty" data-testid="article-next-empty">已到最早一篇</p>
-            )}
-          </div>
-        </nav> : null}
+        {!verificationOnly && tocSections.length > 0 ? (
+          <details className="article-toc-mobile" ref={mobileTocRef} data-testid="article-toc-mobile">
+            <summary>文章目录 <span>{tocSections.length} 节</span></summary>
+            <nav aria-label="文章目录"><ol>{renderTocItems("mobile-toc")}</ol></nav>
+          </details>
+        ) : null}
 
         {import.meta.env.DEV && articleMediaErrors.length ? (
           <aside className="article-media-errors" aria-label="Article media errors" data-testid="article-media-errors">
@@ -458,6 +473,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
           }
 
           if (block.type === "code") {
+            if (!verificationOnly) return <ArticleCodeBlock key={key} code={block.code} language={block.language} />;
             return (
               <pre key={key}>
                 <code data-language={block.language || undefined}>{block.code}</code>
@@ -513,6 +529,31 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
           return <p key={key}>{renderInline(block.text, key)}</p>;
         })}
 
+        {!verificationOnly ? <ArticleEndnote post={post} /> : null}
+
+        {!verificationOnly ? <nav className="article-nav" aria-label="上一篇和下一篇文章">
+          <div className="article-nav__item">
+            {previousArticle ? (
+              <a href={`/posts/${previousArticle.slug}`} data-testid="article-prev" onClick={(event) => navigateFromLink(event, () => onOpenPost(previousArticle.slug))}>
+                <span className="article-nav__eyebrow">上一篇</span>
+                <span className="article-nav__title">{previousArticle.title}</span>
+              </a>
+            ) : (
+              <p className="article-nav__empty" data-testid="article-prev-empty">已经是最新文章</p>
+            )}
+          </div>
+          <div className="article-nav__item article-nav__item--next">
+            {nextArticle ? (
+              <a href={`/posts/${nextArticle.slug}`} data-testid="article-next" onClick={(event) => navigateFromLink(event, () => onOpenPost(nextArticle.slug))}>
+                <span className="article-nav__eyebrow">下一篇</span>
+                <span className="article-nav__title">{nextArticle.title}</span>
+              </a>
+            ) : (
+              <p className="article-nav__empty" data-testid="article-next-empty">已到最早一篇</p>
+            )}
+          </div>
+        </nav> : null}
+
         {!verificationOnly ? <section className="related-panel" aria-label="相关条目">
           <h2>相关条目</h2>
           {related.length > 0 ? related.map((item) => (
@@ -531,27 +572,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
 
         <aside className="rail rail-right" aria-label="目录">
           <h4>目录 TOC</h4>
-          <ol>
-            {tocSections.map((section, index) => {
-              const isActive = renderedActiveSectionId === section.id;
-
-              return (
-                <li key={section.id} className={isActive ? "active" : ""}>
-                  <button
-                    type="button"
-                    data-testid={`toc-${index + 1}`}
-                    onClick={() => handleTocClick(section)}
-                    aria-current={isActive ? "true" : undefined}
-                    data-active={isActive ? "true" : undefined}
-                    data-section={section.id}
-                  >
-                    <span className="toc-index">{String(index + 1).padStart(2, "0")}</span>
-                    <span className="toc-label">{section.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+          <ol>{renderTocItems("toc")}</ol>
         </aside>
       </section>
     </ArticleMediaLightbox>

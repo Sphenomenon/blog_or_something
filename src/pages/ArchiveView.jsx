@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { getArchivePostsByYear, getArchiveYears } from "../data/posts.js";
+import { getSectionBySlug } from "../data/sections.js";
 import { site } from "../data/yaml-loader.js";
+import { navigateFromLink } from "../lib/navigation.js";
 
 export function ArchiveView({ onOpenPost }) {
   const archiveYears = useMemo(() => getArchiveYears(), []);
@@ -13,6 +15,12 @@ export function ArchiveView({ onOpenPost }) {
   const archivePosts = activeYear ? getArchivePostsByYear(activeYear) : [];
   const previousYear = activeIndex > 0 ? archiveYears[activeIndex - 1] : null;
   const nextYear = activeIndex >= 0 && activeIndex < archiveYears.length - 1 ? archiveYears[activeIndex + 1] : null;
+  const months = Array.from(archivePosts.reduce((groups, post) => {
+    const month = post.date.slice(5, 7);
+    if (!groups.has(month)) groups.set(month, []);
+    groups.get(month).push(post);
+    return groups;
+  }, new Map()));
 
   useEffect(() => {
     if (!selectedYear && archiveYears[0]) {
@@ -39,7 +47,7 @@ export function ArchiveView({ onOpenPost }) {
           disabled={!previousYear}
           aria-disabled={!previousYear}
         >
-          上一年
+          ← 较新一年
         </button>
         <div className="archive-pagination__status" aria-live="polite">
           <span data-testid="archive-year-label">{activeYear || "—"}</span>
@@ -54,7 +62,7 @@ export function ArchiveView({ onOpenPost }) {
           disabled={!nextYear}
           aria-disabled={!nextYear}
         >
-          下一年
+          较早一年 →
         </button>
       </nav> : null}
 
@@ -63,19 +71,49 @@ export function ArchiveView({ onOpenPost }) {
           <p>档案馆当前还没有可归档的文章。</p>
           <p>首篇文章入库后，年份分柜会自动建立。</p>
         </div>
-      ) : <section className="archive-group" aria-labelledby="archive-year-heading">
-        <h2 id="archive-year-heading" data-testid="archive-year-heading">{activeYear || "—"}</h2>
-        <p className="archive-group__summary" data-testid="archive-year-summary">
-          {activeYear || "—"} / {archivePosts.length} 条记录
-        </p>
-        {archivePosts.map((post) => (
-          <button key={post.id} data-testid={`archive-view-${post.id}`} type="button" onClick={() => onOpenPost(post.slug)}>
-            <span>{post.id}</span>
-            <strong>{post.title}</strong>
-            <em>{post.status}</em>
-          </button>
-        ))}
-      </section>}
+      ) : (
+        <div className="archive-ledger">
+          <nav className="archive-year-index" aria-label="选择归档年份">
+            <p>年份索引 <span aria-hidden="true">/ YEARS</span></p>
+            <div>
+              {archiveYears.map((year) => (
+                <button key={year} type="button" onClick={() => setSelectedYear(year)}
+                  aria-pressed={activeYear === year} aria-controls="archive-year-entries"
+                  data-testid={`archive-select-year-${year}`}>
+                  <span>{year}</span><small>{getArchivePostsByYear(year).length} 篇</small>
+                </button>
+              ))}
+            </div>
+          </nav>
+          <section className="archive-group" id="archive-year-entries" aria-labelledby="archive-year-heading">
+            <h2 id="archive-year-heading" data-testid="archive-year-heading">{activeYear || "—"}</h2>
+            <p className="archive-group__summary" data-testid="archive-year-summary">
+              {activeYear || "—"} / {archivePosts.length} 条记录
+            </p>
+            {months.map(([month, monthPosts]) => (
+              <section className="archive-month" key={`${activeYear}-${month}`} aria-labelledby={`archive-month-${month}`}>
+                <h3 id={`archive-month-${month}`}><span>{month}</span> 月 <small>{monthPosts.length} 篇</small></h3>
+                <ol>
+                  {monthPosts.map((post) => (
+                    <li key={post.id}>
+                      <a className="archive-entry" data-testid={`archive-view-${post.id}`} href={`/posts/${post.slug}`}
+                        onClick={(event) => navigateFromLink(event, () => onOpenPost(post.slug))}>
+                        <time dateTime={post.date}>{post.date.slice(5).replace("-", ".")}</time>
+                        <span className="archive-entry__copy">
+                          <strong>{post.title}</strong>
+                          <span>{getSectionBySlug(post.section)?.label ?? post.section} · {post.reading}</span>
+                        </span>
+                        <em>{post.status}</em>
+                        <span className="archive-entry__arrow" aria-hidden="true">↗</span>
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            ))}
+          </section>
+        </div>
+      )}
     </section>
   );
 }

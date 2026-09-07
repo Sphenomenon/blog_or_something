@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { SectionMark } from "../components/SectionMark.jsx";
+import { FriendLinkCard } from "../components/FriendLinkCard.jsx";
 import { friendLinks } from "../data/links.js";
 import { getSectionRepresentativePosts } from "../data/posts.js";
 import { getSectionBySlug } from "../data/sections.js";
@@ -60,22 +61,10 @@ export function SectionView({ sectionSlug, onOpenPost }) {
           </div>
         </div>
 
-        <dl className="section-metadata" aria-label="栏目元数据">
+        <dl className="section-metadata" aria-label="收录数量">
           <div>
-            <dt>SLUG</dt>
-            <dd>{section.slug}</dd>
-          </div>
-          <div>
-            <dt>THEME</dt>
-            <dd>{section.theme}</dd>
-          </div>
-          <div>
-            <dt>{isLinksSection ? "LINKS" : "POSTS"}</dt>
+            <dt>{isLinksSection ? "位朋友" : "篇文章"}</dt>
             <dd>{isLinksSection ? friendLinks.length : allSectionPosts.length}</dd>
-          </div>
-          <div>
-            <dt>BACKGROUND</dt>
-            <dd>{section.background ? "asset" : "fallback"}</dd>
           </div>
         </dl>
       </div>
@@ -95,14 +84,8 @@ export function SectionView({ sectionSlug, onOpenPost }) {
             </div>
           ) : (
             <motion.div className="friend-links-grid" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
-              {friendLinks.map((link, i) => (
-                <motion.a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="friend-link-card" variants={revealFrame} custom={shouldReduceMotion}>
-                  <img src={link.logo} alt={link.name} className="friend-link-logo" loading="lazy" />
-                  <div className="friend-link-info">
-                    <span className="friend-link-name">{link.name}</span>
-                    <p className="friend-link-desc">{link.description}</p>
-                  </div>
-                </motion.a>
+              {friendLinks.map((link) => (
+                <FriendLinkCard key={`${link.url}:${link.logo}`} link={link} shouldReduceMotion={shouldReduceMotion} />
               ))}
             </motion.div>
           )}
@@ -126,6 +109,7 @@ export function SectionView({ sectionSlug, onOpenPost }) {
           ) : (
             <motion.ol
               className="archive-list"
+              id={`section-representatives-${section.slug}`}
               data-testid={`section-representatives-${section.slug}`}
               aria-expanded={isExpanded}
               aria-label={`${section.label}文章列表`}
@@ -142,7 +126,7 @@ export function SectionView({ sectionSlug, onOpenPost }) {
             </motion.ol>
           )}
 
-          {allSectionPosts.length > 0 ? <div className="section-all-posts-cta">
+          {allSectionPosts.length > 3 ? <div className="section-all-posts-cta">
             <button
               data-testid={`section-all-posts-${section.slug}`}
               aria-controls={`section-representatives-${section.slug}`}

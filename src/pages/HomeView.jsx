@@ -2,12 +2,13 @@ import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
-import { getTagCounts } from "../data/posts.js";
-import { sections } from "../data/sections.js";
+import { getTagCounts, sortedPosts } from "../data/posts.js";
+import { getSectionBySlug, sections } from "../data/sections.js";
+import { navigateFromLink } from "../lib/navigation.js";
 import { archiveEase, durationFast, reducedMotionTransition, revealFrame, staggerContainer } from "../lib/motion.js";
 import { site } from "../data/yaml-loader.js";
 
-const heroTitleCharacters = Array.from(site.home_hero_title);
+const heroTitleSegments = Array.from(site.home_hero_title.matchAll(/[A-Za-z0-9]+|[^A-Za-z0-9]/gu));
 const defaultHeroTitleEffect = "memory-fade";
 const heroTitleEffects = new Set(["fading-font", "vanishing-points", "memory-fade", "blur-focus"]);
 
@@ -146,9 +147,10 @@ const heroTitleCharacter = {
   },
 };
 
-function HeroPanel() {
+function HeroPanel({ onOpenPost }) {
   const shouldReduceMotion = useReducedMotion();
   const heroTitleEffect = getHeroTitleEffect();
+  const latestPost = sortedPosts.find((post) => post.status.trim().toLowerCase() === "published");
 
   function handleGoDown() {
     const archiveIndex = document.querySelector("#home-archive-index");
@@ -187,20 +189,39 @@ function HeroPanel() {
           variants={staggerContainer}
           custom={shouldReduceMotion}
         >
-          {heroTitleCharacters.map((character, index) => (
-            <motion.span
-              key={`${character}-${index}`}
-              className="hero-title__character"
-              aria-hidden="true"
-              variants={heroTitleCharacter}
-              custom={{ effect: heroTitleEffect, index, shouldReduceMotion }}
-            >
-              {character === " " ? "\u00A0" : character}
-            </motion.span>
+          {heroTitleSegments.map((segment) => (
+            <span className="hero-title__word" key={segment.index} aria-hidden="true">
+              {Array.from(segment[0]).map((character, offset) => (
+                <motion.span
+                  key={offset}
+                  className="hero-title__character"
+                  variants={heroTitleCharacter}
+                  custom={{ effect: heroTitleEffect, index: segment.index + offset, shouldReduceMotion }}
+                >
+                  {character === " " ? "\u00A0" : character}
+                </motion.span>
+              ))}
+            </span>
           ))}
         </motion.h1>
         <motion.p className="hero-body" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_body}</motion.p>
       </motion.div>
+      {latestPost ? (
+        <a
+          className="home-latest"
+          data-testid="home-latest-post"
+          href={`/posts/${latestPost.slug}`}
+          onClick={(event) => navigateFromLink(event, () => onOpenPost(latestPost.slug))}
+        >
+          <span className="home-latest__eyebrow">最新文章 <span aria-hidden="true">/ LATEST ENTRY</span></span>
+          <h2>{latestPost.title}</h2>
+          <p>{latestPost.excerpt}</p>
+          <span className="home-latest__foot">
+            <span><time dateTime={latestPost.date}>{latestPost.date}</time> · {getSectionBySlug(latestPost.section)?.shortLabel ?? latestPost.section}</span>
+            <span className="home-latest__arrow" aria-hidden="true">↗</span>
+          </span>
+        </a>
+      ) : null}
       <DecorativeAccent id="home-hero" />
       <motion.button
         className="hero-go-down"
@@ -231,6 +252,7 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
             <button
               key={status}
               className={statusFilter === status ? "active" : ""}
+              aria-pressed={statusFilter === status}
               onClick={() => onStatusFilter(status)}
               type="button"
             >
@@ -244,6 +266,7 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
         <div className="filter-chips">
           <button
             className={tagFilter === "All" ? "active" : ""}
+            aria-pressed={tagFilter === "All"}
             onClick={() => onTagFilter("All")}
             type="button"
           >
@@ -253,6 +276,7 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
             <button
               key={tag}
               className={tagFilter === tag ? "active" : ""}
+              aria-pressed={tagFilter === tag}
               onClick={() => onTagFilter(tag)}
               type="button"
             >
@@ -265,7 +289,7 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
   );
 }
 
-function SidePanel({ onSectionChange }) {
+function SidePanel({ onSectionChange, onReplayGreeting }) {
   useEffect(() => {
     const existingScript = document.querySelector('script[data-vercount-script="true"]');
 
@@ -289,10 +313,10 @@ function SidePanel({ onSectionChange }) {
         <ul className="side-panel-list">
           {sections.map((section) => (
             <li key={section.slug}>
-              <button data-testid={`home-section-${section.slug}`} onClick={() => onSectionChange(section.slug)} type="button">
+              <a data-testid={`home-section-${section.slug}`} href={`/sections/${section.slug}`} onClick={(event) => navigateFromLink(event, () => onSectionChange(section.slug))}>
                 <span>{section.label}</span>
                 <em>{section.shortLabel}</em>
-              </button>
+              </a>
             </li>
           ))}
         </ul>
@@ -308,17 +332,18 @@ function SidePanel({ onSectionChange }) {
         <p>{site.home_sidebar_status}</p>
         <p>{site.home_sidebar_sync}</p>
         <p>{site.home_sidebar_integrity}</p>
+        <button className="greeting-replay" type="button" data-testid="greeting-replay" onClick={onReplayGreeting}>重看序章 <span aria-hidden="true">↗</span></button>
       </section>
     </aside>
   );
 }
 
-export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFilter, setStatusFilter, tagFilter, setTagFilter }) {
+export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFilter, setStatusFilter, tagFilter, setTagFilter, onReplayGreeting }) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <>
-      <HeroPanel />
+      <HeroPanel onOpenPost={onOpenPost} />
       <FilterBar
         statusFilter={statusFilter}
         onStatusFilter={setStatusFilter}
@@ -343,7 +368,7 @@ export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFil
           ) : null}
         </div>
 
-        <SidePanel onSectionChange={onSectionChange} />
+        <SidePanel onSectionChange={onSectionChange} onReplayGreeting={onReplayGreeting} />
       </section>
     </>
   );

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
@@ -17,6 +17,7 @@ import { viewTransition } from "./lib/motion.js";
 
 const ROUTE_TRANSITION_MS = 320;
 const LIST_TRANSITION_MS = 220;
+const GREETING_SESSION_KEY = "nocturne:greeting-dismissed";
 const NETLIFY_IDENTITY_SCRIPT_URL = "https://identity.netlify.com/v1/netlify-identity-widget.js";
 const VerificationArticleImagesView = import.meta.env.MODE === "verification"
   ? lazy(() => import("./verification/ArticleImagesVerificationView.jsx"))
@@ -27,13 +28,20 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [tagFilter, setTagFilter] = useState("All");
-  const [greetingDismissed, setGreetingDismissed] = useState(false);
+  const [greetingDismissed, setGreetingDismissed] = useState(() => {
+    try {
+      return window.sessionStorage.getItem(GREETING_SESSION_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [pathname, setPathname] = useState(() => window.location.pathname || "/");
   const [transitionState, setTransitionState] = useState("idle");
   const [listTransitionState, setListTransitionState] = useState("idle");
   const routeTransitionTimerRef = useRef(null);
   const listTransitionTimerRef = useRef(null);
   const searchScrollPendingRef = useRef(false);
+  const routeScrollPendingRef = useRef(false);
   const filterSnapshotRef = useRef({ query: "", statusFilter: "All", tagFilter: "All" });
 
   const postBySlug = useMemo(() => {
@@ -51,6 +59,13 @@ export default function App() {
   const isNotFound = route.kind === "not-found" || (route.kind === "post" && !selectedPost) || (route.kind === "section" && !selectedSectionData);
   const isGreetingVisible = route.kind === "home" && !greetingDismissed;
   const routeFrameKey = `${route.kind}:${normalizePath(pathname)}:${route.kind === "home" && !greetingDismissed ? "gate" : "view"}`;
+
+  useLayoutEffect(() => {
+    if (!routeScrollPendingRef.current) return;
+    routeScrollPendingRef.current = false;
+    // Reset only after the new view is committed, without waking old lazy images.
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [routeFrameKey]);
 
   const activeView = useMemo(() => {
     if (route.kind === "home") return "home";
@@ -106,7 +121,7 @@ export default function App() {
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery);
-      const matchesStatus = statusFilter === "All" || post.status === statusFilter;
+      const matchesStatus = statusFilter === "All" || post.status.trim().toLowerCase() === statusFilter.toLowerCase();
       const matchesTag = tagFilter === "All" || post.tags.includes(tagFilter);
       return matchesQuery && matchesStatus && matchesTag;
     });
@@ -124,7 +139,6 @@ export default function App() {
 
   useEffect(() => {
     if (route.kind !== "home") {
-      setGreetingDismissed(false);
       clearListTransitionTimer();
       setListTransitionState("idle");
     }
@@ -215,7 +229,24 @@ export default function App() {
     if (nextPath !== window.location.pathname) {
       window.history.pushState({}, "", nextPath);
     }
+    routeScrollPendingRef.current = true;
     setPathname(nextPath);
+  }
+
+  function dismissGreeting() {
+    routeScrollPendingRef.current = true;
+    setGreetingDismissed(true);
+    try {
+      window.sessionStorage.setItem(GREETING_SESSION_KEY, "true");
+    } catch {
+      // In-memory state still works when browser storage is unavailable.
+    }
+  }
+
+  function replayGreeting() {
+    routeScrollPendingRef.current = true;
+    setGreetingDismissed(false);
+    navigateTo("/");
   }
 
   function openPost(postOrSlug) {
@@ -235,7 +266,7 @@ export default function App() {
 
   function submitSearch() {
     searchScrollPendingRef.current = true;
-    setGreetingDismissed(true);
+    dismissGreeting();
 
     if (route.kind !== "home") {
       navigateTo("/");
@@ -293,7 +324,7 @@ export default function App() {
           custom={shouldReduceMotion}
         >
           {route.kind === "home" && !greetingDismissed && (
-            <GreetingGate onEnterHome={() => setGreetingDismissed(true)} />
+            <GreetingGate onEnterHome={dismissGreeting} />
           )}
           {route.kind === "home" && greetingDismissed && (
             <HomeView
@@ -304,6 +335,7 @@ export default function App() {
               setStatusFilter={setStatusFilter}
               tagFilter={tagFilter}
               setTagFilter={setTagFilter}
+              onReplayGreeting={replayGreeting}
             />
           )}
           {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} onOpenSection={openSection} pathname={pathname} />}

@@ -73,7 +73,7 @@ function overlapArea(left, right) {
 function containerSelectorFor(record) {
   if (record.surface === "/") return ".hero-panel";
   if (record.surface === "/archive") return ".page-panel--archive";
-  if (record.surface === "/food-map") return ".page-panel--food-map .page-panel-header--stacked";
+  if (record.surface === "/food-map") return ".page-panel--food-map .food-map-footer";
   if (record.surface === "/about") return ".page-panel--about";
   if (record.surface.startsWith("/sections/")) return ".page-panel--section";
   throw new Error(`Unsupported decorative accent surface: ${record.surface}`);
@@ -236,6 +236,7 @@ async function startServer() {
   assert.ok(address && typeof address === "object", "Vite verification server did not expose an address");
   return {
     baseUrl: `http://127.0.0.1:${address.port}`,
+    posts: (await server.ssrLoadModule("/src/data/posts.js")).posts,
     close: async () => {
       if (previousAmapKey === undefined) delete process.env.VITE_AMAP_KEY;
       else process.env.VITE_AMAP_KEY = previousAmapKey;
@@ -615,7 +616,7 @@ async function run() {
 
     const zeroAccentResults = [
       await assertZeroAccentRoute(browser, server.baseUrl, "/", "[data-testid='greeting-gate']", { greeting: true }),
-      await assertZeroAccentRoute(browser, server.baseUrl, "/posts/petrified-corridor", "article.prose"),
+      await assertZeroAccentRoute(browser, server.baseUrl, `/posts/${server.posts[0].slug}`, "article.prose"),
       await assertZeroAccentRoute(browser, server.baseUrl, "/route-that-does-not-exist", "[data-testid='not-found-view']")
     ];
 

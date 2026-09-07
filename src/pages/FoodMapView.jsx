@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
-import { SectionMark } from "../components/SectionMark.jsx";
 import { aggregateFoodMapExternalSources, loadFoodMapSourceConfig } from "../features/food-map/index.js";
 import { localFoodMapPlaces, publicFoodMapPlaces } from "../features/food-map/loader.js";
 import {
@@ -15,14 +14,7 @@ import {
   filterFoodMapPlaces,
   getFoodMapFilterOptions
 } from "../features/food-map/FoodMapComponents.jsx";
-import { revealFrame, staggerContainer } from "../lib/motion.js";
-
-function hasActiveFilters(filters) {
-  return Object.entries(filters).some(([key, value]) => {
-    if (key === "source") return value !== FOOD_MAP_DEFAULT_FILTERS.source;
-    return String(value ?? "").trim() !== "";
-  });
-}
+import { revealFrame } from "../lib/motion.js";
 
 export function FoodMapView() {
   const shouldReduceMotion = useReducedMotion();
@@ -136,7 +128,7 @@ export function FoodMapView() {
   ].filter(Boolean).join(" · ");
 
   return (
-    <motion.main
+    <motion.section
       className="page-panel page-panel--food-map food-map-view"
       data-testid="food-map-view"
       variants={revealFrame}
@@ -144,20 +136,9 @@ export function FoodMapView() {
       animate="visible"
       custom={shouldReduceMotion}
     >
-      <header className="page-panel-header page-panel-header--stacked">
-        <div className="food-map-header-copy">
-          <SectionMark slug="food-map" className="section-mark--compact food-map-header-mark" title="美食地图标记" />
-          <div>
-            <p className="hero-code">FOOD MAP / PUBLIC ATLAS</p>
-            <h1>美食地图</h1>
-            <p className="page-panel-lead">公开餐馆菜单 / 地图可选 / 无密钥走列表。</p>
-          </div>
-        </div>
-        <div className="food-map-status-row" aria-label="美食地图状态">
-          <span className="food-map-status-badge food-map-status-badge--loading">{totalCount} 个公开地点</span>
-          <span className="food-map-source-status" aria-label="来源载入状态">{sourceStatusText}</span>
-        </div>
-        <DecorativeAccent id="food-map-header" />
+      <header className="food-map-page-heading">
+        <h1>美食地图</h1>
+        <span className="food-map-source-status" aria-label="来源载入状态">{sourceStatusText}</span>
       </header>
 
       {runtimeWarnings.length > 0 && (
@@ -180,17 +161,22 @@ export function FoodMapView() {
       ) : filteredPlaces.length === 0 ? (
         <FoodMapNoResults onReset={resetFilters} />
       ) : (
-        <section className="food-map-layout" aria-label="美食地图结果">
-          <motion.div className="food-map-main" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
-            {hasActiveFilters(filters) && <p className="food-map-count">当前筛选显示 {filteredPlaces.length} 个地点。</p>}
-            <FoodMapSpotList spots={filteredPlaces} selectedId={selectedId} onSelect={selectFoodMapPlace} />
-          </motion.div>
-          <aside className="food-map-side" aria-label="地点详情与地图">
-            <FoodMapDetail spot={selectedPlace} />
+        <>
+          <section className="food-map-layout" aria-label="美食地图结果">
             <FoodMapAmapPanel spots={filteredPlaces} selectedId={selectedId} selectionRequestId={selectionRequestId} onSelect={selectFoodMapPlace} />
-          </aside>
-        </section>
+            <div className="food-map-main">
+              <FoodMapSpotList spots={filteredPlaces} selectedId={selectedId} onSelect={selectFoodMapPlace} />
+            </div>
+          </section>
+          <section id="food-map-details" className="food-map-detail-section" aria-label="所选地点详情">
+            <p className="food-map-detail-kicker">地点手记 <span>选择店铺，查看推荐与探店记录</span></p>
+            <FoodMapDetail spot={selectedPlace} />
+          </section>
+        </>
       )}
-    </motion.main>
+      <footer className="food-map-footer">
+        <DecorativeAccent id="food-map-header" />
+      </footer>
+    </motion.section>
   );
 }
