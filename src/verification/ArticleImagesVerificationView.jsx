@@ -1,4 +1,4 @@
-import { ArticleView } from "../pages/ArticleView.jsx";
+import { ArticleView } from "../views/ArticleView.jsx";
 import verificationArticle from "virtual:article-image-verification-fixture";
 
 export default function ArticleImagesVerificationView({ onNavigate }) {

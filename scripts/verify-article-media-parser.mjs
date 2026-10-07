@@ -148,13 +148,13 @@ expectUrlError("local-query", "/images/uploads/image.jpg?size=large", "ARTICLE_M
 expectUrlError("local-fragment", "/images/uploads/image.jpg#detail", "ARTICLE_MEDIA_URL_LOCAL_SUFFIX");
 expectUrlError("control-character", "/images/uploads/image\u0000.jpg", "ARTICLE_MEDIA_URL_CONTROL_CHARACTER");
 
-const articleViewSource = await readFile(resolve("src/pages/ArticleView.jsx"), "utf8");
+const articleViewSource = await readFile(resolve("src/views/ArticleView.jsx"), "utf8");
 const renderInlineSource = articleViewSource.match(/function renderInline\([\s\S]*?\n}\n/)?.[0] ?? "";
 assert.ok(renderInlineSource, "Could not locate renderInline in ArticleView.jsx");
 assert.equal(/<\s*(?:figure|img)\b/.test(renderInlineSource), false, "renderInline must not create figure or img JSX");
 assert.equal(/createElement\(\s*["'](?:figure|img)["']/.test(renderInlineSource), false, "renderInline must not create figure or img elements");
 assert.equal(renderInlineSource.includes("!["), false, "renderInline must not parse Markdown images");
-validResults.push({ name: "render-inline-media-isolation", source: "src/pages/ArticleView.jsx", passed: true });
+validResults.push({ name: "render-inline-media-isolation", source: "src/views/ArticleView.jsx", passed: true });
 
 async function writeJson(path, value) {
   await mkdir(dirname(path), { recursive: true });

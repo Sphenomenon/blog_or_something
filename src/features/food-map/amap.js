@@ -31,7 +31,11 @@ function getEnvValue(name, explicitValue) {
     return String(explicitValue).trim();
   }
 
-  return String(import.meta.env?.[name] ?? "").trim();
+  const values = {
+    VITE_AMAP_KEY: getRuntimeWindow()?.__NOCTURNE_AMAP_CONFIG__?.key ?? process.env.NEXT_PUBLIC_AMAP_KEY,
+    VITE_AMAP_SECURITY_JS_CODE: getRuntimeWindow()?.__NOCTURNE_AMAP_CONFIG__?.securityJsCode ?? process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE
+  };
+  return String(values[name] ?? "").trim();
 }
 
 function readyResult(AMap) {

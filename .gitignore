@@ -1,5 +1,8 @@
 node_modules/
 dist/
+out/
+.next/
+src/generated/
 .sisyphus/
 .playwright-mcp/
 

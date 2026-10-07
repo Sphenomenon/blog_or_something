@@ -122,9 +122,9 @@ function staticPathForRequest(url) {
   const { pathname } = new URL(url, "http://127.0.0.1");
   const normalizedPath = decodeURIComponent(pathname).replace(/^\/+/, "");
   if (pathname === "/food-map" || pathname === "/food-map/") {
-    return resolve("dist/index.html");
+    return resolve("out/food-map.html");
   }
-  return resolve("dist", normalizedPath || "index.html");
+  return resolve("out", normalizedPath || "index.html");
 }
 
 async function startDistStaticServer() {
@@ -229,8 +229,8 @@ async function writeTask10Evidence() {
   await writeFile(offlineSafeEvidencePath, [
     `Command: ${command}`,
     "Status: PASS",
-    "Offline safety: aggregate verification uses Node assertions, local files, local dist/Vite servers, mocked fetch responses, and Playwright route fulfillment.",
-    "No live AMap, CacheTide, public internet, production deploy, or real VITE_AMAP_KEY is required.",
+    "Offline safety: aggregate verification uses Node assertions, local files, local Next static output, mocked fetch responses, and Playwright route fulfillment.",
+    "No live AMap, CacheTide, public internet, production deploy, or real AMap key is required.",
     "AMap coverage comes from mocked adapter/browser flows; webapi.amap.com is only asserted or fulfilled as a local mock target.",
     "CacheTide is not contacted; external source tests use example.test fixtures and injected fetch implementations.",
     ""
@@ -378,23 +378,25 @@ try {
   record(passResults, "missing AMap-key build behavior and static export", () => {
     const env = { ...process.env };
     delete env.VITE_AMAP_KEY;
+    env.NEXT_PUBLIC_AMAP_KEY = "";
+    env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE = "";
     return runCommand("missing AMap-key build", "npm run build", { env });
   });
 
   await recordAsync(passResults, "generated JSON export exists and remains privacy-safe", async () => {
     const publicJson = await readFile(resolve("public/food-map/index.json"), "utf8");
-    const distJson = await readFile(resolve("dist/food-map/index.json"), "utf8");
+    const distJson = await readFile(resolve("out/food-map/index.json"), "utf8");
     const publicRoot = JSON.parse(publicJson);
     const distRoot = JSON.parse(distJson);
     assertSharedJsonRoot(publicRoot, publicJson, "public/food-map/index.json");
-    assertSharedJsonRoot(distRoot, distJson, "dist/food-map/index.json");
+    assertSharedJsonRoot(distRoot, distJson, "out/food-map/index.json");
     for (const exportedJson of [publicJson, distJson]) {
       for (const privateToken of ["privateNote", "people", "visits", "visitedAt"]) {
         assert.equal(exportedJson.includes(privateToken), false, `${privateToken} leaked into exported JSON`);
       }
     }
     assert.equal(FOOD_MAP_AMAP_LOADER_STATES.missingKey, "missing-key");
-    return `public spots=${publicRoot.spots.length} dist spots=${distRoot.spots.length}`;
+    return `public spots=${publicRoot.spots.length} exported spots=${distRoot.spots.length}`;
   });
 
   await recordAsync(passResults, "static HTTP serves food-map page shell separately from shared JSON", async () => {
@@ -413,7 +415,7 @@ try {
       assertSharedJsonRoot(root, jsonResponse.body, "HTTP /food-map/index.json");
       await writeJsonEndpointEvidence({
         status: "PASS",
-        server: "local dist static server",
+        server: "local Next static server",
         assertions: {
           distJsonExists: true,
           jsonStatus: jsonResponse.status,
@@ -429,7 +431,7 @@ try {
       });
       await writeRouteSeparationEvidence([
         "Status: PASS",
-        `Server: local dist static server (${server.baseUrl})`,
+        `Server: local Next static server (${server.baseUrl})`,
         `/food-map -> status ${pageResponse.status}, content-type ${pageResponse.contentType}, html shell=${/<html/i.test(pageResponse.body)}`,
         `/food-map/index.json -> status ${jsonResponse.status}, content-type ${jsonResponse.contentType}, schemaVersion=${root.schemaVersion}, spots=${root.spots.length}`,
         "Route separation: /food-map remains the SPA HTML page shell while /food-map/index.json remains a static JSON endpoint."

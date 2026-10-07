@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { site, sections } from "../data/yaml-loader.js";
 import { navigateFromLink } from "../lib/navigation.js";
+import { navigationTransition, reducedMotionTransition } from "../lib/motion.js";
 
 const secondaryViews = [
   { id: "archive", label: site.nav_archive_label },
@@ -8,8 +10,10 @@ const secondaryViews = [
   { id: "food-map", label: "美食地图" }
 ];
 
-export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onViewChange, query, onQueryChange, onSearchSubmit }) {
-  const [panel, setPanel] = useState(null);
+export function SiteHeader({ routeKey, activeSectionSlug, activeView, onSectionChange, onViewChange, query, onQueryChange, onSearchSubmit }) {
+  const shouldReduceMotion = useReducedMotion();
+  const [panelState, setPanelState] = useState({ routeKey, value: null });
+  const panel = panelState.routeKey === routeKey ? panelState.value : null;
   const searchInputRef = useRef(null);
   const menuToggleRef = useRef(null);
   const searchToggleRef = useRef(null);
@@ -19,6 +23,14 @@ export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onV
   useEffect(() => {
     if (panel === "search") searchInputRef.current?.focus();
   }, [panel]);
+
+  useEffect(() => {
+    setPanelState((current) => current.routeKey === routeKey ? current : { routeKey, value: null });
+  }, [routeKey]);
+
+  function setPanel(value) {
+    setPanelState({ routeKey, value });
+  }
 
   function followLink(event, navigate) {
     navigateFromLink(event, () => {
@@ -36,11 +48,13 @@ export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onV
 
   return (
     <header className="site-header" data-header-panel={panel ?? "closed"} data-header-view={activeView} onKeyDown={handleEscape}>
-      <a className="brand" data-testid="brand-home" href="/" onClick={(event) => followLink(event, () => onViewChange("home"))}>
+      <motion.a tabIndex={0} className="brand" data-testid="brand-home" href="/" onClick={(event) => followLink(event, () => onViewChange("home"))}
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
+        transition={shouldReduceMotion ? reducedMotionTransition : navigationTransition}>
         <span className="kicker">{site.brand_kicker}</span>
         <span className="brand-title">{site.brand_name}</span>
         <span className="subtitle" data-testid="site-header-subtitle">{subtitle}</span>
-      </a>
+      </motion.a>
 
       <div className="site-header__controls">
         <button ref={searchToggleRef} type="button" data-testid="header-search-toggle" aria-expanded={panel === "search"} aria-controls="site-search" aria-label="搜索文章" onClick={() => setPanel(panel === "search" ? null : "search")}>
@@ -53,31 +67,39 @@ export function SiteHeader({ activeSectionSlug, activeView, onSectionChange, onV
 
       <nav id="site-sections-nav" className="site-nav site-nav--sections" aria-label="主导航：栏目">
         {sections.map((section) => (
-          <a
+          <motion.a
+            tabIndex={0}
             key={section.slug}
             className={activeSectionSlug === section.slug ? "active" : ""}
             data-testid={`nav-section-${section.slug}`}
             href={`/sections/${section.slug}`}
             aria-current={activeSectionSlug === section.slug ? "page" : undefined}
             onClick={(event) => followLink(event, () => onSectionChange(section.slug))}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.045 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+            transition={shouldReduceMotion ? reducedMotionTransition : navigationTransition}
           >
             {section.shortLabel}
-          </a>
+          </motion.a>
         ))}
       </nav>
 
       <nav id="site-secondary-nav" className="site-nav site-nav--secondary" aria-label="辅助导航">
         {secondaryViews.map((view) => (
-          <a
+          <motion.a
+            tabIndex={0}
             key={view.id}
             className={activeView === view.id ? "active" : ""}
             data-testid={`nav-${view.id}`}
             href={`/${view.id}`}
             aria-current={activeView === view.id ? "page" : undefined}
             onClick={(event) => followLink(event, () => onViewChange(view.id))}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.045 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+            transition={shouldReduceMotion ? reducedMotionTransition : navigationTransition}
           >
             {view.label}
-          </a>
+          </motion.a>
         ))}
       </nav>
 

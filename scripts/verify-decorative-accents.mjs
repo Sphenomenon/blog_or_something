@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright";
-import { createServer } from "vite";
+import { createServer } from "./serve-static.mjs";
 
 import { decorativeAccents } from "../src/data/decorative-accents.js";
 
@@ -251,6 +251,9 @@ function createSignals() {
     consoleWarnings: [],
     ignoredReducedMotionWarnings: [],
     pageErrors: [],
+    abortedOnClose: [],
+    successfulHeadProbes: [],
+    canceledHeadProbes: [],
     failedRequests: [],
     requests: [],
     imageResponses: []
@@ -302,7 +305,14 @@ async function createContext(browser, baseUrl, viewport, reducedMotion = "no-pre
 
   const page = await context.newPage();
   page.on("pageerror", (error) => signals.pageErrors.push(error.stack || error.message));
-  page.on("requestfailed", (request) => signals.failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? null }));
+  page.on("requestfailed", (request) => {
+    const failure = { url: request.url(), error: request.failure()?.errorText ?? null };
+    const expectedClose = signals.closing && failure.error === "net::ERR_ABORTED" && request.resourceType() === "fetch" && new URL(request.url()).origin === localOrigin;
+    // Chromium can report an abort after Next's static-export HEAD probe has
+    // already resolved with HTTP 200. Keep real asset/navigation failures strict.
+    const completedProbe = request.method() === "HEAD" && failure.error === "net::ERR_ABORTED" && signals.successfulHeadProbes.includes(request.url());
+    (completedProbe ? signals.canceledHeadProbes : expectedClose ? signals.abortedOnClose : signals.failedRequests).push(failure);
+  });
   page.on("console", (message) => {
     const entry = { type: message.type(), text: message.text() };
     if (entry.type === "error") signals.consoleErrors.push(entry);
@@ -312,6 +322,9 @@ async function createContext(browser, baseUrl, viewport, reducedMotion = "no-pre
     }
   });
   page.on("response", (response) => {
+    if (response.request().method() === "HEAD" && response.status() === 200 && new URL(response.url()).origin === localOrigin) {
+      signals.successfulHeadProbes.push(response.url());
+    }
     if (response.request().resourceType() === "image") {
       signals.imageResponses.push({ url: response.url(), status: response.status() });
     }
@@ -543,6 +556,7 @@ async function runViewport(browser, baseUrl, record, viewport) {
     }
     return { viewport, contract, network, signals, screenshot };
   } finally {
+    signals.closing = true;
     await context.close();
   }
 }
@@ -565,6 +579,7 @@ async function runReducedMotion(browser, baseUrl, record) {
     assertCleanSignals(signals, `${record.surface} reduced-motion`);
     return { surface: record.surface, motion: contract.motion, signals, network };
   } finally {
+    signals.closing = true;
     await context.close();
   }
 }
@@ -572,7 +587,21 @@ async function runReducedMotion(browser, baseUrl, record) {
 async function assertZeroAccentRoute(browser, baseUrl, route, waitSelector, options = {}) {
   const { context, page, signals } = await createContext(browser, baseUrl, { width: 1440, height: 1000 });
   try {
-    await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle", timeout: 20000 });
+    const httpErrors = [];
+    page.on("response", (response) => {
+      if (response.status() >= 400) httpErrors.push({ url: response.url(), status: response.status() });
+    });
+    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle", timeout: 20000 });
+    if (route === "/route-that-does-not-exist") {
+      assert.equal(response.status(), 404, "Unknown routes must return an HTTP 404");
+      assert.deepEqual(httpErrors, [{ url: `${baseUrl}${route}`, status: 404 }]);
+      const expectedConsole = "Failed to load resource: the server responded with a status of 404 (Not Found)";
+      assert(signals.consoleErrors.length <= 1 && signals.consoleErrors.every((entry) => entry.text === expectedConsole));
+      signals.consoleErrors = [];
+    } else {
+      assert.equal(response.status(), 200);
+      assert.deepEqual(httpErrors, []);
+    }
     await page.locator(waitSelector).waitFor({ state: "visible", timeout: 10000 });
     if (options.greeting) assert.equal(await page.getByTestId("greeting-gate").isVisible(), true, "greeting gate must be visible for zero-accent check");
     const state = await page.evaluate((exclusions) => ({
@@ -590,6 +619,7 @@ async function assertZeroAccentRoute(browser, baseUrl, route, waitSelector, opti
     assertCleanSignals(signals, `${route} zero-accent`);
     return { route, state, signals };
   } finally {
+    signals.closing = true;
     await context.close();
   }
 }

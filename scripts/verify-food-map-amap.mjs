@@ -314,7 +314,7 @@ await recordAsync("adapter InfoWindow methods are safe when AMap or map pieces a
 });
 
 await recordAsync("React UI progressively uses the AMap adapter", async () => {
-  const viewSource = await readFile(resolve("src/pages/FoodMapView.jsx"), "utf8");
+  const viewSource = await readFile(resolve("src/views/FoodMapView.jsx"), "utf8");
   const componentSource = await readFile(resolve("src/features/food-map/FoodMapComponents.jsx"), "utf8");
 
   assert.match(viewSource, /FoodMapAmapPanel/);
@@ -360,7 +360,7 @@ await recordAsync("popup content renderer escapes user content and formats requi
 });
 
 await recordAsync("popup sync keeps raw AMap access inside adapter and separates close from selectedId", async () => {
-  const viewSource = await readFile(resolve("src/pages/FoodMapView.jsx"), "utf8");
+  const viewSource = await readFile(resolve("src/views/FoodMapView.jsx"), "utf8");
   const componentSource = await readFile(resolve("src/features/food-map/FoodMapComponents.jsx"), "utf8");
 
   assert.match(componentSource, /const infoWindowRef = useRef\(null\)/);

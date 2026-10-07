@@ -85,7 +85,7 @@ async function writeEvidence(path, lines) {
 }
 
 async function readFoodMapViewSource() {
-  return readFile(resolve("src/pages/FoodMapView.jsx"), "utf8");
+  return readFile(resolve("src/views/FoodMapView.jsx"), "utf8");
 }
 
 await recordAsync(happyResults, "aggregates enabled external source with attribution and allowlist projection", async () => {

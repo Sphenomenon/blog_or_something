@@ -1,6 +1,6 @@
 # Content authoring
 
-Put post files in `src/content/posts/*.md`. The runtime loads every markdown file there, validates frontmatter in `src/data/content.js`, and sorts posts by `date`.
+Put post files in `src/content/posts/*.md`. The build-time generator reads those files, retains the frontmatter validation in `src/data/content.js`, and sorts posts by `date`. Next.js exports each article as a static route.
 
 ## Required frontmatter
 
@@ -35,9 +35,9 @@ Section labels, order, themes, intro copy, and background asset paths live in `s
 
 Background assets live in `backgrounds/` and are referenced from the section registry.
 
-## Deferred features
+## CMS publishing
 
-Comments, login, CMS integration, and Decap admin paths are future options only. They are not implemented here and should not be added as part of normal post authoring.
+The Sveltia admin at `/admin/` writes Markdown/YAML and uploads to the GitHub `main` branch. A content commit triggers the normal site build; keep the existing CMS schema and Cloudflare Pages OAuth functions. Giscus comments and the music player are already integrated.
 
 ## Add a new post
 
@@ -45,7 +45,7 @@ Comments, login, CMS integration, and Decap admin paths are future options only.
 2. Add valid frontmatter and post body.
 3. Rebuild the site.
 
-That is all the runtime needs.
+The build generates the route list, validates content and image references, and exports deployable files to `out/`. Local `npm run dev` watches content and uploads; edit source files rather than `src/generated/`.
 
 ## Minimal template
 
@@ -79,7 +79,7 @@ Images in post bodies follow a block-only grammar. Inline `![alt](url)` inside p
 - Reference them with an absolute path starting `/images/uploads/`, for example `/images/uploads/travel/station.jpg`.
 - Supported formats: `.jpg`, `.jpeg`, `.png`, `.webp` (static).
 - `npm run dev` and `npm run build` automatically generate responsive WebP derivatives and a manifest that the renderer consumes.
-- After adding or replacing an upload source, restart an already-running dev server. The generator does not watch.
+- The local dev command watches content/uploads and regenerates image assets and content input after changes.
 
 ### Standard images
 

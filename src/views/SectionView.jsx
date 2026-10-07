@@ -1,3 +1,4 @@
+import { SharedText } from "../components/SharedText.jsx";
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
@@ -48,16 +49,16 @@ export function SectionView({ sectionSlug, onOpenPost }) {
       aria-labelledby={`section-title-${section.slug}`}
       style={{ backgroundImage }}
     >
-      <p className="hero-code">SECTION / {section.navKicker.toUpperCase()}</p>
+      <p className="hero-code"><SharedText>SECTION / </SharedText><SharedText>{section.navKicker.toUpperCase()}</SharedText></p>
       <div className="section-hero">
         <div className="section-hero-copy">
           <div className="section-hero-mark-wrap" data-testid="section-mark" data-section-mark={section.slug}>
             <SectionMark slug={section.slug} className="section-mark--hero" title={`${section.label}栏目标记`} />
           </div>
           <div className="section-hero-text">
-            <p className="section-hero-kicker">{section.shortLabel}</p>
-            <h1 id={`section-title-${section.slug}`}>{section.label}</h1>
-            <p className="page-panel-lead">{section.intro}</p>
+            <p className="section-hero-kicker"><SharedText>{section.shortLabel}</SharedText></p>
+            <h1 id={`section-title-${section.slug}`}><SharedText>{section.label}</SharedText></h1>
+            <p className="page-panel-lead"><SharedText>{section.intro}</SharedText></p>
           </div>
         </div>
 
@@ -74,13 +75,13 @@ export function SectionView({ sectionSlug, onOpenPost }) {
       {isLinksSection ? (
         <section className="section-posts" aria-label="友链列表">
           <div className="section-posts-header">
-            <h2 className="section-title">友链</h2>
+            <h2 className="section-title"><SharedText>友链</SharedText></h2>
           </div>
 
           {friendLinks.length === 0 ? (
             <div className="section-empty-state" data-testid="section-empty-state">
-              <p>暂无友链。</p>
-              <p>新的站点收录后，将显示在这里。</p>
+              <p><SharedText>暂无友链。</SharedText></p>
+              <p><SharedText>新的站点收录后，将显示在这里。</SharedText></p>
             </div>
           ) : (
             <motion.div className="friend-links-grid" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
@@ -93,18 +94,18 @@ export function SectionView({ sectionSlug, onOpenPost }) {
       ) : (
         <section className="section-posts" aria-label="栏目文章列表">
           <div className="section-posts-header">
-            <h2 className="section-title">最近入柜</h2>
+            <h2 className="section-title"><SharedText>最近入柜</SharedText></h2>
             <p className="section-posts-note">
-              {isExpanded
+              <SharedText>{isExpanded
                 ? `FULL CABINET / ${allSectionPosts.length} RECORDS · 全部条目`
-                : `LATEST ${sectionPosts.length} / ${allSectionPosts.length} RECORDS · 最近记录`}
+                : `LATEST ${sectionPosts.length} / ${allSectionPosts.length} RECORDS · 最近记录`}</SharedText>
             </p>
           </div>
 
           {sectionPosts.length === 0 ? (
             <div className="section-empty-state" data-testid="section-empty-state">
-              <p>这个栏目暂时没有已入库的文章档案。</p>
-              <p>后续条目归档后，会自动出现在这份栏目索引中。</p>
+              <p><SharedText>这个栏目暂时没有已入库的文章档案。</SharedText></p>
+              <p><SharedText>后续条目归档后，会自动出现在这份栏目索引中。</SharedText></p>
             </div>
           ) : (
             <motion.ol

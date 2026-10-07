@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Cloudflare Pages Functions for Sveltia CMS GitHub OAuth. These endpoints are runtime auth glue for `public/admin/config.yml`, not Vercel/Netlify functions and not static Vite code.
+Cloudflare Pages Functions for Sveltia CMS GitHub OAuth. These endpoints are runtime auth glue for `public/admin/config.yml`, not Vercel/Netlify functions and not part of the Next static export.
 
 ## STRUCTURE
 
@@ -16,7 +16,7 @@ functions/api/
 
 - Use `export async function onRequest(context)`.
 - Cloudflare provides `context.request`, `context.env`, `Response`, `URL`, `URLSearchParams`, and `fetch`.
-- `wrangler.jsonc` sets Pages output to `dist`.
+- `wrangler.jsonc` sets Pages output to `out`.
 - `vercel.json` and `netlify.toml` do not provide equivalent handlers.
 
 ## ENVIRONMENT

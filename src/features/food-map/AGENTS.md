@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Feature boundary for food-place contracts, YAML normalization, public/privacy projection, external-source aggregation, AMap integration, and React food-map UI. Page orchestration is in `src/pages/FoodMapView.jsx`; route registration is in `src/App.jsx`; styles are global in `src/styles.css`.
+Feature boundary for food-place contracts, YAML normalization, public/privacy projection, external-source aggregation, AMap integration, and React food-map UI. Page orchestration is in `src/views/FoodMapView.jsx`; static routes are in `app/`; styles are global in `src/styles.css`.
 
 ## WHERE TO LOOK
 
@@ -10,7 +10,7 @@ Feature boundary for food-place contracts, YAML normalization, public/privacy pr
 |---|---|---|
 | Change schema/public fields | `contracts.js`, `core.js` | Update allowlists and verification scripts together. |
 | Add local place fields | `src/content/food-places/*.yaml`, `core.js`, `public/admin/config.yml` | Preserve public/private projection. |
-| Change YAML loading | `loader-core.js`, `loader.js` | Keep Vite glob logic out of `loader-core.js`. |
+| Change YAML loading | `loader-core.js`, `loader.js`, `scripts/generate-site-content.mjs` | Normalize and project before generating client data; keep loaders framework-independent. |
 | Change external merge | `core.js` | Local scalar values win; arrays merge local-first. |
 | Change AMap behavior | `amap.js`, `FoodMapComponents.jsx` | Raw AMap only in adapter; UI must fallback without keys. |
 | Change UI classes | `FoodMapComponents.jsx`, `src/styles.css` | Global `food-map-*` classes drive styling and verification. |
@@ -19,8 +19,8 @@ Feature boundary for food-place contracts, YAML normalization, public/privacy pr
 ## DATA FLOW
 
 ```text
-src/content/food-places/*.yaml -> loader.js -> loader-core.js -> core.js -> FoodMapView.jsx
-scripts/generate-food-map-json.mjs -> public/food-map/index.json -> dist/food-map/index.json
+src/content/food-places/*.yaml -> generate-site-content.mjs -> loader-core.js -> core.js -> public generated data -> FoodMapView.jsx
+scripts/generate-food-map-json.mjs -> public/food-map/index.json -> out/food-map/index.json
 public/food-map/sources.json -> loadFoodMapSourceConfig() -> aggregateFoodMapExternalSources()
 ```
 
@@ -42,14 +42,14 @@ public/food-map/sources.json -> loadFoodMapSourceConfig() -> aggregateFoodMapExt
 
 ## AMAP RULES
 
-- `VITE_AMAP_KEY` enables live AMap; `VITE_AMAP_SECURITY_JS_CODE` is optional.
+- `NEXT_PUBLIC_AMAP_KEY` enables live AMap; `NEXT_PUBLIC_AMAP_SECURITY_JS_CODE` is optional. The Next build config also accepts the previous `VITE_AMAP_*` variables.
 - Missing key, failed script load, non-browser runtime, and no-coordinate states are supported UI states.
 - Keep `window.AMap`, `new AMap.*`, marker/listener/map internals inside `amap.js`.
 - React components should use adapter methods and keep fallback marker/list UX functional.
 
 ## ANTI-PATTERNS
 
-- Do not put `import.meta.glob` in `loader-core.js`; that file is intentionally pure/testable.
+- Do not put framework-specific imports in `loader-core.js`; that file is intentionally pure/testable.
 - Do not include React components in `index.js` unless deliberately changing the public surface.
 - Do not turn `/food-map/index.json` into an SPA route or aggregate external/friend data into the local shared JSON.
 - Do not require live AMap, public internet, CacheTide, production deploys, or real keys in tests.

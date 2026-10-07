@@ -1,47 +1,38 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+"use client";
+
+import { createContext, startTransition, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useReducedMotion } from "framer-motion";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
-import { AboutView } from "./pages/AboutView.jsx";
-import { ArchiveView } from "./pages/ArchiveView.jsx";
-import { ArticleView } from "./pages/ArticleView.jsx";
-import { GreetingGate } from "./components/GreetingGate.jsx";
 import { MusicEasterEgg } from "./components/MusicEasterEgg.jsx";
 import { BackToTop } from "./components/BackToTop.jsx";
-import { HomeView } from "./pages/HomeView.jsx";
-import { SectionView } from "./pages/SectionView.jsx";
-import { FoodMapView } from "./pages/FoodMapView.jsx";
-import { site } from "./data/yaml-loader.js";
 import { getSectionBySlug } from "./data/sections.js";
-import { viewTransition } from "./lib/motion.js";
 
-const ROUTE_TRANSITION_MS = 320;
 const LIST_TRANSITION_MS = 220;
 const GREETING_SESSION_KEY = "nocturne:greeting-dismissed";
 const NETLIFY_IDENTITY_SCRIPT_URL = "https://identity.netlify.com/v1/netlify-identity-widget.js";
-const VerificationArticleImagesView = import.meta.env.MODE === "verification"
-  ? lazy(() => import("./verification/ArticleImagesVerificationView.jsx"))
-  : null;
+const SiteContext = createContext(null);
 
-export default function App() {
+export function useSiteState() {
+  return useContext(SiteContext);
+}
+
+export default function App({ children }) {
+  const router = useRouter();
+  const pathname = usePathname() || "/";
   const shouldReduceMotion = useReducedMotion();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [tagFilter, setTagFilter] = useState("All");
-  const [greetingDismissed, setGreetingDismissed] = useState(() => {
-    try {
-      return window.sessionStorage.getItem(GREETING_SESSION_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
-  const [pathname, setPathname] = useState(() => window.location.pathname || "/");
-  const [transitionState, setTransitionState] = useState("idle");
+  const [greetingDismissed, setGreetingDismissed] = useState(false);
   const [listTransitionState, setListTransitionState] = useState("idle");
-  const routeTransitionTimerRef = useRef(null);
   const listTransitionTimerRef = useRef(null);
   const searchScrollPendingRef = useRef(false);
   const routeScrollPendingRef = useRef(false);
+  const pendingPathRef = useRef(null);
+  const navigateRef = useRef(null);
+  const prefetchedPathsRef = useRef(new Map());
   const filterSnapshotRef = useRef({ query: "", statusFilter: "All", tagFilter: "All" });
 
   const postBySlug = useMemo(() => {
@@ -55,17 +46,7 @@ export default function App() {
   const selectedPost = route.kind === "post" ? postBySlug[route.slug] ?? null : null;
   const selectedSection = route.kind === "section" ? route.sectionSlug : null;
   const activeHeaderSection = selectedSection ?? selectedPost?.section ?? "";
-  const selectedSectionData = selectedSection ? getSectionBySlug(selectedSection) : null;
-  const isNotFound = route.kind === "not-found" || (route.kind === "post" && !selectedPost) || (route.kind === "section" && !selectedSectionData);
   const isGreetingVisible = route.kind === "home" && !greetingDismissed;
-  const routeFrameKey = `${route.kind}:${normalizePath(pathname)}:${route.kind === "home" && !greetingDismissed ? "gate" : "view"}`;
-
-  useLayoutEffect(() => {
-    if (!routeScrollPendingRef.current) return;
-    routeScrollPendingRef.current = false;
-    // Reset only after the new view is committed, without waking old lazy images.
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [routeFrameKey]);
 
   const activeView = useMemo(() => {
     if (route.kind === "home") return "home";
@@ -73,31 +54,14 @@ export default function App() {
     if (route.kind === "archive") return "archive";
     if (route.kind === "about") return "about";
     if (route.kind === "food-map") return "food-map";
-    if (route.kind === "article-images-verification") return "post";
     return "";
   }, [route.kind, selectedPost]);
-
-  function clearRouteTransitionTimer() {
-    if (routeTransitionTimerRef.current !== null) {
-      window.clearTimeout(routeTransitionTimerRef.current);
-      routeTransitionTimerRef.current = null;
-    }
-  }
 
   function clearListTransitionTimer() {
     if (listTransitionTimerRef.current !== null) {
       window.clearTimeout(listTransitionTimerRef.current);
       listTransitionTimerRef.current = null;
     }
-  }
-
-  function armRouteTransition() {
-    clearRouteTransitionTimer();
-    setTransitionState("transitioning");
-    routeTransitionTimerRef.current = window.setTimeout(() => {
-      setTransitionState("idle");
-      routeTransitionTimerRef.current = null;
-    }, ROUTE_TRANSITION_MS);
   }
 
   function armListTransition() {
@@ -128,14 +92,90 @@ export default function App() {
   }, [query, statusFilter, tagFilter]);
 
   useEffect(() => {
-    function handlePopState() {
-      armRouteTransition();
-      setPathname(window.location.pathname || "/");
+    try {
+      setGreetingDismissed(window.sessionStorage.getItem(GREETING_SESSION_KEY) === "true");
+    } catch {
+      setGreetingDismissed(false);
     }
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  useEffect(() => {
+    function followInternalLink(event) {
+      let link = event.target.closest?.(".site-header a[href], .route-stage a[href]");
+      // During snapshot capture the browser redirects pointer targets to <html>.
+      if (!link && event.target === document.documentElement && event.detail > 0) {
+        let capturing = false;
+        try { capturing = document.documentElement.matches(":active-view-transition"); } catch { /* Older browsers keep native hit testing. */ }
+        if (capturing) {
+          link = [...document.querySelectorAll(".site-header a[href]")].find((candidate) => {
+            const bounds = candidate.getBoundingClientRect();
+            return bounds.width > 0 && bounds.height > 0 && event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+          });
+        }
+      }
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.hasAttribute("download") || (link.target && link.target !== "_self") || link.origin !== window.location.origin) return;
+      if (link.hash && link.pathname === window.location.pathname) return;
+      const destination = parseRoute(link.pathname);
+      if (destination.kind === "not-found") return;
+      event.preventDefault();
+      navigateRef.current(`${link.pathname}${link.search}${link.hash}`);
+    }
+    document.addEventListener("click", followInternalLink, true);
+    return () => document.removeEventListener("click", followInternalLink, true);
+  }, []);
+
+  useEffect(() => {
+    const connection = navigator.connection;
+    if (connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType)) return;
+    let idleId = null;
+    let timerId = null;
+    const queue = new Set();
+    const prefetch = (path) => {
+      const now = Date.now();
+      if (now - (prefetchedPathsRef.current.get(path) ?? 0) < 60000) return;
+      prefetchedPathsRef.current.set(path, now);
+      router.prefetch(path);
+    };
+    const internalPath = (link) => {
+      if (!link || link.origin !== window.location.origin || link.hasAttribute("download") || link.target === "_blank" || link.pathname === pathname) return null;
+      return parseRoute(link.pathname).kind === "not-found" ? null : link.pathname;
+    };
+    const flush = () => {
+      idleId = null;
+      timerId = null;
+      for (const path of [...queue].slice(0, 12)) prefetch(path);
+      queue.clear();
+    };
+    const schedule = () => {
+      if (idleId !== null || timerId !== null) return;
+      if ("requestIdleCallback" in window) idleId = window.requestIdleCallback(flush, { timeout: 1200 });
+      else timerId = window.setTimeout(flush, 150);
+    };
+    function prefetchLink(event) {
+      const link = event.target.closest?.("a[href]");
+      const path = internalPath(link);
+      if (path) prefetch(path);
+    }
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const path = internalPath(entry.target);
+        if (path) queue.add(path);
+        observer.unobserve(entry.target);
+      }
+      if (queue.size) schedule();
+    }, { rootMargin: "80px" });
+    document.querySelectorAll(".site-header a[href], .route-stage a[href]").forEach((link) => observer.observe(link));
+    document.addEventListener("pointerover", prefetchLink);
+    document.addEventListener("focusin", prefetchLink);
+    return () => {
+      observer.disconnect();
+      if (idleId !== null) window.cancelIdleCallback(idleId);
+      if (timerId !== null) window.clearTimeout(timerId);
+      document.removeEventListener("pointerover", prefetchLink);
+      document.removeEventListener("focusin", prefetchLink);
+    };
+  }, [router, pathname, greetingDismissed]);
 
   useEffect(() => {
     if (route.kind !== "home") {
@@ -176,7 +216,6 @@ export default function App() {
 
   useEffect(() => {
     return () => {
-      clearRouteTransitionTimer();
       clearListTransitionTimer();
     };
   }, []);
@@ -221,17 +260,15 @@ export default function App() {
   }, []);
 
   function navigateTo(nextPath) {
-    if (normalizePath(nextPath) === normalizePath(pathname)) {
+    if (normalizePath(nextPath) === normalizePath(pendingPathRef.current ?? pathname)) {
       return;
     }
 
-    armRouteTransition();
-    if (nextPath !== window.location.pathname) {
-      window.history.pushState({}, "", nextPath);
-    }
+    pendingPathRef.current = nextPath;
     routeScrollPendingRef.current = true;
-    setPathname(nextPath);
+    startTransition(() => router.push(nextPath, { scroll: false }));
   }
+  navigateRef.current = navigateTo;
 
   function dismissGreeting() {
     routeScrollPendingRef.current = true;
@@ -296,10 +333,24 @@ export default function App() {
     }
   }
 
+  const state = {
+    greetingDismissed, filteredPosts, statusFilter, setStatusFilter, tagFilter, setTagFilter,
+    dismissGreeting, replayGreeting, openPost, openSection, navigateTo, listTransitionState,
+    resetScroll: routeScrollPendingRef.current,
+    completeNavigation: () => {
+      if (pendingPathRef.current === null || normalizePath(pendingPathRef.current) === normalizePath(pathname)) {
+        pendingPathRef.current = null;
+        routeScrollPendingRef.current = false;
+      }
+    }
+  };
+
   return (
+    <SiteContext.Provider value={state}>
     <div className="app-shell">
       {!isGreetingVisible && (
         <SiteHeader
+          routeKey={pathname}
           activeSectionSlug={activeHeaderSection}
           activeView={activeView}
           onSectionChange={openSection}
@@ -309,64 +360,18 @@ export default function App() {
           onSearchSubmit={submitSearch}
         />
       )}
-      <main
-        className="route-stage"
-        data-route-kind={route.kind}
-        data-transition-state={transitionState}
-        data-list-transition-state={listTransitionState}
-      >
-        <motion.div
-          key={routeFrameKey}
-          className={`route-frame${isGreetingVisible ? " route-frame--greeting" : ""}`}
-          variants={viewTransition}
-          initial={shouldReduceMotion || isGreetingVisible ? false : "initial"}
-          animate="animate"
-          custom={shouldReduceMotion}
-        >
-          {route.kind === "home" && !greetingDismissed && (
-            <GreetingGate onEnterHome={dismissGreeting} />
-          )}
-          {route.kind === "home" && greetingDismissed && (
-            <HomeView
-              filteredPosts={filteredPosts}
-              onOpenPost={openPost}
-              onSectionChange={openSection}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              tagFilter={tagFilter}
-              setTagFilter={setTagFilter}
-              onReplayGreeting={replayGreeting}
-            />
-          )}
-          {route.kind === "post" && selectedPost && <ArticleView post={selectedPost} onOpenPost={openPost} onOpenSection={openSection} pathname={pathname} />}
-          {route.kind === "archive" && <ArchiveView onOpenPost={openPost} />}
-          {route.kind === "about" && <AboutView />}
-          {route.kind === "food-map" && <FoodMapView />}
-          {route.kind === "article-images-verification" && VerificationArticleImagesView && (
-            <Suspense fallback={null}>
-              <VerificationArticleImagesView onNavigate={navigateTo} />
-            </Suspense>
-          )}
-          {route.kind === "section" && selectedSectionData && <SectionView sectionSlug={selectedSectionData.slug} onOpenPost={openPost} />}
-          {isNotFound && (
-            <div data-testid="not-found-view">
-              <h1>{site.error_404_title}</h1>
-              <p>{site.error_404_body}</p>
-              <button type="button" onClick={() => navigateTo("/")}>{site.error_404_button}</button>
-            </div>
-          )}
-        </motion.div>
-      </main>
+      {children}
       <MusicEasterEgg
         variant={route.kind === "home" ? "full" : "mini"}
         isHomeReady={route.kind !== "home" || greetingDismissed}
       />
       <BackToTop routeKey={pathname} />
     </div>
+    </SiteContext.Provider>
   );
 }
 
-function parseRoute(pathname) {
+export function parseRoute(pathname) {
   const normalizedPath = normalizePath(pathname);
 
   if (normalizedPath === "/") {
@@ -383,10 +388,6 @@ function parseRoute(pathname) {
 
   if (normalizedPath === "/food-map") {
     return { kind: "food-map" };
-  }
-
-  if (import.meta.env.MODE === "verification" && normalizedPath === "/__verify__/article-images") {
-    return { kind: "article-images-verification" };
   }
 
   const postMatch = normalizedPath.match(/^\/posts\/([^/]+)$/);

@@ -1,4 +1,5 @@
 import { getSectionBySlug, SECTION_REGISTRY } from "./sections.js";
+import { markdownModules } from "../generated/content.js";
 
 const allowedSections = new Set(SECTION_REGISTRY.map((s) => s.slug));
 const requiredFields = ["id", "slug", "title", "excerpt", "date", "section", "status", "reading"];
@@ -175,12 +176,6 @@ function validateAndNormalizeEntry(filePath, frontmatter, content, seenSlugs) {
     content
   };
 }
-
-const markdownModules = import.meta.glob("../content/posts/*.md", {
-  query: "?raw",
-  import: "default",
-  eager: true
-});
 
 if (!Object.keys(markdownModules).length) {
   throw new Error("[content] no markdown posts found in src/content/posts/*.md");

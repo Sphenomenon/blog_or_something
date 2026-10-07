@@ -115,7 +115,7 @@ export function MusicEasterEgg({ variant = "full", isHomeReady = true }) {
         data-testid="music-easter-egg-panel"
         data-expanded={isExpanded}
         aria-hidden={isExpanded ? "false" : "true"}
-        inert={isExpanded ? undefined : ""}
+        inert={!isExpanded}
       >
         <div className="music-easter-egg__panel-copy">
           <p className="music-easter-egg__label">{music.provider}</p>

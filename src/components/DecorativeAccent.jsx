@@ -17,7 +17,7 @@ export function DecorativeAccent({ id }) {
   const accent = decorativeAccentsById.get(id);
 
   if (!accent) {
-    if (import.meta.env.PROD) {
+    if (process.env.NODE_ENV === "production") {
       return null;
     }
 

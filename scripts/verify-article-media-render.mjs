@@ -80,13 +80,14 @@ const previousManifestPath = process.env.ARTICLE_IMAGE_MANIFEST_PATH;
 process.env.ARTICLE_IMAGE_MANIFEST_PATH = manifestPath;
 
 const vite = await createServer({
+  mode: "verification",
   appType: "custom",
   logLevel: "silent",
   server: { middlewareMode: true }
 });
 
 try {
-  const { ArticleView } = await vite.ssrLoadModule("/src/pages/ArticleView.jsx");
+  const { ArticleView } = await vite.ssrLoadModule("/src/views/ArticleView.jsx");
   const { getArticleNeighbors, posts } = await vite.ssrLoadModule("/src/data/posts.js");
   const relatedPost = posts.find((candidate) => {
     if (candidate.slug === "swjtu-2026-major-group-forecast") {
@@ -105,6 +106,7 @@ try {
     section: relatedPost.section
   };
   const html = renderToStaticMarkup(React.createElement(ArticleView, { post, onOpenPost: () => {} }));
+  const textStructure = html.replace(/<\/?span\b[^>]*>/g, "");
 
   const count = (pattern) => html.match(pattern)?.length ?? 0;
   const indexOf = (text) => {
@@ -173,9 +175,9 @@ try {
   assert.ok(/data-testid="article-related-[^"]+"/.test(html));
   assert.ok(/data-testid="article-related-panel-[^"]+"/.test(html));
   assert.ok(html.includes('data-testid="article-comments-container"'));
-  assert.ok(html.includes("<blockquote>Quoted text</blockquote>"));
-  assert.ok(html.includes("<ul><li>unordered one</li><li>unordered two</li></ul>"));
-  assert.ok(html.includes("<ol><li>ordered one</li><li>ordered two</li></ol>"));
+  assert.ok(textStructure.includes("<blockquote>Quoted text</blockquote>"));
+  assert.ok(textStructure.includes("<ul><li>unordered one</li><li>unordered two</li></ul>"));
+  assert.ok(textStructure.includes("<ol><li>ordered one</li><li>ordered two</li></ol>"));
   assert.ok(html.includes("<table><thead>"));
   assert.equal(html.includes('data-testid="article-media-errors"'), false);
 
@@ -195,7 +197,7 @@ try {
   assert.ok(malformedHtml.includes('data-testid="article-media-errors"'));
   assert.ok(malformedHtml.includes("ARTICLE_MEDIA_INLINE_IMAGE"));
   assert.equal(malformedHtml.includes("<script>"), false);
-  assert.ok(malformedHtml.includes("&lt;script&gt;alert(1)&lt;/script&gt;"));
+  assert.ok(malformedHtml.replace(/<\/?span\b[^>]*>/g, "").includes("&lt;script&gt;alert(1)&lt;/script&gt;"));
 
   const report = {
     command,

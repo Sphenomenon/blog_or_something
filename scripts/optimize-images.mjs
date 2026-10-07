@@ -11,7 +11,7 @@
  *   - public/images/uploads/  (CMS uploads, if any)
  *
  * Output directory:
- *   - public/images/optimized/  (mirrored to dist/ by Vite on build)
+ *   - public/images/optimized/  (copied to out/ by Next static export)
  */
 
 import sharp from "sharp";

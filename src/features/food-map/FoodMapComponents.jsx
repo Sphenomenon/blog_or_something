@@ -1,3 +1,4 @@
+import { SharedText } from "../../components/SharedText.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { FOOD_MAP_AMAP_LOADER_STATES, createAmapAdapter } from "./index.js";
@@ -33,7 +34,7 @@ function escapeHtml(value) {
 }
 
 function uniqueSorted(values) {
-  return [...new Set(values.map(asText).filter(Boolean))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values.map(asText).filter(Boolean))].sort((left, right) => left < right ? -1 : left > right ? 1 : 0);
 }
 
 function validCoordinates(spot) {
@@ -60,7 +61,7 @@ function getAmapPanelStatusText(state, coordinateCount, error) {
     return `高德地图脚本加载失败${diagnostic}，已自动回退到 marker 列表；请检查 webapi.amap.com 是否能访问、Key/安全密钥是否匹配、域名白名单是否包含当前域名。`;
   }
 
-  return "未配置 VITE_AMAP_KEY，当前使用可访问的 fallback marker 列表；地点卡片、详情和高德外链仍可使用。";
+  return "地图暂未连接，当前显示可访问的地点列表；店铺详情和高德外链可正常使用。";
 }
 
 function formatRating(rating) {
@@ -211,7 +212,7 @@ export function FoodMapFilters({ filters, options, totalCount, resultCount, onCh
         </div>
       </div>
       <div className="food-map-filter-count">
-        <span className="food-map-count" role="status" aria-live="polite"><strong>{resultCount}</strong> / {totalCount} 家店铺</span>
+        <span className="food-map-count" role="status" aria-live="polite"><strong><SharedText>{resultCount}</SharedText></strong> / {totalCount} 家店铺</span>
         <button className="food-map-filter-toggle" type="button" aria-expanded={expanded} aria-controls="food-map-search-controls food-map-source-controls" onClick={() => setExpanded((current) => !current)}>
           {expanded ? "收起筛选" : filters.query || filters.source !== "all" ? "搜索与来源 · 已筛选" : "搜索与来源"}
         </button>
@@ -239,8 +240,8 @@ export function FoodMapFilters({ filters, options, totalCount, resultCount, onCh
 export function FoodMapEmptyState() {
   return (
     <section className="food-map-empty-state" aria-live="polite">
-      <h2>地图还在等待第一枚坐标</h2>
-      <p>当前公开美食地点为空。等内容目录加入已发布且非私密的记录后，这里会自动显示卡片和 fallback 地图。</p>
+      <h2><SharedText>地图还在等待第一枚坐标</SharedText></h2>
+      <p><SharedText>当前公开美食地点为空。等内容目录加入已发布且非私密的记录后，这里会自动显示卡片和 fallback 地图。</SharedText></p>
     </section>
   );
 }
@@ -248,8 +249,8 @@ export function FoodMapEmptyState() {
 export function FoodMapNoResults({ onReset }) {
   return (
     <section className="food-map-no-results" aria-live="polite">
-      <h2>没有匹配的地点</h2>
-      <p>换一个城市、类别或关键词试试看；地图不会丢失，只是这组筛选暂时没有公开结果。</p>
+      <h2><SharedText>没有匹配的地点</SharedText></h2>
+      <p><SharedText>换一个城市、类别或关键词试试看；地图不会丢失，只是这组筛选暂时没有公开结果。</SharedText></p>
       <button className="food-map-button" type="button" onClick={onReset}>清空筛选</button>
     </section>
   );
@@ -281,7 +282,7 @@ export function FoodMapSpotCard({ spot, selected, onSelect }) {
       onClick={() => onSelect(spot.id)}
     >
       <span className="food-map-card-header">
-        <span className="food-map-card-title">{spot.name}</span>
+        <span className="food-map-card-title"><SharedText>{spot.name}</SharedText></span>
         <span className="food-map-card-meta">
           {meta.map((value, index) => <span key={`${value}-${index}`}>{value}</span>)}
           {spot.source?.type === "external" && <SourceBadge source={spot.source} />}
@@ -342,8 +343,8 @@ export function FoodMapDetail({ spot }) {
   if (!spot) {
     return (
       <section className="food-map-detail food-map-detail--empty" aria-live="polite">
-        <h2>选择一个地点查看详情</h2>
-        <p>选择店铺卡片或地图上的地点，即可在这里查看公开记录。</p>
+        <h2><SharedText>选择一个地点查看详情</SharedText></h2>
+        <p><SharedText>选择店铺卡片或地图上的地点，即可在这里查看公开记录。</SharedText></p>
       </section>
     );
   }
@@ -355,12 +356,12 @@ export function FoodMapDetail({ spot }) {
     <article className="food-map-detail" aria-live="polite">
       <header className="food-map-detail-header">
         <p className="food-map-detail-meta"><SourceBadge source={spot.source} /></p>
-        <h2 className="food-map-detail-title">{spot.name}</h2>
-        <p className="food-map-detail-meta">{[spot.city, spot.district, spot.category, formatInfoWindowPrice(spot.price), formatRating(spot.rating)].filter(Boolean).join(" · ")}</p>
+        <h2 className="food-map-detail-title"><SharedText>{spot.name}</SharedText></h2>
+        <p className="food-map-detail-meta"><SharedText>{[spot.city, spot.district, spot.category, formatInfoWindowPrice(spot.price), formatRating(spot.rating)].filter(Boolean).join(" · ")}</SharedText></p>
       </header>
-      {spot.description && <p className="food-map-detail-description">{spot.description}</p>}
-      {spot.address && <p className="food-map-detail-address">地址：{spot.address}</p>}
-      {Array.isArray(spot.recommend) && spot.recommend.length > 0 && <p className="food-map-detail-note">推荐：{spot.recommend.join("、")}</p>}
+      {spot.description && <p className="food-map-detail-description"><SharedText>{spot.description}</SharedText></p>}
+      {spot.address && <p className="food-map-detail-address"><SharedText>地址：</SharedText><SharedText>{spot.address}</SharedText></p>}
+      {Array.isArray(spot.recommend) && spot.recommend.length > 0 && <p className="food-map-detail-note"><SharedText>推荐：</SharedText><SharedText>{spot.recommend.join("、")}</SharedText></p>}
       <Tags tags={spot.tags} className="food-map-detail-tags" />
       <div className="food-map-detail-meta">
         {link && (
@@ -380,7 +381,7 @@ export function FoodMapFallbackMap({ spots, selectedId, onSelect, statusText }) 
 
   return (
     <section className="food-map-map-shell" aria-label="美食地图 fallback" data-amap-state="fallback">
-      <h2>地图坐标</h2>
+      <h2><SharedText>地图坐标</SharedText></h2>
       <div className="food-map-map-status" role="status">{statusText ?? getAmapPanelStatusText(FOOD_MAP_AMAP_LOADER_STATES.missingKey, coordinateSpots.length)}</div>
       <div className="food-map-map-fallback">
         <div className="food-map-marker-list" aria-label="地点 marker 列表">
@@ -565,10 +566,10 @@ export function FoodMapAmapPanel({ spots, selectedId, selectionRequestId = 0, on
 
   return (
     <section className="food-map-map-shell food-map-map-shell--amap" aria-label="美食地图" data-amap-state={adapterState}>
-      <h2 className="sr-only">地图坐标</h2>
+      <h2 className="sr-only"><SharedText>地图坐标</SharedText></h2>
       {statusText && <div className="food-map-map-status" role="status">{statusText}</div>}
       <div className="food-map-map-surface">
-        <div className="food-map-amap-frame" aria-hidden={showFallback} inert={showFallback ? "" : undefined} data-amap-active={isReady ? "true" : "false"}>
+        <div className="food-map-amap-frame" aria-hidden={showFallback} inert={showFallback} data-amap-active={isReady ? "true" : "false"}>
           <div ref={mapElementRef} className="food-map-amap-canvas" aria-label="高德地图" />
         </div>
         {showFallback && markerList}

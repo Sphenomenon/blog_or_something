@@ -6,14 +6,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright";
-import { preview } from "vite";
+import { preview } from "./serve-static.mjs";
 
 import { ARTICLE_IMAGE_FIXTURE_MARKER, ARTICLE_IMAGE_FIXTURE_TITLE } from "./article-image-fixture-config.mjs";
 import { validateProductionArticleMedia } from "./article-media-content-validator.mjs";
 import { prepareArticleMediaVerificationRuntime } from "./prepare-article-media-verification.mjs";
 
 const PROJECT_ROOT = fileURLToPath(new URL("../", import.meta.url));
-const DIST_ROOT = path.join(PROJECT_ROOT, "dist");
+const DIST_ROOT = path.join(PROJECT_ROOT, "out");
 const POST_ROOT = path.join(PROJECT_ROOT, "src/content/posts");
 const FIXTURE_ROOT = path.join(PROJECT_ROOT, "scripts/fixtures/article-images");
 const EVIDENCE_ROOT = path.join(PROJECT_ROOT, ".sisyphus/evidence/article-media/integration");
@@ -168,9 +168,9 @@ async function scanDist() {
       binaryMatches.push({ file: relativePath, hash, exactFixtureSource: fixtureSourceHashes.has(hash), fixtureVariantPath: fixtureVariantPaths.has(relativePath) });
     }
   }
-  assert.deepEqual(textMatches, [], "Production dist text contains verification fixture content");
-  assert.deepEqual(pathMatches, [], "Production dist contains fixture-named assets or modules");
-  assert.deepEqual(binaryMatches, [], "Production dist contains fixture source bytes or generated fixture derivative paths");
+  assert.deepEqual(textMatches, [], "Production export text contains verification fixture content");
+  assert.deepEqual(pathMatches, [], "Production export contains fixture-named assets or modules");
+  assert.deepEqual(binaryMatches, [], "Production export contains fixture source bytes or generated fixture derivative paths");
   return { fileCount: files.length, textualFileCount: textualFiles.length, textMatches, pathMatches, binaryMatches, fixtureSourceHashCount: fixtureSourceHashes.size, fixtureVariantPathCount: fixtureVariantPaths.size };
 }
 

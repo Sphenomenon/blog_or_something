@@ -1,3 +1,4 @@
+import { SharedText } from "../components/SharedText.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
@@ -137,7 +138,7 @@ export function FoodMapView() {
       custom={shouldReduceMotion}
     >
       <header className="food-map-page-heading">
-        <h1>美食地图</h1>
+        <h1><SharedText>美食地图</SharedText></h1>
         <span className="food-map-source-status" aria-label="来源载入状态">{sourceStatusText}</span>
       </header>
 
@@ -169,7 +170,7 @@ export function FoodMapView() {
             </div>
           </section>
           <section id="food-map-details" className="food-map-detail-section" aria-label="所选地点详情">
-            <p className="food-map-detail-kicker">地点手记 <span>选择店铺，查看推荐与探店记录</span></p>
+            <p className="food-map-detail-kicker"><SharedText>地点手记 </SharedText><span>选择店铺，查看推荐与探店记录</span></p>
             <FoodMapDetail spot={selectedPlace} />
           </section>
         </>

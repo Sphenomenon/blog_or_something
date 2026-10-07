@@ -72,7 +72,11 @@ export function ArticleCodeBlock({ code, language }) {
 export function ArticleEndnote({ post }) {
   const [showManualLink, setShowManualLink] = useState(false);
   const inputRef = useRef(null);
-  const url = new URL(`/posts/${post.slug}`, window.location.origin).href;
+  const [url, setUrl] = useState(`/posts/${post.slug}`);
+
+  useEffect(() => {
+    setUrl(new URL(`/posts/${post.slug}`, window.location.origin).href);
+  }, [post.slug]);
 
   useEffect(() => {
     if (showManualLink) {

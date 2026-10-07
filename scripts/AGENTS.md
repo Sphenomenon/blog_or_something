@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Scripts are project automation, not passive tests. Many write generated assets, evidence under `.sisyphus/evidence/`, `public/food-map/index.json`, `public/images/optimized`, or `dist`.
+Scripts are project automation, not passive tests. Many write generated assets, evidence under `.sisyphus/evidence/`, `public/food-map/index.json`, `public/images/optimized`, `src/generated/`, or `out/`.
 
 ## WHERE TO LOOK
 
@@ -10,8 +10,10 @@ Scripts are project automation, not passive tests. Many write generated assets, 
 |---|---|---|
 | Optimize images | `optimize-images.mjs` | Writes `public/images/optimized/*.webp`; skips existing outputs. |
 | Generate food-map JSON | `generate-food-map-json.mjs` | Writes `public/food-map/index.json`. |
-| Visual verification | `verify-visual.mjs`, `visual-core.mjs` | Runs browser/build checks; writes evidence/screenshots. |
-| Food-map aggregate verify | `verify-food-map.mjs` | Runs sub-verifiers + build + static JSON checks. |
+| Visual verification | `verify-visual.mjs` | Aggregates current-content reading, site polish, decorative accents and route motion checks; writes evidence/screenshots. |
+| Food-map aggregate verify | `verify-food-map.mjs` | Runs sub-verifiers + Next build + static JSON checks. |
+| Site content | `generate-site-content.mjs` | Builds validated Markdown/YAML modules; food places are projected before client export. |
+| Static preview | `serve-static.mjs` | Serves `out/`, real routes, admin, RSC payloads, and HTTP 404. |
 | Food-map schema/content/external/AMap/browser | `verify-food-map-*.mjs` | Node assertions/Playwright; may write evidence. |
 
 ## COMMANDS
@@ -49,7 +51,7 @@ npm run verify:food-map-browser
 - Input: sorted `.yaml` files from `src/content/food-places/`.
 - Parser: `js-yaml`.
 - Normalization: shared `src/features/food-map/core.js` code.
-- Output: `public/food-map/index.json`; build copies it to `dist/food-map/index.json`.
+- Output: `public/food-map/index.json`; build copies it to `out/food-map/index.json`.
 - Owner/site metadata: `Nocturne Archive`, `https://blog.sphenicidition.top`.
 
 ## VERIFICATION CONVENTIONS
@@ -58,6 +60,8 @@ npm run verify:food-map-browser
 - Success output uses `PASS ...` style.
 - `verify-food-map.mjs` is the broad food-map gate and includes `npm run build`.
 - Browser checks use Playwright directly and mock/block third parties such as AMap, Netlify Identity, Vercount, and NetEase.
+- Build before production browser checks. Vite is kept only for isolated article-media component/fixture harnesses.
+- Fixture harnesses can share generated runtime folders; run those checks serially.
 - Visual checks sweep 375/768/1024/1440 widths and rely on stable `data-testid` selectors.
 
 ## ANTI-PATTERNS

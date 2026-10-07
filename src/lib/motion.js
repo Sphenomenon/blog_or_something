@@ -4,6 +4,12 @@ export const durationFast = 0.16
 export const durationNormal = 0.18
 export const durationSlow = 0.45
 
+export const navigationTransition = {
+  type: "tween",
+  duration: 0.22,
+  ease: [0.32, 0, 0.24, 1],
+}
+
 export const reducedMotionTransition = {
   duration: 0,
   ease: 'linear',
@@ -52,33 +58,6 @@ export const cardMotion = {
       ? reducedMotionTransition
       : {
           duration: durationNormal,
-          ease: archiveEase,
-        },
-  }),
-}
-
-export const viewTransition = {
-  initial: {
-    opacity: 0,
-    y: 6,
-  },
-  animate: (shouldReduceMotion = false) => ({
-    opacity: 1,
-    y: 0,
-    transition: shouldReduceMotion
-      ? reducedMotionTransition
-      : {
-          duration: durationNormal,
-          ease: archiveEase,
-        },
-  }),
-  exit: (shouldReduceMotion = false) => ({
-    opacity: 0,
-    y: shouldReduceMotion ? 0 : -4,
-    transition: shouldReduceMotion
-      ? reducedMotionTransition
-      : {
-          duration: durationFast,
           ease: archiveEase,
         },
   }),

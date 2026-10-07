@@ -6,5 +6,3 @@
 /posts/ta-suo-bu-xi-wang-de-yi-qie /posts/unwanted 301
 /posts/wu-yue-sui-bi /posts/may-notes 301
 /posts/zhi-yuan-tian-bao-shi /posts/college-application 301
-# Cloudflare Pages natively serves existing static files and falls back to
-# the root SPA for unmatched routes when no top-level 404.html is present.

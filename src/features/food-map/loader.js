@@ -1,11 +1,13 @@
-import { projectPublicFoodMapPlaces } from "./core.js";
+import { publicFoodMapPlaces } from "../../generated/content.js";
+import { FOOD_MAP_STATUS_VALUES } from "./contracts.js";
 import {
   loadPublicFoodMapPlaces,
   normalizeFoodPlaceModules
 } from "./loader-core.js";
 
-const foodPlaceModules = import.meta.glob("../../content/food-places/*.yaml", { eager: true });
-
-export const localFoodMapPlaces = normalizeFoodPlaceModules(foodPlaceModules);
-export const publicFoodMapPlaces = projectPublicFoodMapPlaces(localFoodMapPlaces);
-export { loadPublicFoodMapPlaces, normalizeFoodPlaceModules };
+export { publicFoodMapPlaces, loadPublicFoodMapPlaces, normalizeFoodPlaceModules };
+export const localFoodMapPlaces = publicFoodMapPlaces.map((place) => ({
+  ...place,
+  status: FOOD_MAP_STATUS_VALUES.published,
+  visits: place.visits ?? []
+}));

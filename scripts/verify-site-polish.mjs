@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
-import { createServer } from "vite";
+import { createServer } from "./serve-static.mjs";
 import { parseArticleMarkdown } from "../src/article-media.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -90,7 +90,7 @@ try {
         href: link.getAttribute("href"), date: link.querySelector("time").dateTime
       }))), expected.map((post) => ({ href: `/posts/${post.slug}`, date: post.date })));
       const expectedMonths = [...new Set(expected.map((post) => post.date.slice(5, 7)))];
-      assert.deepEqual(await page.locator(".archive-month > h3 > span").allTextContents(), expectedMonths);
+      assert.deepEqual(await page.locator(".archive-month > h3 > span:first-child").allTextContents(), expectedMonths);
       assert.equal(await page.locator(".archive-month ol > li").count(), expected.length);
     }
     // Year buttons and next/previous paging must remain in sync.

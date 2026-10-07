@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { SharedText } from "../components/SharedText.jsx";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArchiveCard } from "../components/ArchiveCard.jsx";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { getTagCounts, sortedPosts } from "../data/posts.js";
 import { getSectionBySlug, sections } from "../data/sections.js";
 import { navigateFromLink } from "../lib/navigation.js";
-import { archiveEase, durationFast, reducedMotionTransition, revealFrame, staggerContainer } from "../lib/motion.js";
+import { archiveEase, durationFast, navigationTransition, reducedMotionTransition, revealFrame, staggerContainer } from "../lib/motion.js";
 import { site } from "../data/yaml-loader.js";
 
 const heroTitleSegments = Array.from(site.home_hero_title.matchAll(/[A-Za-z0-9]+|[^A-Za-z0-9]/gu));
@@ -17,7 +18,7 @@ function getHeroTitleCharacterState(shouldReduceMotion = false) {
 }
 
 function getHeroTitleEffect() {
-  const effect = new URLSearchParams(window.location.search).get("heroTitleEffect");
+  const effect = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("heroTitleEffect");
   return heroTitleEffects.has(effect) ? effect : defaultHeroTitleEffect;
 }
 
@@ -149,7 +150,8 @@ const heroTitleCharacter = {
 
 function HeroPanel({ onOpenPost }) {
   const shouldReduceMotion = useReducedMotion();
-  const heroTitleEffect = getHeroTitleEffect();
+  const [heroTitleEffect, setHeroTitleEffect] = useState(defaultHeroTitleEffect);
+  useEffect(() => setHeroTitleEffect(getHeroTitleEffect()), []);
   const latestPost = sortedPosts.find((post) => post.status.trim().toLowerCase() === "published");
 
   function handleGoDown() {
@@ -179,7 +181,7 @@ function HeroPanel({ onOpenPost }) {
         <span>{site.home_hero_marker}</span>
       </motion.div>
       <motion.div className="hero-copy" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
-        <motion.p className="hero-code" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_code}</motion.p>
+        <motion.p className="hero-code" variants={revealFrame} custom={shouldReduceMotion}><SharedText>{site.home_hero_code}</SharedText></motion.p>
         <motion.h1
           id="hero-title"
           className="hero-title"
@@ -195,6 +197,7 @@ function HeroPanel({ onOpenPost }) {
                 <motion.span
                   key={offset}
                   className="hero-title__character"
+                  data-shared-glyph={character}
                   variants={heroTitleCharacter}
                   custom={{ effect: heroTitleEffect, index: segment.index + offset, shouldReduceMotion }}
                 >
@@ -204,23 +207,25 @@ function HeroPanel({ onOpenPost }) {
             </span>
           ))}
         </motion.h1>
-        <motion.p className="hero-body" variants={revealFrame} custom={shouldReduceMotion}>{site.home_hero_body}</motion.p>
+        <motion.p className="hero-body" variants={revealFrame} custom={shouldReduceMotion}><SharedText>{site.home_hero_body}</SharedText></motion.p>
       </motion.div>
       {latestPost ? (
-        <a
+        <motion.a
           className="home-latest"
           data-testid="home-latest-post"
           href={`/posts/${latestPost.slug}`}
           onClick={(event) => navigateFromLink(event, () => onOpenPost(latestPost.slug))}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
+          transition={shouldReduceMotion ? reducedMotionTransition : navigationTransition}
         >
           <span className="home-latest__eyebrow">最新文章 <span aria-hidden="true">/ LATEST ENTRY</span></span>
-          <h2>{latestPost.title}</h2>
-          <p>{latestPost.excerpt}</p>
+          <h2><SharedText>{latestPost.title}</SharedText></h2>
+          <p><SharedText>{latestPost.excerpt}</SharedText></p>
           <span className="home-latest__foot">
             <span><time dateTime={latestPost.date}>{latestPost.date}</time> · {getSectionBySlug(latestPost.section)?.shortLabel ?? latestPost.section}</span>
             <span className="home-latest__arrow" aria-hidden="true">↗</span>
           </span>
-        </a>
+        </motion.a>
       ) : null}
       <DecorativeAccent id="home-hero" />
       <motion.button
@@ -290,6 +295,7 @@ function FilterBar({ statusFilter, onStatusFilter, tagFilter, onTagFilter }) {
 }
 
 function SidePanel({ onSectionChange, onReplayGreeting }) {
+  const shouldReduceMotion = useReducedMotion();
   useEffect(() => {
     const existingScript = document.querySelector('script[data-vercount-script="true"]');
 
@@ -309,14 +315,17 @@ function SidePanel({ onSectionChange, onReplayGreeting }) {
   return (
     <aside className="side-panel">
       <section>
-        <h3>{site.home_sidebar_categories_label}</h3>
+        <h3><SharedText>{site.home_sidebar_categories_label}</SharedText></h3>
         <ul className="side-panel-list">
           {sections.map((section) => (
             <li key={section.slug}>
-              <a data-testid={`home-section-${section.slug}`} href={`/sections/${section.slug}`} onClick={(event) => navigateFromLink(event, () => onSectionChange(section.slug))}>
+              <motion.a data-testid={`home-section-${section.slug}`} href={`/sections/${section.slug}`} onClick={(event) => navigateFromLink(event, () => onSectionChange(section.slug))}
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.015 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.975 }}
+                transition={shouldReduceMotion ? reducedMotionTransition : navigationTransition}>
                 <span>{section.label}</span>
                 <em>{section.shortLabel}</em>
-              </a>
+              </motion.a>
             </li>
           ))}
         </ul>
@@ -328,10 +337,10 @@ function SidePanel({ onSectionChange, onReplayGreeting }) {
       </section>
 
       <section>
-        <h3>{site.home_sidebar_terminal_label}</h3>
-        <p>{site.home_sidebar_status}</p>
-        <p>{site.home_sidebar_sync}</p>
-        <p>{site.home_sidebar_integrity}</p>
+        <h3><SharedText>{site.home_sidebar_terminal_label}</SharedText></h3>
+        <p><SharedText>{site.home_sidebar_status}</SharedText></p>
+        <p><SharedText>{site.home_sidebar_sync}</SharedText></p>
+        <p><SharedText>{site.home_sidebar_integrity}</SharedText></p>
         <button className="greeting-replay" type="button" data-testid="greeting-replay" onClick={onReplayGreeting}>重看序章 <span aria-hidden="true">↗</span></button>
       </section>
     </aside>
@@ -352,7 +361,7 @@ export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFil
       />
       <section id="home-archive-index" className="home-grid" data-testid="home-archive-index" aria-label="首页索引">
         <div className="archive-column">
-          <h2 className="section-title">{site.home_grid_title}</h2>
+          <h2 className="section-title"><SharedText>{site.home_grid_title}</SharedText></h2>
           <motion.ol className="archive-list" variants={staggerContainer} initial="hidden" animate="visible" custom={shouldReduceMotion}>
             {filteredPosts.map((post) => (
               <motion.li key={post.id} variants={revealFrame} custom={shouldReduceMotion}>
@@ -362,8 +371,8 @@ export function HomeView({ filteredPosts, onOpenPost, onSectionChange, statusFil
           </motion.ol>
           {filteredPosts.length === 0 ? (
             <div className="archive-empty-state" role="status">
-              <p>没有匹配当前检索与筛选条件的档案。</p>
-              <p>调整关键词、状态或标签后，索引会在这里重新列出条目。</p>
+              <p><SharedText>没有匹配当前检索与筛选条件的档案。</SharedText></p>
+              <p><SharedText>调整关键词、状态或标签后，索引会在这里重新列出条目。</SharedText></p>
             </div>
           ) : null}
         </div>

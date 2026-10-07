@@ -1,5 +1,6 @@
+import { SharedText } from "./SharedText.jsx";
 import { motion, useReducedMotion } from "framer-motion";
-import { archiveEase, cardMotion, durationFast, reducedMotionTransition } from "../lib/motion.js";
+import { cardMotion, navigationTransition } from "../lib/motion.js";
 import { navigateFromLink } from "../lib/navigation.js";
 
 export function ArchiveCard({ post, onOpen }) {
@@ -16,8 +17,8 @@ export function ArchiveCard({ post, onOpen }) {
         shouldReduceMotion
           ? undefined
           : {
-              scale: 0.995,
-              transition: { duration: durationFast, ease: archiveEase },
+              scale: 0.975,
+              transition: navigationTransition,
             }
       }
       custom={shouldReduceMotion}
@@ -27,16 +28,14 @@ export function ArchiveCard({ post, onOpen }) {
         data-testid={`archive-card-${post.id}`}
         href={`/posts/${post.slug}`}
         onClick={(event) => navigateFromLink(event, () => onOpen(post.slug))}
-        whileTap={shouldReduceMotion ? undefined : { scale: 0.99, transition: { duration: durationFast, ease: archiveEase } }}
-        transition={shouldReduceMotion ? reducedMotionTransition : undefined}
       >
         <div className="card-body">
           <header>
-            <p className="archive-id">{post.id}</p>
-            <h3>{post.title}</h3>
+            <p className="archive-id"><SharedText>{post.id}</SharedText></p>
+            <h3><SharedText>{post.title}</SharedText></h3>
           </header>
 
-          <p className="excerpt">{post.excerpt}</p>
+          <p className="excerpt"><SharedText>{post.excerpt}</SharedText></p>
 
           <dl className="card-meta">
             <div>

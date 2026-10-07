@@ -1,17 +1,10 @@
-import site from "../content/site.yaml";
-import greeting from "../content/greeting.yaml";
-import about from "../content/about.yaml";
-import music from "../content/music.yaml";
+import { site, greeting, about, music, sectionsGlob } from "../generated/content.js";
 
 function fail(msg) {
   throw new Error(`[yaml-loader] ${msg}`);
 }
 
 // ── Sections ────────────────────────────────────────────────────────────
-
-const sectionsGlob = import.meta.glob("../content/sections/*.yaml", {
-  eager: true,
-});
 
 function unwrapYamlModule(module) {
   return module?.default ?? module;

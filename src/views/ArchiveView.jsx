@@ -1,3 +1,4 @@
+import { SharedText } from "../components/SharedText.jsx";
 import { useEffect, useMemo, useState } from "react";
 import { DecorativeAccent } from "../components/DecorativeAccent.jsx";
 import { getArchivePostsByYear, getArchiveYears } from "../data/posts.js";
@@ -30,13 +31,13 @@ export function ArchiveView({ onOpenPost }) {
 
   return (
     <section className="page-panel page-panel--archive" aria-labelledby="archive-title">
-      <p className="hero-code">{site.archive_code_header}</p>
+      <p className="hero-code"><SharedText>{site.archive_code_header}</SharedText></p>
       <div className="page-panel-header">
         <div>
-          <h1 id="archive-title">{site.archive_page_title}</h1>
-          <p className="page-panel-lead">{site.archive_lead_text}</p>
+          <h1 id="archive-title"><SharedText>{site.archive_page_title}</SharedText></h1>
+          <p className="page-panel-lead"><SharedText>{site.archive_lead_text}</SharedText></p>
         </div>
-        <p className="page-panel-meta" data-testid="archive-page-meta">{archivePosts.length} 条记录</p>
+        <p className="page-panel-meta" data-testid="archive-page-meta"><SharedText>{archivePosts.length}</SharedText><SharedText> 条记录</SharedText></p>
       </div>
       <DecorativeAccent id="archive-header" />
       {archiveYears.length > 0 ? <nav className="archive-pagination" aria-label="归档年份分页">
@@ -68,13 +69,13 @@ export function ArchiveView({ onOpenPost }) {
 
       {archiveYears.length === 0 ? (
         <div className="archive-empty-state" role="status">
-          <p>档案馆当前还没有可归档的文章。</p>
-          <p>首篇文章入库后，年份分柜会自动建立。</p>
+          <p><SharedText>档案馆当前还没有可归档的文章。</SharedText></p>
+          <p><SharedText>首篇文章入库后，年份分柜会自动建立。</SharedText></p>
         </div>
       ) : (
         <div className="archive-ledger">
           <nav className="archive-year-index" aria-label="选择归档年份">
-            <p>年份索引 <span aria-hidden="true">/ YEARS</span></p>
+            <p><SharedText>年份索引 </SharedText><span aria-hidden="true">/ YEARS</span></p>
             <div>
               {archiveYears.map((year) => (
                 <button key={year} type="button" onClick={() => setSelectedYear(year)}
@@ -86,13 +87,13 @@ export function ArchiveView({ onOpenPost }) {
             </div>
           </nav>
           <section className="archive-group" id="archive-year-entries" aria-labelledby="archive-year-heading">
-            <h2 id="archive-year-heading" data-testid="archive-year-heading">{activeYear || "—"}</h2>
+            <h2 id="archive-year-heading" data-testid="archive-year-heading"><SharedText>{activeYear || "—"}</SharedText></h2>
             <p className="archive-group__summary" data-testid="archive-year-summary">
-              {activeYear || "—"} / {archivePosts.length} 条记录
-            </p>
+              <SharedText>{activeYear || "—"}</SharedText><SharedText> / </SharedText><SharedText>{archivePosts.length}</SharedText><SharedText> 条记录
+            </SharedText></p>
             {months.map(([month, monthPosts]) => (
               <section className="archive-month" key={`${activeYear}-${month}`} aria-labelledby={`archive-month-${month}`}>
-                <h3 id={`archive-month-${month}`}><span>{month}</span> 月 <small>{monthPosts.length} 篇</small></h3>
+                <h3 id={`archive-month-${month}`}><span>{month}</span><SharedText> 月 </SharedText><small>{monthPosts.length} 篇</small></h3>
                 <ol>
                   {monthPosts.map((post) => (
                     <li key={post.id}>
@@ -100,7 +101,7 @@ export function ArchiveView({ onOpenPost }) {
                         onClick={(event) => navigateFromLink(event, () => onOpenPost(post.slug))}>
                         <time dateTime={post.date}>{post.date.slice(5).replace("-", ".")}</time>
                         <span className="archive-entry__copy">
-                          <strong>{post.title}</strong>
+                          <strong><SharedText>{post.title}</SharedText></strong>
                           <span>{getSectionBySlug(post.section)?.label ?? post.section} · {post.reading}</span>
                         </span>
                         <em>{post.status}</em>

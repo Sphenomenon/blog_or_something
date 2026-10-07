@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
-import { createServer } from "vite";
+import { createServer } from "./serve-static.mjs";
 import { navigateFromLink } from "../src/lib/navigation.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));

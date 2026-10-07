@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 import { chromium } from "playwright";
-import { createServer } from "vite";
+import { createServer } from "./serve-static.mjs";
 
 const command = "node scripts/verify-food-map-browser.mjs";
 const popupEvidencePath = resolve(".sisyphus/evidence/task-5-browser-popup.json");
@@ -238,6 +238,9 @@ async function createBrowserPage(browser, scenario, options = {}) {
     reducedMotion: "reduce",
     permissions: options.withoutClipboard ? [] : ["clipboard-read", "clipboard-write"]
   });
+  await context.addInitScript(({ enabled }) => {
+    window.__NOCTURNE_AMAP_CONFIG__ = { key: enabled ? "food-map-browser-test-key" : "" };
+  }, { enabled: scenario !== "fallback" });
   if (options.withoutClipboard) {
     await context.addInitScript(() => {
       Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: undefined });
@@ -445,7 +448,7 @@ async function runFallbackAndClipboardScenario(browser, baseUrl) {
     assert.equal(state.fallbackVisible, true, "fallback marker list should remain visible without AMap key");
     assertShareControlsAbsent(state, "fallback food map");
     assertRemovedReaderCopyAbsent(state, "fallback food map");
-    assert.match(state.bodyText, /(高德地图脚本加载失败|未配置 VITE_AMAP_KEY)/, "fallback diagnostic should explain missing or failed AMap setup");
+    assert.match(state.bodyText, /(高德地图脚本加载失败|地图暂未连接)/, "fallback diagnostic should explain missing or failed AMap setup");
 
     const filteredConsole = assertNoBrowserErrors(errors, consoleEntries);
     const evidence = {

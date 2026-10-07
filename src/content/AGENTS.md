@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-`src/content` is source-controlled CMS/content input for the Vite React app. Markdown and YAML are loaded by custom project code, not by Astro, MDX, or a headless CMS runtime.
+`src/content` is source-controlled CMS/content input for the Next.js static site. The build-time site-content generator reads Markdown/YAML; custom loaders retain validation and sorting. No Astro, MDX, or runtime CMS content fetching.
 
 ## WHERE TO LOOK
 

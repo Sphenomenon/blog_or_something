@@ -1,3 +1,4 @@
+import { SharedText } from "./SharedText.jsx";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { revealFrame } from "../lib/motion.js";
@@ -21,7 +22,7 @@ export function FriendLinkCard({ link, shouldReduceMotion }) {
       </span>
       <div className="friend-link-info">
         <span className="friend-link-name">{link.name}</span>
-        <p className="friend-link-desc">{link.description}</p>
+        <p className="friend-link-desc"><SharedText>{link.description}</SharedText></p>
         <span className="friend-link-domain">{domain}</span>
       </div>
       <span className="friend-link-arrow" aria-hidden="true">↗</span>

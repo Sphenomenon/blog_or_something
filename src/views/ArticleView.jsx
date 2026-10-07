@@ -1,3 +1,4 @@
+import { SharedText } from "../components/SharedText.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Giscus from "@giscus/react";
 import { parseArticleMarkdown } from "../article-media.js";
@@ -34,11 +35,11 @@ function renderInline(text, keyPrefix) {
 
     if (match[1] !== undefined) {
       // Bold: **text** or __text__ (groups 1=delim, 2=content)
-      nodes.push(<strong key={`${keyPrefix}-s-${nodeIndex}`}>{match[2]}</strong>);
+      nodes.push(<strong key={`${keyPrefix}-s-${nodeIndex}`}><SharedText>{match[2]}</SharedText></strong>);
       nodeIndex++;
     } else if (match[3] !== undefined) {
       // Italic: *text* or _text_ (groups 3=delim, 4=content)
-      nodes.push(<em key={`${keyPrefix}-e-${nodeIndex}`}>{match[4]}</em>);
+      nodes.push(<em key={`${keyPrefix}-e-${nodeIndex}`}><SharedText>{match[4]}</SharedText></em>);
       nodeIndex++;
     } else if (match[5] !== undefined) {
       // Code: `text` (group 5=content)
@@ -46,13 +47,13 @@ function renderInline(text, keyPrefix) {
       nodeIndex++;
     } else if (match[6] !== undefined) {
       // Strikethrough: ~~text~~ (group 6=content)
-      nodes.push(<del key={`${keyPrefix}-d-${nodeIndex}`}>{match[6]}</del>);
+      nodes.push(<del key={`${keyPrefix}-d-${nodeIndex}`}><SharedText>{match[6]}</SharedText></del>);
       nodeIndex++;
     } else if (match[7] !== undefined) {
       // Link: [text](url) (groups 7=text, 8=url)
       nodes.push(
         <a key={`${keyPrefix}-link-${nodeIndex}`} href={match[8]} target="_blank" rel="noreferrer">
-          {match[7]}
+          <SharedText>{match[7]}</SharedText>
         </a>
       );
       nodeIndex++;
@@ -66,7 +67,7 @@ function renderInline(text, keyPrefix) {
     nodes.push(text.slice(cursor));
   }
 
-  return nodes.length ? nodes : text;
+  return nodes.length ? nodes.map((node, index) => typeof node === "string" ? <SharedText key={`${keyPrefix}-text-${index}`}>{node}</SharedText> : node) : <SharedText>{text}</SharedText>;
 }
 
 function hasFrontmatterSections(postSections) {
@@ -122,7 +123,7 @@ function getArticleMediaPositions(blocks) {
 }
 
 function getDecodedHashTargetId() {
-  if (!window.location.hash) {
+  if (typeof window === "undefined" || !window.location.hash) {
     return "";
   }
 
@@ -200,10 +201,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
   ].filter(Boolean).join(" ");
   const [activeSectionId, setActiveSectionId] = useState(tocSections[0]?.id ?? "section");
   const mobileTocRef = useRef(null);
-  const hashSectionId = isSwjtuReport ? getDecodedHashTargetId() : "";
-  const renderedActiveSectionId = tocSections.some((section) => section.id === hashSectionId)
-    ? hashSectionId
-    : activeSectionId;
+  const renderedActiveSectionId = activeSectionId;
   const previousArticle = neighbors.previous;
   const nextArticle = neighbors.next;
   const commentsSection = verificationOnly ? null : (
@@ -309,6 +307,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
   const handleSectionLinkClick = (event) => {
     if (
       verificationOnly
+      || event.defaultPrevented
       || !onOpenSection
       || event.button !== 0
       || event.metaKey
@@ -381,7 +380,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
     <ArticleMediaLightbox ownerKey={post.slug || post.id}>
     <section className={layoutClassName} aria-label="文章页">
       {!verificationOnly ? <aside className="rail rail-left" aria-label="左侧索引">
-        <h4>档案柜</h4>
+        <h4><SharedText>档案柜</SharedText></h4>
         {related.length > 0 ? <ul>
           {related.map((item) => (
             <li key={item.id}>
@@ -390,22 +389,22 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
               </button>
             </li>
           ))}
-        </ul> : <p className="rail-empty-state">当前栏目暂无相邻档案。</p>}
+        </ul> : <p className="rail-empty-state"><SharedText>当前栏目暂无相邻档案。</SharedText></p>}
       </aside> : null}
 
       <article className={articleClassName} lang="zh-Hans" data-post-slug={post.slug}>
         <header className="article-hero">
-          <p className="archive-id">{post.id}</p>
-          <h1>{post.title}</h1>
+          <p className="archive-id"><SharedText>{post.id}</SharedText></p>
+          <h1><SharedText>{post.title}</SharedText></h1>
           <p className="hero-meta">
-            {post.category} · {post.date} · {post.reading} · {post.status} · 栏目：
-            <a href={`/sections/${post.section}`} onClick={handleSectionLinkClick}>{canonicalSectionLabel}</a>
+            <SharedText>{post.category}</SharedText><SharedText> · </SharedText><SharedText>{post.date}</SharedText><SharedText> · </SharedText><SharedText>{post.reading}</SharedText><SharedText> · </SharedText><SharedText>{post.status}</SharedText><SharedText> · 栏目：
+            </SharedText><a href={`/sections/${post.section}`} onClick={handleSectionLinkClick}>{canonicalSectionLabel}</a>
           </p>
           {isSwjtuReport ? (
             <div className="article-hero__pilot-meta" aria-label="试点报告信息">
-              <p className="article-hero__pilot-label">Research Report Pilot</p>
-              <p>{post.excerpt}</p>
-              <p>{tocSections.length} sections</p>
+              <p className="article-hero__pilot-label"><SharedText>Research Report Pilot</SharedText></p>
+              <p><SharedText>{post.excerpt}</SharedText></p>
+              <p><SharedText>{tocSections.length}</SharedText><SharedText> sections</SharedText></p>
             </div>
           ) : null}
           <ul className="tag-list" aria-label="文章标签">
@@ -422,9 +421,9 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
           </details>
         ) : null}
 
-        {import.meta.env.DEV && articleMediaErrors.length ? (
+        {process.env.NODE_ENV !== "production" && articleMediaErrors.length ? (
           <aside className="article-media-errors" aria-label="Article media errors" data-testid="article-media-errors">
-            <p>Some article media could not be rendered.</p>
+            <p><SharedText>Some article media could not be rendered.</SharedText></p>
             <ul>
               {articleMediaErrors.map((error, errorIndex) => (
                 <li key={`${error.code}-${error.line}-${errorIndex}`}>
@@ -461,11 +460,11 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
           }
 
           if (block.type === "h2") {
-            return <h2 key={key} id={block.id}>{block.text}</h2>;
+            return <h2 key={key} id={block.id}><SharedText>{block.text}</SharedText></h2>;
           }
 
           if (block.type === "h3") {
-            return <h3 key={key} id={block.id}>{block.text}</h3>;
+            return <h3 key={key} id={block.id}><SharedText>{block.text}</SharedText></h3>;
           }
 
           if (block.type === "blockquote") {
@@ -526,7 +525,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
             );
           }
 
-          return <p key={key}>{renderInline(block.text, key)}</p>;
+          return <p key={key}><SharedText>{renderInline(block.text, key)}</SharedText></p>;
         })}
 
         {!verificationOnly ? <ArticleEndnote post={post} /> : null}
@@ -539,7 +538,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
                 <span className="article-nav__title">{previousArticle.title}</span>
               </a>
             ) : (
-              <p className="article-nav__empty" data-testid="article-prev-empty">已经是最新文章</p>
+              <p className="article-nav__empty" data-testid="article-prev-empty"><SharedText>已经是最新文章</SharedText></p>
             )}
           </div>
           <div className="article-nav__item article-nav__item--next">
@@ -549,19 +548,19 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
                 <span className="article-nav__title">{nextArticle.title}</span>
               </a>
             ) : (
-              <p className="article-nav__empty" data-testid="article-next-empty">已到最早一篇</p>
+              <p className="article-nav__empty" data-testid="article-next-empty"><SharedText>已到最早一篇</SharedText></p>
             )}
           </div>
         </nav> : null}
 
         {!verificationOnly ? <section className="related-panel" aria-label="相关条目">
-          <h2>相关条目</h2>
+          <h2><SharedText>相关条目</SharedText></h2>
           {related.length > 0 ? related.map((item) => (
             <button key={item.id} data-testid={`article-related-panel-${item.id}`} type="button" onClick={() => onOpenPost(item.slug)}>
               <span>{item.id}</span>
               {item.title}
             </button>
-          )) : <p className="related-panel__empty">当前栏目暂无相关档案条目。</p>}
+          )) : <p className="related-panel__empty"><SharedText>当前栏目暂无相关档案条目。</SharedText></p>}
         </section> : null}
 
         {!isSwjtuReport ? commentsSection : null}
@@ -571,7 +570,7 @@ export function ArticleView({ post, onOpenPost, onOpenSection, verificationOnly 
         {isSwjtuReport ? commentsSection : null}
 
         <aside className="rail rail-right" aria-label="目录">
-          <h4>目录 TOC</h4>
+          <h4><SharedText>目录 TOC</SharedText></h4>
           <ol>{renderTocItems("toc")}</ol>
         </aside>
       </section>
