@@ -77,7 +77,7 @@ try {
         await page.locator(".home-grid").waitFor({ state: "visible" });
         if (width === 390) await page.getByTestId("header-menu-toggle").click();
         await page.getByTestId("nav-about").click();
-        await page.waitForURL(`${origin}/about`);
+        await page.waitForURL(`${origin}/about`, { waitUntil: "domcontentloaded" });
         await page.locator(".about-panel").waitFor({ state: "visible" });
         assert.equal(await page.locator("link[data-site-fonts]").count(), 1, "Navigation must not duplicate the font stylesheet");
         assert.equal(fontRequests, 1);
