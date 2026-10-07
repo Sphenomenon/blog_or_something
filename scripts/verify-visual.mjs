@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const evidence = new URL("../.sisyphus/evidence/visual-verification.json", import.meta.url);
 const checks = [
+  ["startup", "verify-startup.mjs"],
   ["reading", "verify-reading-experience.mjs"],
   ["site-polish", "verify-site-polish.mjs"],
   ["decorative-accents", "verify-decorative-accents.mjs"],

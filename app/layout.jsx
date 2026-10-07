@@ -1,4 +1,5 @@
 import App from "../src/App.jsx";
+import { SiteFonts } from "../src/components/SiteFonts.jsx";
 import "../src/styles.css";
 
 export const metadata = {
@@ -11,6 +12,5 @@ export default function RootLayout({ children }) {
   return <html lang="zh-Hans"><head>
     <link rel="preconnect" href="https://fonts.loli.net" />
     <link rel="preconnect" href="https://gstatic.loli.net" crossOrigin="anonymous" />
-    <link rel="stylesheet" href="https://fonts.loli.net/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" />
-  </head><body><App>{children}</App></body></html>;
+  </head><body><SiteFonts /><App>{children}</App></body></html>;
 }

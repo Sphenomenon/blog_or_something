@@ -50,6 +50,7 @@ Vercel 使用 Next 构建入口；配置保留 admin 路径映射，不再将所
 
 ```bash
 npm run verify:route-motion
+npm run verify:startup
 npm run verify:reading
 npm run verify:site-polish
 npm run verify:food-map
@@ -60,3 +61,5 @@ npm run verify:visual
 ```
 
 生产浏览器检查实际的 Next 静态产物，包括共享文字动画、快速切换、历史导航、音乐持久性、无障碍交互和公开数据。`verify:visual` 汇总阅读、站点交互、装饰素材与文字转场检查，按当前内容运行，无需另外启动预览服务。Vite 仅用于隔离的文章媒体测试夹具，保留现有图片渲染、布局、灯箱与资源合同检查。
+
+外部字体在页面初始化后异步加载，网络不可用时沿用系统字体。`verify:startup` 覆盖字体请求挂起、失败及成功三种情况，检查桌面和手机的欢迎页按钮、背景和导航。

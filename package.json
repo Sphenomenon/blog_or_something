@@ -19,6 +19,7 @@
     "build": "npm run optimize-images && npm run generate:food-map-json && next build",
     "preview": "node scripts/serve-static.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
+    "verify:startup": "node scripts/verify-startup.mjs",
     "verify:reading": "npm run prepare:article-media && node scripts/verify-reading-experience.mjs",
     "verify:route-motion": "npm run prepare:article-media && node scripts/verify-route-motion.mjs",
     "verify:site-polish": "npm run prepare:article-media && node scripts/verify-site-polish.mjs",
