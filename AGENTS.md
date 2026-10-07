@@ -45,7 +45,7 @@ blog/
 
 | Symbol | Type | Location | Role |
 |---|---|---|---|
-| `App` | React component | `src/App.jsx` | Persistent state, music, header, and Next navigation. |
+| `App` | React component | `src/App.jsx` | Persistent state, music, header; Next-integrated History API updates bundled views without route fetches. |
 | `BlogRoute` | React component | `src/BlogRoute.jsx` | Composes route-specific views inside a native ViewTransition boundary. |
 | `parseRoute` | function | `src/App.jsx` | Maps `/`, `/archive`, `/about`, `/food-map`, `/posts/:slug`, `/sections/:slug`. |
 | `posts` | data export | `src/data/content.js` | Generated Markdown input, custom frontmatter validation, newest-first sorting. |
@@ -112,6 +112,7 @@ npm run verify:food-map-browser
 - `npm run build` generates and validates content/assets, then uses Next static export into `out/`.
 - `npm run dev` watches content/uploads and refreshes generated input before Next hot reload.
 - Production browser verifiers use `scripts/serve-static.mjs` against `out/`; build first. Vite is reserved for article-media fixture/component checks.
+- All route views and content are bundled. Internal navigation uses native `history.pushState` integrated with Next `usePathname`; `BlogRoute` reads the live path from site context. Do not reintroduce network-dependent route navigation or bulk prefetch for these local views. Server/client title and description share `src/lib/route-metadata.js`.
 - Verification scripts may write `.sisyphus/evidence/` and some run build/local servers; they are not read-only.
 - No `npm test`, `npm run typecheck`, or `npm run lint` exists.
 - `node_modules/`, `.next/`, `out/`, `src/generated/`, optimized images, generated food-map JSON, and `.sisyphus/` artifacts may be present; distinguish source from generated/history.

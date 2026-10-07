@@ -1,10 +1,11 @@
 import App from "../src/App.jsx";
 import { SiteFonts } from "../src/components/SiteFonts.jsx";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../src/lib/route-metadata.js";
 import "../src/styles.css";
 
 export const metadata = {
-  title: { default: "失眠档案馆 · Nocturne Archive", template: "%s · 失眠档案馆" },
-  description: "清醒的档案系统，记录一场正在腐朽的梦。",
+  title: { default: SITE_TITLE, template: "%s · 失眠档案馆" },
+  description: SITE_DESCRIPTION,
   icons: { icon: "/logo.ico" }
 };
 

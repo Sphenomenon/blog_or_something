@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, startTransition, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { createContext, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "framer-motion";
 import { SiteHeader } from "./components/SiteHeader.jsx";
 import { posts } from "./data/posts.js";
@@ -19,8 +19,9 @@ export function useSiteState() {
 }
 
 export default function App({ children }) {
-  const router = useRouter();
-  const pathname = usePathname() || "/";
+  // History updates are urgent in Next. Deferring only the local view lets
+  // React's ViewTransition capture it without delaying the address or controls.
+  const pathname = useDeferredValue(usePathname() || "/");
   const shouldReduceMotion = useReducedMotion();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -32,7 +33,6 @@ export default function App({ children }) {
   const routeScrollPendingRef = useRef(false);
   const pendingPathRef = useRef(null);
   const navigateRef = useRef(null);
-  const prefetchedPathsRef = useRef(new Map());
   const filterSnapshotRef = useRef({ query: "", statusFilter: "All", tagFilter: "All" });
 
   const postBySlug = useMemo(() => {
@@ -125,59 +125,6 @@ export default function App({ children }) {
   }, []);
 
   useEffect(() => {
-    const connection = navigator.connection;
-    if (connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType)) return;
-    let idleId = null;
-    let timerId = null;
-    const queue = new Set();
-    const prefetch = (path) => {
-      const now = Date.now();
-      if (now - (prefetchedPathsRef.current.get(path) ?? 0) < 60000) return;
-      prefetchedPathsRef.current.set(path, now);
-      router.prefetch(path);
-    };
-    const internalPath = (link) => {
-      if (!link || link.origin !== window.location.origin || link.hasAttribute("download") || link.target === "_blank" || link.pathname === pathname) return null;
-      return parseRoute(link.pathname).kind === "not-found" ? null : link.pathname;
-    };
-    const flush = () => {
-      idleId = null;
-      timerId = null;
-      for (const path of [...queue].slice(0, 12)) prefetch(path);
-      queue.clear();
-    };
-    const schedule = () => {
-      if (idleId !== null || timerId !== null) return;
-      if ("requestIdleCallback" in window) idleId = window.requestIdleCallback(flush, { timeout: 1200 });
-      else timerId = window.setTimeout(flush, 150);
-    };
-    function prefetchLink(event) {
-      const link = event.target.closest?.("a[href]");
-      const path = internalPath(link);
-      if (path) prefetch(path);
-    }
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        const path = internalPath(entry.target);
-        if (path) queue.add(path);
-        observer.unobserve(entry.target);
-      }
-      if (queue.size) schedule();
-    }, { rootMargin: "80px" });
-    document.querySelectorAll(".site-header a[href], .route-stage a[href]").forEach((link) => observer.observe(link));
-    document.addEventListener("pointerover", prefetchLink);
-    document.addEventListener("focusin", prefetchLink);
-    return () => {
-      observer.disconnect();
-      if (idleId !== null) window.cancelIdleCallback(idleId);
-      if (timerId !== null) window.clearTimeout(timerId);
-      document.removeEventListener("pointerover", prefetchLink);
-      document.removeEventListener("focusin", prefetchLink);
-    };
-  }, [router, pathname, greetingDismissed]);
-
-  useEffect(() => {
     if (route.kind !== "home") {
       clearListTransitionTimer();
       setListTransitionState("idle");
@@ -266,7 +213,9 @@ export default function App({ children }) {
 
     pendingPathRef.current = nextPath;
     routeScrollPendingRef.current = true;
-    startTransition(() => router.push(nextPath, { scroll: false }));
+    // Every view already uses bundled content. Next's supported History API
+    // updates usePathname without fetching redundant route/segment payloads.
+    window.history.pushState(null, "", nextPath);
   }
   navigateRef.current = navigateTo;
 
@@ -334,6 +283,7 @@ export default function App({ children }) {
   }
 
   const state = {
+    pathname,
     greetingDismissed, filteredPosts, statusFilter, setStatusFilter, tagFilter, setTagFilter,
     dismissGreeting, replayGreeting, openPost, openSection, navigateTo, listTransitionState,
     resetScroll: routeScrollPendingRef.current,

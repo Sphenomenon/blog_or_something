@@ -7,6 +7,7 @@ import { posts } from "../src/data/posts.js";
 import { sections } from "../src/data/sections.js";
 import { TEXT_TRANSITION_BUDGET, TEXT_TRANSITION_MOBILE_BUDGET } from "../src/lib/text-transition.js";
 import { publicFoodMapPlaces } from "../src/generated/content.js";
+import { getRouteMetadata, SITE_TITLE } from "../src/lib/route-metadata.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const evidence = fileURLToPath(new URL("../.sisyphus/evidence/route-motion/", import.meta.url));
@@ -15,6 +16,7 @@ const routes = ["/", "/archive", "/about", "/food-map", ...sections.map((section
 const results = [];
 const pageErrors = [];
 const consoleErrors = [];
+const routePayloadRequests = [];
 let browser;
 
 function normalize(path) {
@@ -24,7 +26,7 @@ function normalize(path) {
 async function settle(page, target) {
   await page.waitForFunction((pathname) => {
     const frame = document.querySelector(".route-frame");
-    return location.pathname === pathname && frame && document.querySelectorAll(".route-frame").length === 1;
+    return location.pathname === pathname && document.querySelector(".route-stage")?.dataset.routePath === pathname && frame && document.querySelectorAll(".route-frame").length === 1;
   }, target);
   await page.waitForFunction(() => document.getAnimations().every((animation) => !animation.effect?.pseudoElement || animation.playState === "finished" || animation.playState === "idle"));
   await page.waitForFunction(() => !document.querySelector(".greeting-screen"));
@@ -68,6 +70,12 @@ try {
       });
       await context.route("**/*", (route) => {
         const url = new URL(route.request().url());
+        if (url.origin === origin && (url.pathname.endsWith(".txt") || route.request().method() === "HEAD")) {
+          // Route data deliberately never responds: bundled views must switch
+          // immediately, without prefetch or navigation requests to the server.
+          routePayloadRequests.push(route.request().url());
+          return;
+        }
         if (url.origin === origin || ["data:", "blob:"].includes(url.protocol)) return route.continue();
         return route.fulfill({ status: 200, contentType: route.request().resourceType() === "script" ? "application/javascript" : "text/plain", body: "" });
       });
@@ -93,6 +101,10 @@ try {
         await page.evaluate(() => { window.__routeTransitions = []; });
         await navigate(page, target);
         await page.waitForFunction((pathname) => location.pathname === pathname && document.querySelector(".route-frame")?.dataset.entryMotion === "text", target);
+        await page.waitForFunction((pathname) => document.querySelector(".route-stage")?.dataset.routePath === pathname, target, { timeout: 1000 });
+        const metadata = getRouteMetadata(target);
+        await page.waitForFunction((title) => document.title === title, metadata.title ? `${metadata.title} · 失眠档案馆` : SITE_TITLE, { timeout: 1000 });
+        assert.equal(await page.locator('meta[name="description"]').getAttribute("content"), metadata.description);
         const active = await page.evaluate(() => {
           const oldNames = window.__routeTransitions.at(-1)?.sourceNames ?? [];
           const named = [...document.querySelectorAll("[data-shared-glyph]")].filter((element) => element.style.viewTransitionName);
@@ -185,8 +197,9 @@ try {
   for (const forbidden of ["privateNote", "people", '"private":', '"draft":']) assert.equal(publicFoodData.includes(forbidden), false);
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(consoleErrors, []);
-  await writeFile(`${evidence}summary.json`, `${JSON.stringify({ checks: results.length, budget: TEXT_TRANSITION_BUDGET, results, pageErrors, consoleErrors, fallback: true, staticRoutes: routes.length }, null, 2)}\n`);
-  console.log(`PASS shared-text route motion (${results.length} transitions, ${routes.length} static routes, persisted music, rapid navigation, history, reduced-motion and API fallback)`);
+  assert.deepEqual(routePayloadRequests, [], "Local view navigation must not depend on route payload requests");
+  await writeFile(`${evidence}summary.json`, `${JSON.stringify({ checks: results.length, budget: TEXT_TRANSITION_BUDGET, results, pageErrors, consoleErrors, routePayloadRequests, fallback: true, staticRoutes: routes.length }, null, 2)}\n`);
+  console.log(`PASS shared-text route motion (${results.length} transitions, ${routes.length} static routes, no route requests, metadata, persisted music, rapid navigation, history, reduced-motion and API fallback)`);
 } finally {
   await browser?.close();
   await server.close();

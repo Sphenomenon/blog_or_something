@@ -1,7 +1,8 @@
 "use client";
 
 import { useSiteState, parseRoute } from "./App.jsx";
-import { ViewTransition } from "react";
+import { useEffect, ViewTransition } from "react";
+import { getRouteMetadata, SITE_TITLE } from "./lib/route-metadata.js";
 import { posts } from "./data/posts.js";
 import { getSectionBySlug } from "./data/sections.js";
 import { site } from "./data/yaml-loader.js";
@@ -15,8 +16,14 @@ import { ArticleView } from "./views/ArticleView.jsx";
 import { SectionView } from "./views/SectionView.jsx";
 import { FoodMapView } from "./views/FoodMapView.jsx";
 
-export default function BlogRoute({ pathname }) {
+export default function BlogRoute({ pathname: initialPathname }) {
   const state = useSiteState();
+  const pathname = state.pathname ?? initialPathname;
+  useEffect(() => {
+    const metadata = getRouteMetadata(pathname);
+    document.title = metadata.title ? `${metadata.title} · 失眠档案馆` : SITE_TITLE;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", metadata.description);
+  }, [pathname]);
   const route = parseRoute(pathname);
   const selectedPost = route.kind === "post" ? posts.find((post) => post.slug === route.slug) : null;
   const selectedSectionData = route.kind === "section" ? getSectionBySlug(route.sectionSlug) : null;
@@ -25,7 +32,7 @@ export default function BlogRoute({ pathname }) {
   const routeKey = `${route.kind}-${pathname}-${greeting ? "gate" : "view"}`;
   return (
     <ViewTransition name="nocturne-route" update="nocturne-page" share="nocturne-page">
-    <main className="route-stage" data-route-kind={route.kind} data-transition-state="idle" data-list-transition-state={state.listTransitionState}>
+    <main className="route-stage" data-route-kind={route.kind} data-route-path={pathname} data-transition-state="idle" data-list-transition-state={state.listTransitionState}>
       <TextRouteFrame key={routeKey} greeting={greeting} resetScroll={state.resetScroll} completeNavigation={state.completeNavigation}>
         {greeting && <GreetingGate onEnterHome={state.dismissGreeting} />}
         {route.kind === "home" && !greeting && <HomeView filteredPosts={state.filteredPosts} onOpenPost={state.openPost} onSectionChange={state.openSection}
